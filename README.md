@@ -1,73 +1,94 @@
-# React + TypeScript + Vite
+# Savings Planner
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A client-side savings and debt tracker built for clarity. Set goals with deadlines, model loan payoffs, and run what-if simulations — all in the browser, no account required.
 
-Currently, two official plugins are available:
+![Demo](docs/demo.gif)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+> **Record your own GIF:** open the app, walk through adding a goal and a loan, drag to reorder, tweak the what-if slider. [ScreenToGif](https://www.screentogif.com/) (Windows) or [Kap](https://getkap.co/) (macOS) work well. Save to `docs/demo.gif` and commit.
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Features
 
-## Expanding the ESLint configuration
+| Feature | Details |
+|---|---|
+| **Savings goals** | Name, target amount, current saved, priority, optional deadline |
+| **Deadline tracking** | Visual "on time / missed" badge per goal, shortfall-per-month hint |
+| **Loan / instalment tracking** | Remaining balance + monthly payment; shown separately from living expenses |
+| **Drag-and-drop priority** | Reorder goals; allocation engine follows the new order instantly |
+| **What-if sliders** | Simulate income change (-5k ... +10k PLN/month) and loan overpayment |
+| **Cumulative savings chart** | Goals as filled areas, loans as descending lines, vertical payoff markers |
+| **Monthly schedule table** | Editable per-goal allocations per month, per-month income/expense overrides |
+| **LocalStorage persistence** | All data survives page reload; no backend, no telemetry |
+| **Export / Import** | One-click JSON backup and restore |
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Tech stack
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+| Layer | Library |
+|---|---|
+| Build | Vite 6 |
+| UI | React 19 + TypeScript |
+| Styling | Tailwind CSS 4 |
+| State | Zustand 5 (persisted to localStorage) |
+| Chart | Recharts 3 |
+| Drag & drop | @dnd-kit/core + sortable |
+| Icons | lucide-react |
+| Tests | Vitest |
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+---
+
+## Quick start
+
+```bash
+git clone https://github.com/Jakub-Mikolajczyk-pl/savings-planner.git
+cd savings-planner
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open [http://localhost:5173](http://localhost:5173).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm test          # unit tests
+npm run build     # production build -> dist/
 ```
+
+---
+
+## How it works
+
+All logic runs in the browser. The core engine (`src/domain/allocation.ts`) simulates a monthly schedule:
+
+1. **Loan payments** are deducted first (minimum payment + any overpayment, avalanche order).
+2. **Free cash** (income - expenses - loan payments) is distributed to goals:
+   - Goals with a **fixed monthly allocation** get that amount first.
+   - Remaining cash is split by **urgency** (deadline proximity x amount remaining).
+3. **What-if bonus pool** (positive income delta) is added on top of fixed allocations, so the slider always has a visible effect.
+4. **GoalProgress** records when each goal completes relative to its deadline: "on time", "missed", or "no deadline".
+
+Data never leaves the device. The schedule is recalculated reactively on every state change via Zustand selectors and `useMemo`.
+
+---
+
+## Project structure
+
+```
+src/
+  domain/          # pure functions: allocation engine, formatting, types
+  store/           # Zustand store (goals, loans, overrides, what-if state)
+  components/
+    hero/          # summary cards + income/expense inputs
+    goals/         # goal CRUD + drag-and-drop list
+    loans/         # loan CRUD list
+    chart/         # SavingsChart (Recharts) + WhatIfSlider
+    schedule/      # monthly schedule table with inline edits
+    ui/            # shared: CurrencyInput, Collapsible, AdvancedSettings
+```
+
+---
+
+## License
+
+MIT
