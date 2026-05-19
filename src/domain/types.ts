@@ -1,3 +1,26 @@
+export interface Loan {
+  id: string
+  name: string
+  remainingBalance: number  // current outstanding balance
+  monthlyPayment: number    // minimum monthly payment
+}
+
+export interface LoanMonthEntry {
+  loanId: string
+  payment: number       // actual payment this month
+  balanceAfter: number
+  isPaidOff: boolean
+}
+
+export interface LoanProgress {
+  loanId: string
+  name: string
+  initialBalance: number
+  monthlyPayment: number
+  payoffMonth?: string          // "YYYY-MM" within horizon
+  projectedPayoffMonth?: string // beyond horizon
+}
+
 export interface Goal {
   id: string
   name: string
@@ -18,6 +41,7 @@ export interface Settings {
 export interface MonthOverride {
   income?: number
   expenses?: number
+  perGoalAllocation?: Record<string, number> // goalId → manual allocation
 }
 
 export interface Overrides {
@@ -25,12 +49,14 @@ export interface Overrides {
 }
 
 export interface MonthRow {
-  yearMonth: string       // "YYYY-MM"
-  label: string           // "Maj 2026"
+  yearMonth: string
+  label: string
   income: number
   expenses: number
-  freeCash: number        // income - expenses
+  loanPaymentsTotal: number
+  freeCash: number
   goalAllocations: GoalAllocation[]
+  loanEntries: LoanMonthEntry[]
   isDeficit: boolean
 }
 
@@ -39,6 +65,7 @@ export interface GoalAllocation {
   allocated: number
   balanceAfter: number
   isComplete: boolean
+  isManualOverride: boolean
 }
 
 export interface GoalProgress {
@@ -46,13 +73,17 @@ export interface GoalProgress {
   name: string
   targetAmount: number
   currentBalance: number
-  completionMonth?: string // "YYYY-MM" when goal is reached
+  completionMonth?: string   // within horizon
+  projectedETA?: string      // computed if not within horizon
   isComplete: boolean
-  shortfallPerMonth?: number // if deadline can't be met
-  deadlineMissed: boolean
+  deadline?: string          // "YYYY-MM" of the goal's deadline
+  deadlineMissed: boolean    // true if completion is after deadline (or won't complete before deadline)
+  deadlineOnTime: boolean    // true if deadline exists and will be met
+  shortfallPerMonth?: number
 }
 
 export interface Schedule {
   rows: MonthRow[]
   goalProgress: GoalProgress[]
+  loanProgress: LoanProgress[]
 }

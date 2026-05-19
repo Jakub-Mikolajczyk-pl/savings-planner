@@ -1,5 +1,6 @@
 import { Hero } from './components/hero/Hero'
 import { GoalList } from './components/goals/GoalList'
+import { LoanList } from './components/loans/LoanList'
 import { ScheduleTable } from './components/schedule/ScheduleTable'
 import { SavingsChart } from './components/chart/SavingsChart'
 import { WhatIfSlider } from './components/chart/WhatIfSlider'
@@ -10,6 +11,7 @@ import { TrendingUp } from 'lucide-react'
 
 export default function App() {
   const goals = useStore(s => s.goals)
+  const loans = useStore(s => s.loans)
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
@@ -31,7 +33,7 @@ export default function App() {
           <Hero />
         </div>
 
-        {/* Wykres + what-if */}
+        {/* Savings chart + what-if */}
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm space-y-4">
           <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Narastanie oszczędności</h2>
           <SavingsChart />
@@ -48,6 +50,15 @@ export default function App() {
           badge={goals.length > 0 ? String(goals.length) : undefined}
         >
           <GoalList />
+        </Collapsible>
+
+        {/* Kredyty */}
+        <Collapsible
+          title="Kredyty / Raty"
+          defaultOpen={loans.length === 0}
+          badge={loans.length > 0 ? String(loans.length) : undefined}
+        >
+          <LoanList />
         </Collapsible>
 
         {/* Harmonogram */}

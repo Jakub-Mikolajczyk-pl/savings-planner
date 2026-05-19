@@ -2,13 +2,15 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { buildSchedule } from '../domain/allocation'
 import { currentYearMonth } from '../domain/formatting'
-import type { Goal, Settings, Overrides, Schedule } from '../domain/types'
+import type { Goal, Loan, Settings, Overrides, Schedule } from '../domain/types'
 
 interface AppState {
   settings: Settings
   goals: Goal[]
+  loans: Loan[]
   overrides: Overrides
   whatIfDelta: number
+  loanOverpayment: number
 
   // Actions
   updateSettings: (patch: Partial<Settings>) => void
@@ -16,9 +18,14 @@ interface AppState {
   updateGoal: (id: string, patch: Partial<Omit<Goal, 'id'>>) => void
   removeGoal: (id: string) => void
   reorderGoals: (orderedIds: string[]) => void
-  setOverride: (yearMonth: string, patch: Partial<Overrides[string]>) => void
+  addLoan: (loan: Omit<Loan, 'id'>) => void
+  updateLoan: (id: string, patch: Partial<Omit<Loan, 'id'>>) => void
+  removeLoan: (id: string) => void
+  setOverride: (yearMonth: string, patch: Partial<Omit<Overrides[string], 'perGoalAllocation'>>) => void
+  setGoalAllocationOverride: (yearMonth: string, goalId: string, amount: number | null) => void
   clearOverride: (yearMonth: string) => void
   setWhatIfDelta: (delta: number) => void
+  setLoanOverpayment: (amount: number) => void
   exportData: () => string
   importData: (json: string) => void
   resetAll: () => void
@@ -40,8 +47,10 @@ export const useStore = create<AppState>()(
     (set, get) => ({
       settings: defaultSettings,
       goals: [],
+      loans: [],
       overrides: {},
       whatIfDelta: 0,
+      loanOverpayment: 0,
 
       updateSettings: (patch) =>
         set(s => ({ settings: { ...s.settings, ...patch } })),
@@ -73,6 +82,15 @@ export const useStore = create<AppState>()(
           }),
         })),
 
+      addLoan: (loanData) =>
+        set(s => ({ loans: [...s.loans, { ...loanData, id: crypto.randomUUID() }] })),
+
+      updateLoan: (id, patch) =>
+        set(s => ({ loans: s.loans.map(l => l.id === id ? { ...l, ...patch } : l) })),
+
+      removeLoan: (id) =>
+        set(s => ({ loans: s.loans.filter(l => l.id !== id) })),
+
       setOverride: (yearMonth, patch) =>
         set(s => ({
           overrides: {
@@ -81,6 +99,20 @@ export const useStore = create<AppState>()(
           },
         })),
 
+      setGoalAllocationOverride: (yearMonth, goalId, amount) =>
+        set(s => {
+          const current = s.overrides[yearMonth] ?? {}
+          const perGoal = { ...(current.perGoalAllocation ?? {}) }
+          if (amount === null) {
+            delete perGoal[goalId]
+          } else {
+            perGoal[goalId] = amount
+          }
+          const updated = { ...current, perGoalAllocation: perGoal }
+          if (Object.keys(updated.perGoalAllocation!).length === 0) delete updated.perGoalAllocation
+          return { overrides: { ...s.overrides, [yearMonth]: updated } }
+        }),
+
       clearOverride: (yearMonth) =>
         set(s => {
           const { [yearMonth]: _, ...rest } = s.overrides
@@ -88,10 +120,11 @@ export const useStore = create<AppState>()(
         }),
 
       setWhatIfDelta: (delta) => set({ whatIfDelta: delta }),
+      setLoanOverpayment: (amount) => set({ loanOverpayment: amount }),
 
       exportData: () => {
-        const { settings, goals, overrides } = get()
-        return JSON.stringify({ settings, goals, overrides }, null, 2)
+        const { settings, goals, loans, overrides } = get()
+        return JSON.stringify({ settings, goals, loans, overrides }, null, 2)
       },
 
       importData: (json) => {
@@ -99,25 +132,27 @@ export const useStore = create<AppState>()(
         set({
           settings: data.settings ?? defaultSettings,
           goals: data.goals ?? [],
+          loans: data.loans ?? [],
           overrides: data.overrides ?? {},
         })
       },
 
       resetAll: () =>
-        set({ settings: defaultSettings, goals: [], overrides: {}, whatIfDelta: 0 }),
+        set({ settings: defaultSettings, goals: [], loans: [], overrides: {}, whatIfDelta: 0, loanOverpayment: 0 }),
 
       getSchedule: () => {
-        const { settings, goals, overrides } = get()
-        return buildSchedule(settings, goals, overrides)
+        const { settings, goals, loans, overrides } = get()
+        return buildSchedule(settings, goals, loans, overrides)
       },
 
       getWhatIfSchedule: () => {
-        const { settings, goals, overrides, whatIfDelta } = get()
-        return buildSchedule(settings, goals, overrides, whatIfDelta)
+        const { settings, goals, loans, overrides, whatIfDelta, loanOverpayment } = get()
+        return buildSchedule(settings, goals, loans, overrides, whatIfDelta, loanOverpayment)
       },
     }),
     {
       name: 'savings-planner-v1',
+      partialize: (s) => ({ settings: s.settings, goals: s.goals, loans: s.loans, overrides: s.overrides }),
     },
   ),
 )

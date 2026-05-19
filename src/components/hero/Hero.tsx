@@ -1,16 +1,26 @@
+import { useMemo } from 'react'
 import { useStore } from '../../store'
-import { formatPLN } from '../../domain/formatting'
+import { buildSchedule } from '../../domain/allocation'
+import { formatPLN, formatYearMonth } from '../../domain/formatting'
 import { CurrencyInput } from '../ui/CurrencyInput'
-import { TrendingUp, AlertTriangle } from 'lucide-react'
+import { TrendingUp, AlertTriangle, CheckCircle2, Clock } from 'lucide-react'
 
 export function Hero() {
   const settings = useStore(s => s.settings)
   const goals = useStore(s => s.goals)
+  const loans = useStore(s => s.loans)
+  const overrides = useStore(s => s.overrides)
   const updateSettings = useStore(s => s.updateSettings)
-  const getSchedule = useStore(s => s.getSchedule)
 
-  const schedule = getSchedule()
-  const freeCash = settings.monthlyIncome - settings.monthlyExpenses
+  const schedule = useMemo(
+    () => buildSchedule(settings, goals, loans, overrides),
+    [settings, goals, loans, overrides],
+  )
+  // Sum active loan payments (loans not yet paid off)
+  const totalLoanPayments = loans.reduce(
+    (sum, l) => sum + (l.remainingBalance > 0 ? l.monthlyPayment : 0), 0
+  )
+  const freeCash = settings.monthlyIncome - settings.monthlyExpenses - totalLoanPayments
   const isDeficit = freeCash < 0
 
   // Most urgent incomplete goal
@@ -38,11 +48,21 @@ export function Hero() {
           value={settings.monthlyIncome}
           onChange={v => updateSettings({ monthlyIncome: v })}
         />
-        <CurrencyInput
-          label="Koszty miesięczne"
-          value={settings.monthlyExpenses}
-          onChange={v => updateSettings({ monthlyExpenses: v })}
-        />
+        <div className="flex flex-col gap-1">
+          <CurrencyInput
+            label="Koszty miesięczne"
+            value={settings.monthlyExpenses}
+            onChange={v => updateSettings({ monthlyExpenses: v })}
+          />
+          {totalLoanPayments > 0 && (
+            <p className="text-xs text-gray-400 dark:text-gray-500 flex justify-between px-1">
+              <span>+ raty kredytów</span>
+              <span className="tabular-nums text-orange-500 dark:text-orange-400">
+                +{formatPLN(totalLoanPayments)}/mies.
+              </span>
+            </p>
+          )}
+        </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
             Wolne środki
@@ -54,6 +74,11 @@ export function Hero() {
           }`}>
             {formatPLN(freeCash)}/mies.
           </div>
+          {totalLoanPayments > 0 && (
+            <p className="text-xs text-gray-400 dark:text-gray-500 px-1 text-right">
+              po kosztach ({formatPLN(settings.monthlyExpenses)}) i ratach ({formatPLN(totalLoanPayments)})
+            </p>
+          )}
         </div>
       </div>
 
@@ -82,26 +107,56 @@ export function Hero() {
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div>
+                  <div className="min-w-0">
                     <p className="font-semibold text-gray-900 dark:text-gray-100">{gp.name}</p>
-                    {gp.deadlineMissed && (
-                      <p className="text-xs text-orange-600 dark:text-orange-400 flex items-center gap-1 mt-0.5">
-                        <AlertTriangle size={12} />
-                        Nie zdążysz na czas
+                    {/* Deadline row */}
+                    {gp.deadline && (
+                      <p className={`text-xs flex items-center gap-1 mt-0.5 ${
+                        gp.deadlineMissed
+                          ? 'text-orange-600 dark:text-orange-400'
+                          : 'text-gray-500 dark:text-gray-400'
+                      }`}>
+                        {gp.deadlineMissed
+                          ? <AlertTriangle size={11} />
+                          : <Clock size={11} />}
+                        Deadline: {formatYearMonth(gp.deadline)}
+                        {gp.deadlineMissed && ' — nie zdążysz!'}
+                        {gp.deadlineOnTime && ' ✓'}
                       </p>
                     )}
                   </div>
-                  {gp.isComplete ? (
-                    <span className="text-xs bg-green-200 dark:bg-green-800 text-green-800 dark:text-green-200 px-2 py-0.5 rounded-full whitespace-nowrap">
-                      Osiągnięty!
-                    </span>
-                  ) : gp.completionMonth ? (
-                    <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full whitespace-nowrap">
-                      ~{gp.completionMonth}
-                    </span>
-                  ) : (
-                    <span className="text-xs text-gray-400 whitespace-nowrap">Brak ETA</span>
-                  )}
+                  {/* Completion badge */}
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    {gp.isComplete && gp.deadlineOnTime && (
+                      <span className="text-xs bg-green-200 dark:bg-green-800 text-green-800 dark:text-green-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <CheckCircle2 size={10} /> Osiągnięty na czas!
+                      </span>
+                    )}
+                    {gp.isComplete && !gp.deadline && (
+                      <span className="text-xs bg-green-200 dark:bg-green-800 text-green-800 dark:text-green-200 px-2 py-0.5 rounded-full">
+                        Osiągnięty!
+                      </span>
+                    )}
+                    {gp.isComplete && gp.deadlineMissed && (
+                      <span className="text-xs bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400 px-2 py-0.5 rounded-full">
+                        Osiągnięty za późno
+                      </span>
+                    )}
+                    {!gp.isComplete && (gp.completionMonth || gp.projectedETA) && (
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${
+                        gp.deadlineMissed
+                          ? 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400'
+                          : 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+                      }`}
+                        title={gp.projectedETA && !gp.completionMonth ? 'Prognoza poza horyzontem kalkulacji' : undefined}
+                      >
+                        ~{gp.completionMonth ?? gp.projectedETA}{gp.projectedETA && !gp.completionMonth ? ' *' : ''}
+                      </span>
+                    )}
+                    {!gp.isComplete && !gp.completionMonth && !gp.projectedETA && (
+                      <span className="text-xs text-gray-400">brak alokacji</span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Progress bar */}
