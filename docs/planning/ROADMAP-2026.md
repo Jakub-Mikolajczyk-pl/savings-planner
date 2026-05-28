@@ -140,7 +140,8 @@ create table finance.accounts (
   name text not null,
   bucket text,  -- 'cash' | 'investment' | 'crypto' | 'retirement' | 'down_payment'
   currency text not null default 'PLN',
-  archived boolean not null default false,
+  opened_at date,                 -- pierwszy snapshot (auto-fill z importera)
+  closed_at date,                 -- null = aktywne; data = zamknięte/przeniesione
   created_at timestamptz not null default now()
 );
 
@@ -292,8 +293,9 @@ Algorytm:
 1. Wybór pliku → wyciągnięcie roku z nazwy (lub komórki `A1`) i header kont.
 2. UI mapper: każdą kolumnę przypisz do `istniejące konto | nowe konto | pomiń (derived/derived bucket)`. Mapping jest **persystowany** — przy kolejnych latach od razu pre-fillujemy.
 3. Każdy wiersz: parser daty `<MiesiącPL> (DD.MM)` + rok z header → `snapshot_date date`.
-4. Merge: snapshoty pod istniejącymi `account_id` (po nazwie). Konta, które pojawiły się tylko w niektórych latach (np. „Santander Mieszkanie" startuje w kwietniu 2024) — `created_at` ustawiamy na pierwszą datę.
-5. Konta zamknięte (brak balances w nowszych latach) → flaga `archived: true`.
+4. Merge: snapshoty pod istniejącymi `account_id` (po nazwie). `opened_at` = data pierwszego snapshota (np. „Santander Mieszkanie" → 2024-04).
+5. Lifecycle: importer wykrywa „konto miało snapshoty do miesiąca X, potem cisza ≥3 miesiące w kolejnych latach" → dialog: „Zamknąć z datą X? (lub było tylko wpisane ad-hoc, ignoruj)". `closed_at` ustawiamy z odpowiedzi.
+6. Konta zamknięte renderują się tylko w miesiącach `[opened_at, closed_at]`. W widoku tabeli — toggle „pokaż zamknięte". Net worth chart: balance = 0 od `closed_at`, historia pozostaje.
 
 Skala: ~60 miesięcy × ~10 kont = ~600 snapshotów total. localStorage to udźwignie bez problemu, w bazie żaden temat.
 
