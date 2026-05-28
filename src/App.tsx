@@ -1,6 +1,7 @@
 import { Hero } from './components/hero/Hero'
 import { GoalList } from './components/goals/GoalList'
 import { LoanList } from './components/loans/LoanList'
+import { MortgageSection } from './components/mortgage/MortgageSection'
 import { ScheduleTable } from './components/schedule/ScheduleTable'
 import { SavingsChart } from './components/chart/SavingsChart'
 import { WhatIfSlider } from './components/chart/WhatIfSlider'
@@ -12,6 +13,7 @@ import { TrendingUp } from 'lucide-react'
 export default function App() {
   const goals = useStore(s => s.goals)
   const loans = useStore(s => s.loans)
+  const mortgagePlan = useStore(s => s.mortgagePlan)
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
@@ -61,8 +63,16 @@ export default function App() {
           <LoanList />
         </Collapsible>
 
+        <Collapsible
+          title="Kredyt hipoteczny"
+          defaultOpen={!mortgagePlan}
+          badge={mortgagePlan ? 'aktywny plan' : undefined}
+        >
+          <MortgageSection />
+        </Collapsible>
+
         {/* Harmonogram */}
-        <Collapsible title="Harmonogram miesięczny" badge={goals.length > 0 ? 'edytowalny' : undefined}>
+        <Collapsible title="Harmonogram miesięczny" badge={goals.length > 0 || mortgagePlan ? 'edytowalny' : undefined}>
           <ScheduleTable />
         </Collapsible>
 

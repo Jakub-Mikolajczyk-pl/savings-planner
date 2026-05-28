@@ -5,7 +5,7 @@ const plnFormatter = new Intl.NumberFormat('pl-PL', {
   maximumFractionDigits: 0,
 })
 
-export const formatPLN = (amount: number): string => plnFormatter.format(amount)
+export const formatPLN = (amount: unknown): string => plnFormatter.format(Number(amount ?? 0))
 
 const MONTH_NAMES = [
   'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',

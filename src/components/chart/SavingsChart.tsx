@@ -29,17 +29,18 @@ export function SavingsChart() {
   const settings = useStore(s => s.settings)
   const goals = useStore(s => s.goals)
   const loans = useStore(s => s.loans)
+  const mortgagePlan = useStore(s => s.mortgagePlan)
   const overrides = useStore(s => s.overrides)
   const whatIfDelta = useStore(s => s.whatIfDelta)
   const loanOverpayment = useStore(s => s.loanOverpayment)
 
   const schedule = useMemo(
-    () => buildSchedule(settings, goals, loans, overrides),
-    [settings, goals, loans, overrides],
+    () => buildSchedule(settings, goals, loans, overrides, 0, 0, mortgagePlan),
+    [settings, goals, loans, overrides, mortgagePlan],
   )
   const whatIfSchedule = useMemo(
-    () => buildSchedule(settings, goals, loans, overrides, whatIfDelta, loanOverpayment),
-    [settings, goals, loans, overrides, whatIfDelta, loanOverpayment],
+    () => buildSchedule(settings, goals, loans, overrides, whatIfDelta, loanOverpayment, mortgagePlan),
+    [settings, goals, loans, overrides, whatIfDelta, loanOverpayment, mortgagePlan],
   )
   const sortedGoals = [...goals].sort((a, b) => a.priority - b.priority)
 
@@ -147,29 +148,31 @@ export function SavingsChart() {
             className="fill-gray-500"
           />
           <Tooltip
-            formatter={(value: number, name: string) => {
-              if (name.startsWith('wi_goal_')) {
-                const goalId = name.replace('wi_goal_', '')
+            formatter={(value: unknown, name: unknown) => {
+              const numericValue = typeof value === 'number' ? value : Number(value ?? 0)
+              const key = String(name)
+              if (key.startsWith('wi_goal_')) {
+                const goalId = key.replace('wi_goal_', '')
                 const goal = sortedGoals.find(g => g.id === goalId)
-                return [formatPLN(value), `${goal?.name ?? goalId} (scenariusz)`]
+                return [formatPLN(numericValue), `${goal?.name ?? goalId} (scenariusz)`]
               }
-              if (name.startsWith('goal_')) {
-                const goalId = name.replace('goal_', '')
-                return [formatPLN(value), sortedGoals.find(g => g.id === goalId)?.name ?? goalId]
+              if (key.startsWith('goal_')) {
+                const goalId = key.replace('goal_', '')
+                return [formatPLN(numericValue), sortedGoals.find(g => g.id === goalId)?.name ?? goalId]
               }
-              if (name.startsWith('wi_loan_')) {
-                const loanId = name.replace('wi_loan_', '')
+              if (key.startsWith('wi_loan_')) {
+                const loanId = key.replace('wi_loan_', '')
                 const loan = loans.find(l => l.id === loanId)
                 return [formatPLN(value), `${loan?.name ?? loanId} (z nadpłatą)`]
               }
-              if (name.startsWith('loan_')) {
-                const loanId = name.replace('loan_', '')
+              if (key.startsWith('loan_')) {
+                const loanId = key.replace('loan_', '')
                 return [formatPLN(value), `↓ ${loans.find(l => l.id === loanId)?.name ?? loanId}`]
               }
-              return [formatPLN(value), name]
+              return [formatPLN(numericValue), key]
             }}
             contentStyle={{ fontSize: 12, border: '1px solid #e5e7eb', borderRadius: 8 }}
-            labelFormatter={(label: string) => label}
+            labelFormatter={label => String(label ?? '')}
           />
           <Legend
             formatter={(value: string) => {
