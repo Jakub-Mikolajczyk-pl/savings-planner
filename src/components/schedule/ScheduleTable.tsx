@@ -40,19 +40,20 @@ export function ScheduleTable() {
   const settings = useStore(s => s.settings)
   const goals = useStore(s => s.goals)
   const loans = useStore(s => s.loans)
+  const mortgagePlan = useStore(s => s.mortgagePlan)
   const overrides = useStore(s => s.overrides)
   const setOverride = useStore(s => s.setOverride)
   const setGoalAllocationOverride = useStore(s => s.setGoalAllocationOverride)
   const clearOverride = useStore(s => s.clearOverride)
 
   const schedule = useMemo(
-    () => buildSchedule(settings, goals, loans, overrides),
-    [settings, goals, loans, overrides],
+    () => buildSchedule(settings, goals, loans, overrides, 0, 0, mortgagePlan),
+    [settings, goals, loans, overrides, mortgagePlan],
   )
   const sortedGoals = [...goals].sort((a, b) => a.priority - b.priority)
 
-  if (goals.length === 0) {
-    return <p className="text-sm text-gray-400 text-center py-4">Dodaj cele żeby zobaczyć harmonogram</p>
+  if (goals.length === 0 && !mortgagePlan) {
+    return <p className="text-sm text-gray-400 text-center py-4">Dodaj cele lub hipotekę żeby zobaczyć harmonogram</p>
   }
 
   return (

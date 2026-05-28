@@ -13,17 +13,18 @@ export function LoanChart() {
   const settings = useStore(s => s.settings)
   const goals = useStore(s => s.goals)
   const loans = useStore(s => s.loans)
+  const mortgagePlan = useStore(s => s.mortgagePlan)
   const overrides = useStore(s => s.overrides)
   const loanOverpayment = useStore(s => s.loanOverpayment)
   const setLoanOverpayment = useStore(s => s.setLoanOverpayment)
 
   const schedule = useMemo(
-    () => buildSchedule(settings, goals, loans, overrides),
-    [settings, goals, loans, overrides],
+    () => buildSchedule(settings, goals, loans, overrides, 0, 0, mortgagePlan),
+    [settings, goals, loans, overrides, mortgagePlan],
   )
   const whatIfSchedule = useMemo(
-    () => buildSchedule(settings, goals, loans, overrides, 0, loanOverpayment),
-    [settings, goals, loans, overrides, loanOverpayment],
+    () => buildSchedule(settings, goals, loans, overrides, 0, loanOverpayment, mortgagePlan),
+    [settings, goals, loans, overrides, loanOverpayment, mortgagePlan],
   )
 
   if (loans.length === 0) return null
@@ -108,9 +109,10 @@ export function LoanChart() {
             className="fill-gray-500"
           />
           <Tooltip
-            formatter={(value: number, name: string) => {
-              const isWhatIf = name.startsWith('wi_')
-              const loanId = name.replace(/^(base_|wi_)/, '')
+            formatter={(value: unknown, name: unknown) => {
+              const key = String(name)
+              const isWhatIf = key.startsWith('wi_')
+              const loanId = key.replace(/^(base_|wi_)/, '')
               const loan = loans.find(l => l.id === loanId)
               return [formatPLN(value), `${loan?.name ?? loanId}${isWhatIf ? ' (nadpłata)' : ''}`]
             }}

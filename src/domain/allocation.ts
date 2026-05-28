@@ -1,5 +1,6 @@
-import type { Goal, Loan, Settings, Overrides, Schedule, MonthRow, GoalAllocation, GoalProgress, LoanMonthEntry, LoanProgress } from './types'
+import type { Goal, Loan, Settings, Overrides, Schedule, MonthRow, GoalAllocation, GoalProgress, LoanMonthEntry, LoanProgress, MortgagePlan } from './types'
 import { addMonths, formatYearMonth, monthDiff, dateToYearMonth } from './formatting'
+import { buildMortgageSchedule } from './mortgage'
 
 interface GoalState {
   goalId: string
@@ -120,6 +121,7 @@ export function buildSchedule(
   overrides: Overrides,
   whatIfDelta = 0,
   loanOverpayment = 0,
+  mortgagePlan?: MortgagePlan,
 ): Schedule {
   const sortedGoals = [...goals].sort((a, b) => a.priority - b.priority)
   const states: GoalState[] = sortedGoals.map(g => ({
@@ -132,6 +134,11 @@ export function buildSchedule(
   const loanBalances = new Map<string, number>(loans.map(l => [l.id, l.remainingBalance]))
 
   const rows: MonthRow[] = []
+  const { entries: mortgageEntries, summary: mortgageSummary } = buildMortgageSchedule(
+    mortgagePlan,
+    settings.startMonth,
+    settings.horizonMonths,
+  )
 
   for (let i = 0; i < settings.horizonMonths; i++) {
     const yearMonth = addMonths(settings.startMonth, i)
@@ -166,23 +173,30 @@ export function buildSchedule(
       totalLoanPayment += payment
     }
 
+    const mortgageEntry = mortgageEntries[i]
+    const mortgagePaymentTotal = mortgageEntry
+      ? mortgageEntry.payment + mortgageEntry.overpayment
+      : 0
+
     // Savings allocation uses what's left after loan payments
-    const savingsPool = grossFreeCash - totalLoanPayment
+    const savingsPool = grossFreeCash - totalLoanPayment - mortgagePaymentTotal
     const bonusPool = Math.max(0, whatIfDelta)
     const manualAlloc = override.perGoalAllocation ?? {}
     const goalAllocations = allocateMonth(savingsPool, sortedGoals, states, yearMonth, manualAlloc, bonusPool)
 
     // freeCash = what's actually left for savings after expenses AND loan payments
-    const freeCash = income - expenses - totalLoanPayment
+    const freeCash = income - expenses - totalLoanPayment - mortgagePaymentTotal
     rows.push({
       yearMonth,
       label: formatYearMonth(yearMonth),
       income,
       expenses,
       loanPaymentsTotal: totalLoanPayment,
+      mortgagePaymentTotal,
       freeCash,
       goalAllocations,
       loanEntries,
+      mortgageEntry,
       isDeficit: freeCash < 0,
     })
   }
@@ -271,5 +285,5 @@ export function buildSchedule(
     }
   })
 
-  return { rows, goalProgress, loanProgress }
+  return { rows, goalProgress, loanProgress, mortgageSummary }
 }

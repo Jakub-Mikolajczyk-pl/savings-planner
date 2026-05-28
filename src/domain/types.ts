@@ -21,6 +21,66 @@ export interface LoanProgress {
   projectedPayoffMonth?: string // beyond horizon
 }
 
+export type MortgageOverpaymentMode = 'shortenTerm' | 'reducePayment'
+
+export interface MortgageOneTimeOverpayment {
+  id: string
+  yearMonth: string // "YYYY-MM"
+  amount: number
+}
+
+export interface MortgagePlan {
+  id: string
+  name: string
+  principal: number
+  annualInterestRate: number // percent, e.g. 7.2
+  originalTermMonths: number
+  termMonths: number // remaining months
+  monthlyOverpayment: number
+  overpaymentMode: MortgageOverpaymentMode
+  oneTimeOverpayments: MortgageOneTimeOverpayment[]
+  refinanceAnnualInterestRate?: number
+  refinanceCost?: number
+}
+
+export interface MortgageMonthEntry {
+  yearMonth: string
+  payment: number
+  interest: number
+  principalPaid: number
+  overpayment: number
+  balanceAfter: number
+  cumulativeInterest: number
+  isPaidOff: boolean
+}
+
+export interface MortgageSummary {
+  name: string
+  baseMonthlyPayment: number
+  currentMonthlyPayment: number
+  elapsedMonths: number
+  estimatedStartMonth: string
+  payoffMonth?: string
+  remainingMonths: number
+  originalTermMonths: number
+  monthsSaved: number
+  interestSaved: number
+  totalInterest: number
+  baseTotalInterest: number
+  refinance?: MortgageRefinanceSummary
+}
+
+export interface MortgageRefinanceSummary {
+  annualInterestRate: number
+  monthlyPayment: number
+  monthlyPaymentDelta: number
+  totalInterest: number
+  interestSaved: number
+  netSavings: number
+  refinanceCost: number
+  payoffMonth?: string
+}
+
 export interface Goal {
   id: string
   name: string
@@ -54,9 +114,11 @@ export interface MonthRow {
   income: number
   expenses: number
   loanPaymentsTotal: number
+  mortgagePaymentTotal: number
   freeCash: number
   goalAllocations: GoalAllocation[]
   loanEntries: LoanMonthEntry[]
+  mortgageEntry?: MortgageMonthEntry
   isDeficit: boolean
 }
 
@@ -86,4 +148,5 @@ export interface Schedule {
   rows: MonthRow[]
   goalProgress: GoalProgress[]
   loanProgress: LoanProgress[]
+  mortgageSummary?: MortgageSummary
 }

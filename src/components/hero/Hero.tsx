@@ -9,22 +9,22 @@ export function Hero() {
   const settings = useStore(s => s.settings)
   const goals = useStore(s => s.goals)
   const loans = useStore(s => s.loans)
+  const mortgagePlan = useStore(s => s.mortgagePlan)
   const overrides = useStore(s => s.overrides)
   const updateSettings = useStore(s => s.updateSettings)
 
   const schedule = useMemo(
-    () => buildSchedule(settings, goals, loans, overrides),
-    [settings, goals, loans, overrides],
+    () => buildSchedule(settings, goals, loans, overrides, 0, 0, mortgagePlan),
+    [settings, goals, loans, overrides, mortgagePlan],
   )
   // Sum active loan payments (loans not yet paid off)
   const totalLoanPayments = loans.reduce(
     (sum, l) => sum + (l.remainingBalance > 0 ? l.monthlyPayment : 0), 0
   )
-  const freeCash = settings.monthlyIncome - settings.monthlyExpenses - totalLoanPayments
+  const mortgagePayment = schedule.rows[0]?.mortgagePaymentTotal ?? 0
+  const totalDebtPayments = totalLoanPayments + mortgagePayment
+  const freeCash = settings.monthlyIncome - settings.monthlyExpenses - totalDebtPayments
   const isDeficit = freeCash < 0
-
-  // Most urgent incomplete goal
-  const firstIncomplete = schedule.goalProgress.find(g => !g.isComplete)
 
   const completedCount = schedule.goalProgress.filter(g => g.isComplete).length
   const totalGoals = schedule.goalProgress.length
@@ -54,11 +54,11 @@ export function Hero() {
             value={settings.monthlyExpenses}
             onChange={v => updateSettings({ monthlyExpenses: v })}
           />
-          {totalLoanPayments > 0 && (
+          {totalDebtPayments > 0 && (
             <p className="text-xs text-gray-400 dark:text-gray-500 flex justify-between px-1">
               <span>+ raty kredytów</span>
               <span className="tabular-nums text-orange-500 dark:text-orange-400">
-                +{formatPLN(totalLoanPayments)}/mies.
+                +{formatPLN(totalDebtPayments)}/mies.
               </span>
             </p>
           )}
@@ -74,9 +74,9 @@ export function Hero() {
           }`}>
             {formatPLN(freeCash)}/mies.
           </div>
-          {totalLoanPayments > 0 && (
+          {totalDebtPayments > 0 && (
             <p className="text-xs text-gray-400 dark:text-gray-500 px-1 text-right">
-              po kosztach ({formatPLN(settings.monthlyExpenses)}) i ratach ({formatPLN(totalLoanPayments)})
+              po kosztach ({formatPLN(settings.monthlyExpenses)}) i ratach ({formatPLN(totalDebtPayments)})
             </p>
           )}
         </div>
