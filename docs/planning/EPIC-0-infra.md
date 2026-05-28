@@ -1,6 +1,6 @@
 # EPIC 0 — Infrastruktura krok po kroku (Proxmox + Debian LXC)
 
-Runbook do postawienia infry pod savings-planner: storage z NATEC 1TB, dedykowany Postgres, Forgejo + runner, CT aplikacji. Wszystkie CT-y na **Debian 12 (bookworm)**, unprivileged LXC.
+Runbook do postawienia infry pod savings-planner: storage z NATEC 1TB, dedykowany Postgres, Forgejo + runner, CT aplikacji. Wszystkie CT-y na **Debian 13 (trixie)**, unprivileged LXC.
 
 > Konwencja: `[HOST]` = komendy na Proxmox host (`192.168.100.150`), `[CTxxx]` = wewnątrz danego kontenera (`pct enter xxx`). Wartości do podmiany w `<...>`.
 
@@ -72,15 +72,15 @@ Po tym: **zaktualizuj `STATE/homelab.md`** — NATEC = pula współdzielona LVM-
 ```bash
 # [HOST]
 pveam update
-pveam available --section system | grep debian-12
-pveam download local debian-12-standard_12.7-1_amd64.tar.zst   # podmień na aktualną wersję z listy
+pveam available --section system | grep debian-13
+pveam download local debian-13-standard_13.1-2_amd64.tar.zst   # podmień na aktualną wersję z listy
 ```
 
 ### 0.2b Utwórz kontener
 
 ```bash
 # [HOST]
-pct create 109 local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst \
+pct create 109 local:vztmpl/debian-13-standard_13.1-2_amd64.tar.zst \
   --hostname db-finance \
   --cores 1 --memory 1024 --swap 512 \
   --rootfs natec:10 \
@@ -98,13 +98,13 @@ pct enter 109
 ```bash
 # [CT109]
 apt update && apt -y upgrade
-apt -y install postgresql postgresql-contrib   # Debian 12 = PG15 (wystarczy)
+apt -y install postgresql postgresql-contrib   # Debian 13 (trixie) = PG17
 
-# nasłuch na LAN
-sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/15/main/postgresql.conf
+# nasłuch na LAN  (podmień 17 na wersję z `ls /etc/postgresql/` jeśli inna)
+sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/17/main/postgresql.conf
 
 # dostęp tylko z CT aplikacji (.166), scram
-echo "host    finance    app_user    192.168.100.166/32    scram-sha-256" >> /etc/postgresql/15/main/pg_hba.conf
+echo "host    finance    app_user    192.168.100.166/32    scram-sha-256" >> /etc/postgresql/17/main/pg_hba.conf
 
 systemctl restart postgresql
 
@@ -135,7 +135,7 @@ Acceptance: z CT111 `psql -h 192.168.100.164 -U app_user -d finance` łączy si�
 
 ```bash
 # [HOST]
-pct create 110 local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst \
+pct create 110 local:vztmpl/debian-13-standard_13.1-2_amd64.tar.zst \
   --hostname forgejo \
   --cores 2 --memory 3072 --swap 1024 \
   --rootfs natec:20 \
@@ -161,6 +161,8 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.
   > /etc/apt/sources.list.d/docker.list
 apt update && apt -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
+
+> Uwaga (Debian 13/trixie): `$VERSION_CODENAME` = `trixie`. Jeśli repo Dockera nie ma jeszcze pakietów dla trixie, podmień w `docker.list` `trixie` → `bookworm` (kompatybilne) i powtórz `apt update && apt install`.
 
 ### 0.3c Forgejo (compose)
 
@@ -238,7 +240,7 @@ Acceptance: w Forgejo → Runners runner ma status **online**; commit z prostym 
 
 ```bash
 # [HOST]
-pct create 111 local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst \
+pct create 111 local:vztmpl/debian-13-standard_13.1-2_amd64.tar.zst \
   --hostname savings-app \
   --cores 2 --memory 2048 --swap 1024 \
   --rootfs natec:12 \
