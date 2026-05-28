@@ -8,6 +8,7 @@ import { AccountForm } from './AccountForm'
 import { AccountsTable } from './AccountsTable'
 import { AssetsKpi } from './AssetsKpi'
 import { NetWorthChart } from './NetWorthChart'
+import { AssetsPie } from './AssetsPie'
 
 export function AccountsSection() {
   const accounts = useStore(s => s.accounts)
@@ -135,6 +136,7 @@ export function AccountsSection() {
 
       <AssetsKpi accounts={accounts} snapshots={snapshots} emergencyFundBuckets={emergencyFundBuckets} />
       <NetWorthChart accounts={accounts} snapshots={snapshots} loans={loans} mortgagePlan={mortgagePlan} />
+      <AssetsPie accounts={accounts} snapshots={snapshots} />
 
       <AccountsTable
         accounts={visibleAccounts}
