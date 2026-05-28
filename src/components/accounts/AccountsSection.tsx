@@ -7,11 +7,14 @@ import type { Account } from '../../domain/types'
 import { AccountForm } from './AccountForm'
 import { AccountsTable } from './AccountsTable'
 import { AssetsKpi } from './AssetsKpi'
+import { NetWorthChart } from './NetWorthChart'
 
 export function AccountsSection() {
   const accounts = useStore(s => s.accounts)
   const snapshots = useStore(s => s.accountSnapshots)
   const emergencyFundBuckets = useStore(s => s.settings.emergencyFundBuckets ?? ['cash', 'investment'])
+  const loans = useStore(s => s.loans)
+  const mortgagePlan = useStore(s => s.mortgagePlan)
   const addAccount = useStore(s => s.addAccount)
   const updateAccount = useStore(s => s.updateAccount)
   const removeAccount = useStore(s => s.removeAccount)
@@ -131,6 +134,7 @@ export function AccountsSection() {
       )}
 
       <AssetsKpi accounts={accounts} snapshots={snapshots} emergencyFundBuckets={emergencyFundBuckets} />
+      <NetWorthChart accounts={accounts} snapshots={snapshots} loans={loans} mortgagePlan={mortgagePlan} />
 
       <AccountsTable
         accounts={visibleAccounts}
