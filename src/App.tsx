@@ -1,4 +1,5 @@
 import { Hero } from './components/hero/Hero'
+import { AccountsSection } from './components/accounts/AccountsSection'
 import { GoalList } from './components/goals/GoalList'
 import { LoanList } from './components/loans/LoanList'
 import { MortgageSection } from './components/mortgage/MortgageSection'
@@ -13,6 +14,7 @@ import { TrendingUp } from 'lucide-react'
 export default function App() {
   const goals = useStore(s => s.goals)
   const loans = useStore(s => s.loans)
+  const accounts = useStore(s => s.accounts)
   const mortgagePlan = useStore(s => s.mortgagePlan)
 
   return (
@@ -44,6 +46,15 @@ export default function App() {
             <WhatIfSlider />
           </div>
         </div>
+
+        {/* Stany kont */}
+        <Collapsible
+          title="Stany kont"
+          defaultOpen={accounts.length === 0}
+          badge={accounts.length > 0 ? String(accounts.length) : undefined}
+        >
+          <AccountsSection />
+        </Collapsible>
 
         {/* Cele */}
         <Collapsible
