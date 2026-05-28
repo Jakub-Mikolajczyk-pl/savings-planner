@@ -1,13 +1,16 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { buildSchedule } from '../domain/allocation'
+import { earliestSnapshotMonth } from '../domain/accounts'
 import { currentYearMonth } from '../domain/formatting'
-import type { Goal, Loan, Settings, Overrides, Schedule, MortgagePlan } from '../domain/types'
+import type { Account, AccountSnapshot, Goal, Loan, Settings, Overrides, Schedule, MortgagePlan } from '../domain/types'
 
 interface AppState {
   settings: Settings
   goals: Goal[]
   loans: Loan[]
+  accounts: Account[]
+  accountSnapshots: AccountSnapshot[]
   mortgagePlan?: MortgagePlan
   overrides: Overrides
   whatIfDelta: number
@@ -22,6 +25,13 @@ interface AppState {
   addLoan: (loan: Omit<Loan, 'id'>) => void
   updateLoan: (id: string, patch: Partial<Omit<Loan, 'id'>>) => void
   removeLoan: (id: string) => void
+  addAccount: (account: Omit<Account, 'id' | 'currency'> & { currency?: string }) => void
+  updateAccount: (id: string, patch: Partial<Omit<Account, 'id'>>) => void
+  removeAccount: (id: string) => void
+  closeAccount: (id: string, yearMonth: string) => void
+  reopenAccount: (id: string) => void
+  setSnapshot: (accountId: string, yearMonth: string, balance: number, notes?: string) => void
+  removeSnapshot: (accountId: string, yearMonth: string) => void
   saveMortgagePlan: (plan: Omit<MortgagePlan, 'id'> & { id?: string }) => void
   removeMortgagePlan: () => void
   setOverride: (yearMonth: string, patch: Partial<Omit<Overrides[string], 'perGoalAllocation'>>) => void
@@ -51,6 +61,8 @@ export const useStore = create<AppState>()(
       settings: defaultSettings,
       goals: [],
       loans: [],
+      accounts: [],
+      accountSnapshots: [],
       mortgagePlan: undefined,
       overrides: {},
       whatIfDelta: 0,
@@ -94,6 +106,63 @@ export const useStore = create<AppState>()(
 
       removeLoan: (id) =>
         set(s => ({ loans: s.loans.filter(l => l.id !== id) })),
+
+      addAccount: (accountData) =>
+        set(s => ({
+          accounts: [
+            ...s.accounts,
+            { ...accountData, currency: accountData.currency ?? 'PLN', id: crypto.randomUUID() },
+          ],
+        })),
+
+      updateAccount: (id, patch) =>
+        set(s => ({
+          accounts: s.accounts.map(account => account.id === id ? { ...account, ...patch } : account),
+        })),
+
+      removeAccount: (id) =>
+        set(s => ({
+          accounts: s.accounts.filter(account => account.id !== id),
+          accountSnapshots: s.accountSnapshots.filter(snapshot => snapshot.accountId !== id),
+        })),
+
+      closeAccount: (id, yearMonth) =>
+        set(s => ({
+          accounts: s.accounts.map(account => account.id === id ? { ...account, closedAt: yearMonth } : account),
+        })),
+
+      reopenAccount: (id) =>
+        set(s => ({
+          accounts: s.accounts.map(account => account.id === id ? { ...account, closedAt: undefined } : account),
+        })),
+
+      setSnapshot: (accountId, yearMonth, balance, notes) =>
+        set(s => {
+          const snapshot: AccountSnapshot = { accountId, yearMonth, balance, notes }
+          const exists = s.accountSnapshots.some(item => item.accountId === accountId && item.yearMonth === yearMonth)
+          const accountSnapshots = exists
+            ? s.accountSnapshots.map(item => item.accountId === accountId && item.yearMonth === yearMonth ? snapshot : item)
+            : [...s.accountSnapshots, snapshot]
+          const openedAt = earliestSnapshotMonth(accountSnapshots, accountId)
+
+          return {
+            accountSnapshots,
+            accounts: s.accounts.map(account => account.id === accountId ? { ...account, openedAt } : account),
+          }
+        }),
+
+      removeSnapshot: (accountId, yearMonth) =>
+        set(s => {
+          const accountSnapshots = s.accountSnapshots.filter(
+            snapshot => !(snapshot.accountId === accountId && snapshot.yearMonth === yearMonth),
+          )
+          const openedAt = earliestSnapshotMonth(accountSnapshots, accountId)
+
+          return {
+            accountSnapshots,
+            accounts: s.accounts.map(account => account.id === accountId ? { ...account, openedAt } : account),
+          }
+        }),
 
       saveMortgagePlan: (planData) =>
         set(s => ({
@@ -143,8 +212,8 @@ export const useStore = create<AppState>()(
       setLoanOverpayment: (amount) => set({ loanOverpayment: amount }),
 
       exportData: () => {
-        const { settings, goals, loans, mortgagePlan, overrides } = get()
-        return JSON.stringify({ settings, goals, loans, mortgagePlan, overrides }, null, 2)
+        const { settings, goals, loans, accounts, accountSnapshots, mortgagePlan, overrides } = get()
+        return JSON.stringify({ settings, goals, loans, accounts, accountSnapshots, mortgagePlan, overrides }, null, 2)
       },
 
       importData: (json) => {
@@ -153,13 +222,25 @@ export const useStore = create<AppState>()(
           settings: data.settings ?? defaultSettings,
           goals: data.goals ?? [],
           loans: data.loans ?? [],
+          accounts: data.accounts ?? [],
+          accountSnapshots: data.accountSnapshots ?? [],
           mortgagePlan: data.mortgagePlan,
           overrides: data.overrides ?? {},
         })
       },
 
       resetAll: () =>
-        set({ settings: defaultSettings, goals: [], loans: [], mortgagePlan: undefined, overrides: {}, whatIfDelta: 0, loanOverpayment: 0 }),
+        set({
+          settings: defaultSettings,
+          goals: [],
+          loans: [],
+          accounts: [],
+          accountSnapshots: [],
+          mortgagePlan: undefined,
+          overrides: {},
+          whatIfDelta: 0,
+          loanOverpayment: 0,
+        }),
 
       getSchedule: () => {
         const { settings, goals, loans, mortgagePlan, overrides } = get()
@@ -173,7 +254,15 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'savings-planner-v1',
-      partialize: (s) => ({ settings: s.settings, goals: s.goals, loans: s.loans, mortgagePlan: s.mortgagePlan, overrides: s.overrides }),
+      partialize: (s) => ({
+        settings: s.settings,
+        goals: s.goals,
+        loans: s.loans,
+        accounts: s.accounts,
+        accountSnapshots: s.accountSnapshots,
+        mortgagePlan: s.mortgagePlan,
+        overrides: s.overrides,
+      }),
     },
   ),
 )

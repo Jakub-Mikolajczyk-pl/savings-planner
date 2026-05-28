@@ -21,6 +21,25 @@ export interface LoanProgress {
   projectedPayoffMonth?: string // beyond horizon
 }
 
+// Assets: konta i ich stany w czasie (snapshoty)
+export type AccountBucket = 'cash' | 'investment' | 'retirement' | 'down_payment' | 'crypto'
+
+export interface Account {
+  id: string
+  name: string
+  bucket: AccountBucket
+  currency: string
+  openedAt?: string // "YYYY-MM" - miesiac pierwszego snapshota
+  closedAt?: string // "YYYY-MM" - undefined = aktywne; po tej dacie saldo = 0
+}
+
+export interface AccountSnapshot {
+  accountId: string
+  yearMonth: string // "YYYY-MM"
+  balance: number
+  notes?: string
+}
+
 export type MortgageOverpaymentMode = 'shortenTerm' | 'reducePayment'
 
 export interface MortgageOneTimeOverpayment {
