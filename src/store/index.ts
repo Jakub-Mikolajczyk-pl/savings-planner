@@ -3,7 +3,18 @@ import { persist } from 'zustand/middleware'
 import { buildSchedule } from '../domain/allocation'
 import { earliestSnapshotMonth } from '../domain/accounts'
 import { currentYearMonth } from '../domain/formatting'
-import type { Account, AccountSnapshot, Goal, Loan, Settings, Overrides, Schedule, MortgagePlan } from '../domain/types'
+import type {
+  Account,
+  AccountSnapshot,
+  Goal,
+  Loan,
+  Settings,
+  Overrides,
+  Schedule,
+  MortgagePlan,
+  Subscription,
+  UpcomingExpense,
+} from '../domain/types'
 
 interface AppState {
   settings: Settings
@@ -12,6 +23,8 @@ interface AppState {
   accounts: Account[]
   accountSnapshots: AccountSnapshot[]
   mortgagePlan?: MortgagePlan
+  subscriptions: Subscription[]
+  upcomingExpenses: UpcomingExpense[]
   overrides: Overrides
   whatIfDelta: number
   loanOverpayment: number
@@ -34,6 +47,14 @@ interface AppState {
   removeSnapshot: (accountId: string, yearMonth: string) => void
   saveMortgagePlan: (plan: Omit<MortgagePlan, 'id'> & { id?: string }) => void
   removeMortgagePlan: () => void
+  addSubscription: (subscription: Omit<Subscription, 'id'>) => void
+  updateSubscription: (id: string, patch: Partial<Omit<Subscription, 'id'>>) => void
+  removeSubscription: (id: string) => void
+  toggleSubscription: (id: string) => void
+  addUpcomingExpense: (expense: Omit<UpcomingExpense, 'id'>) => void
+  updateUpcomingExpense: (id: string, patch: Partial<Omit<UpcomingExpense, 'id'>>) => void
+  removeUpcomingExpense: (id: string) => void
+  toggleUpcomingPaid: (id: string) => void
   setOverride: (yearMonth: string, patch: Partial<Omit<Overrides[string], 'perGoalAllocation'>>) => void
   setGoalAllocationOverride: (yearMonth: string, goalId: string, amount: number | null) => void
   clearOverride: (yearMonth: string) => void
@@ -65,6 +86,8 @@ export const useStore = create<AppState>()(
       accounts: [],
       accountSnapshots: [],
       mortgagePlan: undefined,
+      subscriptions: [],
+      upcomingExpenses: [],
       overrides: {},
       whatIfDelta: 0,
       loanOverpayment: 0,
@@ -175,6 +198,50 @@ export const useStore = create<AppState>()(
 
       removeMortgagePlan: () => set({ mortgagePlan: undefined }),
 
+      addSubscription: (subscriptionData) =>
+        set(s => ({
+          subscriptions: [...s.subscriptions, { ...subscriptionData, id: crypto.randomUUID() }],
+        })),
+
+      updateSubscription: (id, patch) =>
+        set(s => ({
+          subscriptions: s.subscriptions.map(subscription =>
+            subscription.id === id ? { ...subscription, ...patch } : subscription,
+          ),
+        })),
+
+      removeSubscription: (id) =>
+        set(s => ({ subscriptions: s.subscriptions.filter(subscription => subscription.id !== id) })),
+
+      toggleSubscription: (id) =>
+        set(s => ({
+          subscriptions: s.subscriptions.map(subscription =>
+            subscription.id === id ? { ...subscription, active: !subscription.active } : subscription,
+          ),
+        })),
+
+      addUpcomingExpense: (expenseData) =>
+        set(s => ({
+          upcomingExpenses: [...s.upcomingExpenses, { ...expenseData, id: crypto.randomUUID() }],
+        })),
+
+      updateUpcomingExpense: (id, patch) =>
+        set(s => ({
+          upcomingExpenses: s.upcomingExpenses.map(expense =>
+            expense.id === id ? { ...expense, ...patch } : expense,
+          ),
+        })),
+
+      removeUpcomingExpense: (id) =>
+        set(s => ({ upcomingExpenses: s.upcomingExpenses.filter(expense => expense.id !== id) })),
+
+      toggleUpcomingPaid: (id) =>
+        set(s => ({
+          upcomingExpenses: s.upcomingExpenses.map(expense =>
+            expense.id === id ? { ...expense, isPaid: !expense.isPaid } : expense,
+          ),
+        })),
+
       setOverride: (yearMonth, patch) =>
         set(s => ({
           overrides: {
@@ -213,8 +280,28 @@ export const useStore = create<AppState>()(
       setLoanOverpayment: (amount) => set({ loanOverpayment: amount }),
 
       exportData: () => {
-        const { settings, goals, loans, accounts, accountSnapshots, mortgagePlan, overrides } = get()
-        return JSON.stringify({ settings, goals, loans, accounts, accountSnapshots, mortgagePlan, overrides }, null, 2)
+        const {
+          settings,
+          goals,
+          loans,
+          accounts,
+          accountSnapshots,
+          mortgagePlan,
+          subscriptions,
+          upcomingExpenses,
+          overrides,
+        } = get()
+        return JSON.stringify({
+          settings,
+          goals,
+          loans,
+          accounts,
+          accountSnapshots,
+          mortgagePlan,
+          subscriptions,
+          upcomingExpenses,
+          overrides,
+        }, null, 2)
       },
 
       importData: (json) => {
@@ -226,6 +313,8 @@ export const useStore = create<AppState>()(
           accounts: data.accounts ?? [],
           accountSnapshots: data.accountSnapshots ?? [],
           mortgagePlan: data.mortgagePlan,
+          subscriptions: data.subscriptions ?? [],
+          upcomingExpenses: data.upcomingExpenses ?? [],
           overrides: data.overrides ?? {},
         })
       },
@@ -238,19 +327,41 @@ export const useStore = create<AppState>()(
           accounts: [],
           accountSnapshots: [],
           mortgagePlan: undefined,
+          subscriptions: [],
+          upcomingExpenses: [],
           overrides: {},
           whatIfDelta: 0,
           loanOverpayment: 0,
         }),
 
       getSchedule: () => {
-        const { settings, goals, loans, mortgagePlan, overrides } = get()
-        return buildSchedule(settings, goals, loans, overrides, 0, 0, mortgagePlan)
+        const { settings, goals, loans, mortgagePlan, subscriptions, upcomingExpenses, overrides } = get()
+        return buildSchedule(settings, goals, loans, overrides, 0, 0, mortgagePlan, subscriptions, upcomingExpenses)
       },
 
       getWhatIfSchedule: () => {
-        const { settings, goals, loans, mortgagePlan, overrides, whatIfDelta, loanOverpayment } = get()
-        return buildSchedule(settings, goals, loans, overrides, whatIfDelta, loanOverpayment, mortgagePlan)
+        const {
+          settings,
+          goals,
+          loans,
+          mortgagePlan,
+          subscriptions,
+          upcomingExpenses,
+          overrides,
+          whatIfDelta,
+          loanOverpayment,
+        } = get()
+        return buildSchedule(
+          settings,
+          goals,
+          loans,
+          overrides,
+          whatIfDelta,
+          loanOverpayment,
+          mortgagePlan,
+          subscriptions,
+          upcomingExpenses,
+        )
       },
     }),
     {
@@ -262,6 +373,8 @@ export const useStore = create<AppState>()(
         accounts: s.accounts,
         accountSnapshots: s.accountSnapshots,
         mortgagePlan: s.mortgagePlan,
+        subscriptions: s.subscriptions,
+        upcomingExpenses: s.upcomingExpenses,
         overrides: s.overrides,
       }),
     },

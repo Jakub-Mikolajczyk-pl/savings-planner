@@ -2,6 +2,8 @@ import { Hero } from './components/hero/Hero'
 import { AccountsSection } from './components/accounts/AccountsSection'
 import { GoalList } from './components/goals/GoalList'
 import { LoanList } from './components/loans/LoanList'
+import { SubscriptionList } from './components/subscriptions/SubscriptionList'
+import { UpcomingExpenseList } from './components/expenses/UpcomingExpenseList'
 import { MortgageSection } from './components/mortgage/MortgageSection'
 import { ScheduleTable } from './components/schedule/ScheduleTable'
 import { SavingsChart } from './components/chart/SavingsChart'
@@ -9,6 +11,7 @@ import { WhatIfSlider } from './components/chart/WhatIfSlider'
 import { Collapsible } from './components/ui/Collapsible'
 import { AdvancedSettings } from './components/ui/AdvancedSettings'
 import { useStore } from './store'
+import { formatPLN } from './domain/formatting'
 import { TrendingUp } from 'lucide-react'
 
 export default function App() {
@@ -16,6 +19,14 @@ export default function App() {
   const loans = useStore(s => s.loans)
   const accounts = useStore(s => s.accounts)
   const mortgagePlan = useStore(s => s.mortgagePlan)
+  const subscriptions = useStore(s => s.subscriptions)
+  const upcomingExpenses = useStore(s => s.upcomingExpenses)
+  const activeSubscriptionsTotal = subscriptions
+    .filter(subscription => subscription.active)
+    .reduce((sum, subscription) => sum + subscription.monthlyAmount, 0)
+  const pendingExpensesTotal = upcomingExpenses
+    .filter(expense => !expense.isPaid)
+    .reduce((sum, expense) => sum + expense.amount, 0)
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
@@ -72,6 +83,22 @@ export default function App() {
           badge={loans.length > 0 ? String(loans.length) : undefined}
         >
           <LoanList />
+        </Collapsible>
+
+        <Collapsible
+          title="Abonamenty"
+          defaultOpen={subscriptions.length === 0}
+          badge={activeSubscriptionsTotal > 0 ? `${formatPLN(activeSubscriptionsTotal)}/mc` : undefined}
+        >
+          <SubscriptionList />
+        </Collapsible>
+
+        <Collapsible
+          title="Nadchodzące wydatki"
+          defaultOpen={upcomingExpenses.length === 0}
+          badge={pendingExpensesTotal > 0 ? formatPLN(pendingExpensesTotal) : undefined}
+        >
+          <UpcomingExpenseList />
         </Collapsible>
 
         <Collapsible

@@ -1,4 +1,18 @@
-import type { Goal, Loan, Settings, Overrides, Schedule, MonthRow, GoalAllocation, GoalProgress, LoanMonthEntry, LoanProgress, MortgagePlan } from './types'
+import type {
+  Goal,
+  Loan,
+  Settings,
+  Overrides,
+  Schedule,
+  MonthRow,
+  GoalAllocation,
+  GoalProgress,
+  LoanMonthEntry,
+  LoanProgress,
+  MortgagePlan,
+  Subscription,
+  UpcomingExpense,
+} from './types'
 import { addMonths, formatYearMonth, monthDiff, dateToYearMonth } from './formatting'
 import { buildMortgageSchedule } from './mortgage'
 
@@ -122,6 +136,8 @@ export function buildSchedule(
   whatIfDelta = 0,
   loanOverpayment = 0,
   mortgagePlan?: MortgagePlan,
+  subscriptions: Subscription[] = [],
+  upcomingExpenses: UpcomingExpense[] = [],
 ): Schedule {
   const sortedGoals = [...goals].sort((a, b) => a.priority - b.priority)
   const states: GoalState[] = sortedGoals.map(g => ({
@@ -139,14 +155,21 @@ export function buildSchedule(
     settings.startMonth,
     settings.horizonMonths,
   )
+  const subscriptionsTotal = subscriptions
+    .filter(subscription => subscription.active)
+    .reduce((sum, subscription) => sum + subscription.monthlyAmount, 0)
 
   for (let i = 0; i < settings.horizonMonths; i++) {
     const yearMonth = addMonths(settings.startMonth, i)
     const override = overrides[yearMonth] ?? {}
     const baseIncome = override.income ?? settings.monthlyIncome
     const expenses = override.expenses ?? settings.monthlyExpenses
+    const oneTimeExpensesTotal = upcomingExpenses
+      .filter(expense => !expense.isPaid && expense.targetMonth === yearMonth)
+      .reduce((sum, expense) => sum + expense.amount, 0)
+    const expensesTotal = expenses + subscriptionsTotal + oneTimeExpensesTotal
     const income = baseIncome + whatIfDelta
-    const grossFreeCash = baseIncome + Math.min(0, whatIfDelta) - expenses
+    const grossFreeCash = baseIncome + Math.min(0, whatIfDelta) - expensesTotal
 
     // Process loans: distribute loanOverpayment to highest-balance loan first
     const loanEntries: LoanMonthEntry[] = []
@@ -185,12 +208,14 @@ export function buildSchedule(
     const goalAllocations = allocateMonth(savingsPool, sortedGoals, states, yearMonth, manualAlloc, bonusPool)
 
     // freeCash = what's actually left for savings after expenses AND loan payments
-    const freeCash = income - expenses - totalLoanPayment - mortgagePaymentTotal
+    const freeCash = income - expensesTotal - totalLoanPayment - mortgagePaymentTotal
     rows.push({
       yearMonth,
       label: formatYearMonth(yearMonth),
       income,
       expenses,
+      subscriptionsTotal,
+      oneTimeExpensesTotal,
       loanPaymentsTotal: totalLoanPayment,
       mortgagePaymentTotal,
       freeCash,

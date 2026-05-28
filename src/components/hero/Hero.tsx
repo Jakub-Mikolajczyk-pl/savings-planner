@@ -10,20 +10,22 @@ export function Hero() {
   const goals = useStore(s => s.goals)
   const loans = useStore(s => s.loans)
   const mortgagePlan = useStore(s => s.mortgagePlan)
+  const subscriptions = useStore(s => s.subscriptions)
+  const upcomingExpenses = useStore(s => s.upcomingExpenses)
   const overrides = useStore(s => s.overrides)
   const updateSettings = useStore(s => s.updateSettings)
 
   const schedule = useMemo(
-    () => buildSchedule(settings, goals, loans, overrides, 0, 0, mortgagePlan),
-    [settings, goals, loans, overrides, mortgagePlan],
+    () => buildSchedule(settings, goals, loans, overrides, 0, 0, mortgagePlan, subscriptions, upcomingExpenses),
+    [settings, goals, loans, overrides, mortgagePlan, subscriptions, upcomingExpenses],
   )
-  // Sum active loan payments (loans not yet paid off)
-  const totalLoanPayments = loans.reduce(
-    (sum, l) => sum + (l.remainingBalance > 0 ? l.monthlyPayment : 0), 0
-  )
-  const mortgagePayment = schedule.rows[0]?.mortgagePaymentTotal ?? 0
+  const firstMonth = schedule.rows[0]
+  const totalLoanPayments = firstMonth?.loanPaymentsTotal ?? 0
+  const mortgagePayment = firstMonth?.mortgagePaymentTotal ?? 0
   const totalDebtPayments = totalLoanPayments + mortgagePayment
-  const freeCash = settings.monthlyIncome - settings.monthlyExpenses - totalDebtPayments
+  const subscriptionsTotal = firstMonth?.subscriptionsTotal ?? 0
+  const oneTimeExpensesTotal = firstMonth?.oneTimeExpensesTotal ?? 0
+  const freeCash = firstMonth?.freeCash ?? settings.monthlyIncome - settings.monthlyExpenses - totalDebtPayments
   const isDeficit = freeCash < 0
 
   const completedCount = schedule.goalProgress.filter(g => g.isComplete).length
@@ -54,6 +56,25 @@ export function Hero() {
             value={settings.monthlyExpenses}
             onChange={v => updateSettings({ monthlyExpenses: v })}
           />
+          <p className="text-xs text-gray-400 dark:text-gray-500 px-1">
+            Wydatki życiowe bez abonamentów
+          </p>
+          {subscriptionsTotal > 0 && (
+            <p className="text-xs text-gray-400 dark:text-gray-500 flex justify-between px-1">
+              <span>+ abonamenty</span>
+              <span className="tabular-nums text-sky-600 dark:text-sky-400">
+                +{formatPLN(subscriptionsTotal)}/mc
+              </span>
+            </p>
+          )}
+          {oneTimeExpensesTotal > 0 && (
+            <p className="text-xs text-gray-400 dark:text-gray-500 flex justify-between px-1">
+              <span>+ jednorazowe w tym miesiącu</span>
+              <span className="tabular-nums text-purple-600 dark:text-purple-400">
+                +{formatPLN(oneTimeExpensesTotal)}
+              </span>
+            </p>
+          )}
           {totalDebtPayments > 0 && (
             <p className="text-xs text-gray-400 dark:text-gray-500 flex justify-between px-1">
               <span>+ raty kredytów</span>
@@ -74,9 +95,9 @@ export function Hero() {
           }`}>
             {formatPLN(freeCash)}/mies.
           </div>
-          {totalDebtPayments > 0 && (
+          {(subscriptionsTotal > 0 || oneTimeExpensesTotal > 0 || totalDebtPayments > 0) && (
             <p className="text-xs text-gray-400 dark:text-gray-500 px-1 text-right">
-              po kosztach ({formatPLN(settings.monthlyExpenses)}) i ratach ({formatPLN(totalDebtPayments)})
+              po bazie ({formatPLN(settings.monthlyExpenses)}), abonamentach ({formatPLN(subscriptionsTotal)}), jednorazowych ({formatPLN(oneTimeExpensesTotal)}) i ratach ({formatPLN(totalDebtPayments)})
             </p>
           )}
         </div>
