@@ -23,6 +23,11 @@ Dokument planistyczny zbierający odpowiedzi na otwarte pytania o kierunek rozwo
 
 Z PDF wyciągnąłem strukturę arkusza. Ma 6 logicznych sekcji:
 
+### Zakres historyczny (ważne dla scope migracji)
+
+- **Stany kont:** chcemy **całą historię od maja 2022 do teraz** (2022, 2023, 2024, 2025, 2026 — osobne arkusze/CSV). Statystyki i analizy długoterminowe (real CAGR, save rate, projekcja FIRE) wymagają długiego szeregu.
+- **Długi / raty / abonamenty / nadchodzące wydatki:** TYLKO aktualny snapshot. Historia nieistotna — wpisujemy stan na dziś i jedziemy do przodu.
+
 ### 1.1. Stany kont — tabela miesięczna (kręgosłup arkusza)
 
 Wiersze = miesiące (`Styczeń (16.01)`, `Luty (13.02)`, ...). Kolumny = konta:
@@ -279,13 +284,20 @@ Per sekcja PDF (`§1.1`–`§1.6`):
 
 Tabela z wierszami=miesiąc i kolumnami=konto (taka sama jak w arkuszu — komfort migracji wzrokowej). Każda komórka = inline edit. Kolumny dodawane na żywo. Importer CSV z dialogiem "ta kolumna to konto X, tamtą pomiń". Pod tabelą: 3 derived KPI (Suma majątku, Fundusz awaryjny, Wkład własny) z konfigurowalnymi „bucketami" (które konta wchodzą do którego bucketa).
 
-### Importer CSV (jednorazowy bootstrap)
+### Importer CSV (multi-year bootstrap)
 
-1. Export z Google Sheets jako CSV.
-2. UI: wybierz plik → preview pierwszych 5 wierszy → przypisz każdą kolumnę do (istniejące konto | nowe konto | pomiń) → przypisz każdy wiersz do miesiąca (default = z pierwszej kolumny).
-3. Po imporcie: snapshoty wpadają do storage (localStorage lub backend).
+Importer jest **wielokrotny** — wczytujesz po kolei `Finanse - 2022.csv`, `2023.csv`, `2024.csv`, `2025.csv`, `2026.csv`. Każdy plik to jeden rok.
 
-To jest **2–3 godziny pracy**. Zero AI/LLM, czysty mapper.
+Algorytm:
+1. Wybór pliku → wyciągnięcie roku z nazwy (lub komórki `A1`) i header kont.
+2. UI mapper: każdą kolumnę przypisz do `istniejące konto | nowe konto | pomiń (derived/derived bucket)`. Mapping jest **persystowany** — przy kolejnych latach od razu pre-fillujemy.
+3. Każdy wiersz: parser daty `<MiesiącPL> (DD.MM)` + rok z header → `snapshot_date date`.
+4. Merge: snapshoty pod istniejącymi `account_id` (po nazwie). Konta, które pojawiły się tylko w niektórych latach (np. „Santander Mieszkanie" startuje w kwietniu 2024) — `created_at` ustawiamy na pierwszą datę.
+5. Konta zamknięte (brak balances w nowszych latach) → flaga `archived: true`.
+
+Skala: ~60 miesięcy × ~10 kont = ~600 snapshotów total. localStorage to udźwignie bez problemu, w bazie żaden temat.
+
+To jest **3–4 godziny pracy** (z multi-year wspólnym mapperem). Zero AI/LLM, czysty parser.
 
 ---
 
