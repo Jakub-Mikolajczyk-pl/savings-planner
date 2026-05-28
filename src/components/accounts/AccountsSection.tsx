@@ -6,10 +6,12 @@ import { useStore } from '../../store'
 import type { Account } from '../../domain/types'
 import { AccountForm } from './AccountForm'
 import { AccountsTable } from './AccountsTable'
+import { AssetsKpi } from './AssetsKpi'
 
 export function AccountsSection() {
   const accounts = useStore(s => s.accounts)
   const snapshots = useStore(s => s.accountSnapshots)
+  const emergencyFundBuckets = useStore(s => s.settings.emergencyFundBuckets ?? ['cash', 'investment'])
   const addAccount = useStore(s => s.addAccount)
   const updateAccount = useStore(s => s.updateAccount)
   const removeAccount = useStore(s => s.removeAccount)
@@ -127,6 +129,8 @@ export function AccountsSection() {
           ))}
         </div>
       )}
+
+      <AssetsKpi accounts={accounts} snapshots={snapshots} emergencyFundBuckets={emergencyFundBuckets} />
 
       <AccountsTable
         accounts={visibleAccounts}

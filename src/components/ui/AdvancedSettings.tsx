@@ -1,7 +1,9 @@
 import { useRef } from 'react'
 import { Download, Upload, RotateCcw } from 'lucide-react'
+import { ACCOUNT_BUCKETS, BUCKET_LABELS } from '../../domain/accounts'
 import { useStore } from '../../store'
 import { currentYearMonth } from '../../domain/formatting'
+import type { AccountBucket } from '../../domain/types'
 
 export function AdvancedSettings() {
   const settings = useStore(s => s.settings)
@@ -43,6 +45,15 @@ export function AdvancedSettings() {
     }
   }
 
+  const toggleEmergencyBucket = (bucket: AccountBucket) => {
+    const current = settings.emergencyFundBuckets ?? []
+    updateSettings({
+      emergencyFundBuckets: current.includes(bucket)
+        ? current.filter(item => item !== bucket)
+        : [...current, bucket],
+    })
+  }
+
   return (
     <div className="space-y-5">
       {/* Horizon & start month */}
@@ -76,6 +87,25 @@ export function AdvancedSettings() {
         </div>
       </div>
 
+      <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
+        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+          Buckety funduszu awaryjnego
+        </p>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {ACCOUNT_BUCKETS.map(bucket => (
+            <label key={bucket} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+              <input
+                type="checkbox"
+                checked={(settings.emergencyFundBuckets ?? []).includes(bucket)}
+                onChange={() => toggleEmergencyBucket(bucket)}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              {BUCKET_LABELS[bucket]}
+            </label>
+          ))}
+        </div>
+      </div>
+
       {/* Export / Import */}
       <div className="flex gap-3">
         <button
@@ -104,7 +134,7 @@ export function AdvancedSettings() {
           <RotateCcw size={14} />
           Resetuj wszystkie dane
         </button>
-        <p className="text-xs text-gray-400 mt-1">Usuwa wszystkie cele, ustawienia i overrides z localStorage.</p>
+        <p className="text-xs text-gray-400 mt-1">Usuwa cele, konta, kredyty, ustawienia i overrides z localStorage.</p>
       </div>
     </div>
   )

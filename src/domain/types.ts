@@ -115,6 +115,7 @@ export interface Settings {
   monthlyExpenses: number
   startMonth: string // "YYYY-MM" format
   horizonMonths: number
+  emergencyFundBuckets: AccountBucket[]
 }
 
 export interface MonthOverride {

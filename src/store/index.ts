@@ -53,6 +53,7 @@ const defaultSettings: Settings = {
   monthlyExpenses: 6000,
   startMonth: currentYearMonth(),
   horizonMonths: 36,
+  emergencyFundBuckets: ['cash', 'investment'],
 }
 
 export const useStore = create<AppState>()(
@@ -219,7 +220,7 @@ export const useStore = create<AppState>()(
       importData: (json) => {
         const data = JSON.parse(json)
         set({
-          settings: data.settings ?? defaultSettings,
+          settings: { ...defaultSettings, ...(data.settings ?? {}) },
           goals: data.goals ?? [],
           loans: data.loans ?? [],
           accounts: data.accounts ?? [],
