@@ -156,7 +156,11 @@ export function AccountsSection() {
                 account={account}
                 latestMonth={months[0] ?? currentYearMonth()}
                 onEdit={() => setEditingId(account.id)}
-                onRemove={() => removeAccount(account.id)}
+                onRemove={() => {
+                  if (window.confirm(`Usunąć konto „${account.name}"? Skasuje też wszystkie jego snapshoty. Tej operacji nie można cofnąć.`)) {
+                    removeAccount(account.id)
+                  }
+                }}
                 onClose={yearMonth => closeAccount(account.id, yearMonth)}
                 onReopen={() => reopenAccount(account.id)}
               />
