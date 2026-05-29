@@ -5,21 +5,46 @@ import type { Account, AccountBucket } from '../../domain/types'
 type AccountFormData = Omit<Account, 'id' | 'openedAt' | 'closedAt'>
 
 interface Props {
+  /*
+   * Props to kontrakt komponentu.
+   *
+   * Angular porównanie:
+   * initial/onSave/onCancel są jak @Input() + @Output(), tylko opisane typem TS
+   * i przekazywane bez dekoratorów.
+   */
   initial?: Partial<Account>
   onSave: (data: AccountFormData) => void
   onCancel: () => void
 }
 
 export function AccountForm({ initial, onSave, onCancel }: Props) {
+  /*
+   * Controlled form fields:
+   * Stan inputów mieszka w React state, a input pokazuje value ze state.
+   *
+   * Angular porównanie:
+   * - Template-driven: [(ngModel)] robi podobną dwukierunkową synchronizację.
+   * - Reactive forms: FormControl trzyma value/validation osobno.
+   * React najczęściej robi to jawnie: value + onChange.
+   */
   const [name, setName] = useState(initial?.name ?? '')
   const [bucket, setBucket] = useState<AccountBucket>(initial?.bucket ?? 'cash')
   const [currency, setCurrency] = useState(initial?.currency ?? 'PLN')
 
   const handleSubmit = (e: React.FormEvent) => {
+    /*
+     * HTML form submit przeładowałby stronę.
+     * SPA zatrzymuje submit i wykonuje callback JS.
+     */
     e.preventDefault()
     if (!name.trim()) return
 
     onSave({
+      /*
+       * Komponent formularza nie generuje id i nie zna backendu.
+       * To ważna separacja odpowiedzialności: formularz zbiera dane,
+       * store nadaje id/sync/rollback.
+       */
       name: name.trim(),
       bucket,
       currency: currency.trim() || 'PLN',

@@ -6,6 +6,11 @@ import { CurrencyInput } from '../ui/CurrencyInput'
 import { TrendingUp, AlertTriangle, CheckCircle2, Clock } from 'lucide-react'
 
 export function Hero() {
+  /*
+   * Hero jest komponentem "derived UI":
+   * nie trzyma własnego stanu domenowego, tylko bierze dane ze store i liczy
+   * wartości do pokazania.
+   */
   const settings = useStore(s => s.settings)
   const goals = useStore(s => s.goals)
   const loans = useStore(s => s.loans)
@@ -16,6 +21,14 @@ export function Hero() {
   const updateSettings = useStore(s => s.updateSettings)
 
   const schedule = useMemo(
+    /*
+     * buildSchedule jest pure function z domeny.
+     * React komponent nie powinien mieć logiki finansowej w JSX; komponent
+     * tylko woła domenę i renderuje wynik.
+     *
+     * Angular porównanie:
+     * To podobne do przeniesienia ciężkiej logiki z template do service/pure function.
+     */
     () => buildSchedule(settings, goals, loans, overrides, 0, 0, mortgagePlan, subscriptions, upcomingExpenses),
     [settings, goals, loans, overrides, mortgagePlan, subscriptions, upcomingExpenses],
   )
@@ -28,6 +41,10 @@ export function Hero() {
   const freeCash = firstMonth?.freeCash ?? settings.monthlyIncome - settings.monthlyExpenses - totalDebtPayments
   const isDeficit = freeCash < 0
 
+  /*
+   * Zmiennych pomocniczych nie trzeba wkładać do useMemo automatycznie.
+   * Proste obliczenia z wyniku schedule są tanie i czytelniejsze jako zwykłe const.
+   */
   const completedCount = schedule.goalProgress.filter(g => g.isComplete).length
   const totalGoals = schedule.goalProgress.length
 
@@ -35,6 +52,10 @@ export function Hero() {
     <div className="space-y-6">
       {/* Deficit alert */}
       {isDeficit && (
+        /*
+         * Warunkowy alert.
+         * React renderuje false/null/undefined jako "nic".
+         */
         <div className="flex items-center gap-3 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-400">
           <AlertTriangle size={18} />
           <span className="text-sm font-medium">
@@ -48,6 +69,10 @@ export function Hero() {
         <CurrencyInput
           label="Dochód miesięczny"
           value={settings.monthlyIncome}
+          /*
+           * updateSettings przyjmuje patch.
+           * Komponent nie musi znać całego Settings, tylko zmieniane pole.
+           */
           onChange={v => updateSettings({ monthlyIncome: v })}
         />
         <div className="flex flex-col gap-1">
@@ -113,6 +138,11 @@ export function Hero() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {schedule.goalProgress.map((gp, i) => {
+            /*
+             * map callback może zawierać zwykłą logikę JS przed return JSX.
+             * To jedna z dużych różnic względem Angular templates:
+             * w React JSX i JS żyją w tym samym pliku i zakresie.
+             */
             const pct = Math.min(100, (gp.currentBalance / gp.targetAmount) * 100)
             const isFirst = i === 0 && !gp.isComplete
 
@@ -188,6 +218,10 @@ export function Hero() {
                   </div>
                   <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div
+                      /*
+                       * style prop przyjmuje obiekt JS, nie string CSS.
+                       * Nazwy właściwości są camelCase, np. backgroundColor.
+                       */
                       className={`h-full rounded-full transition-all duration-500 ${
                         gp.isComplete ? 'bg-green-500' : isFirst ? 'bg-blue-500' : 'bg-gray-400'
                       }`}

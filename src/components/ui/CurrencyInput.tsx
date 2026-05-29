@@ -9,10 +9,26 @@ interface Props {
 }
 
 export function CurrencyInput({ value, onChange, label, className = '', placeholder = '0' }: Props) {
+  /*
+   * CurrencyInput pokazuje ważny React pattern:
+   * parent trzyma wartość liczbową (value), a komponent lokalnie trzyma string
+   * do wyświetlenia z separatorami tysięcy.
+   *
+   * Dlaczego dwa stany?
+   * Liczba 10000 jest dobra dla domeny, ale użytkownik chce widzieć "10 000".
+   * Input HTML zawsze operuje stringami.
+   */
   const [display, setDisplay] = useState(value === 0 ? '' : value.toLocaleString('pl-PL'))
+  /*
+   * useRef jako flaga "czy user teraz edytuje".
+   * Zmiana ref.current nie robi rerenderu, więc nadaje się do takich technicznych flag.
+   */
   const focused = useRef(false)
 
-  // Sync display from external value only when the field is not being edited
+  /*
+   * Synchronizujemy display z zewnętrznym value tylko gdy input nie jest aktywnie
+   * edytowany. Inaczej parent update mógłby przesuwać kursor podczas pisania.
+   */
   useEffect(() => {
     if (!focused.current) {
       setDisplay(value === 0 ? '' : value.toLocaleString('pl-PL'))
@@ -31,6 +47,11 @@ export function CurrencyInput({ value, onChange, label, className = '', placehol
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    /*
+     * JS string/regex:
+     * replace(/[^\d]/g, '') usuwa wszystko poza cyframi.
+     * Dzięki temu "12 345 zł" i "12345" prowadzą do tej samej liczby.
+     */
     const raw = e.target.value
     const digits = raw.replace(/[^\d]/g, '')
 
@@ -43,7 +64,10 @@ export function CurrencyInput({ value, onChange, label, className = '', placehol
     const num = parseInt(digits, 10)
     onChange(num)
 
-    // Format with thousand separators while preserving cursor at end
+    /*
+     * toLocaleString('pl-PL') formatuje liczbę wg polskich ustawień.
+     * To API przeglądarki/Intl, nie biblioteka Reacta.
+     */
     const formatted = num.toLocaleString('pl-PL')
     setDisplay(formatted)
   }
@@ -51,6 +75,10 @@ export function CurrencyInput({ value, onChange, label, className = '', placehol
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
       {label && (
+        /*
+         * Krótkie && w JSX:
+         * Jeśli label jest pusty/undefined, React nie renderuje elementu.
+         */
         <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
           {label}
         </label>

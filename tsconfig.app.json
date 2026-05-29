@@ -1,25 +1,87 @@
 {
   "compilerOptions": {
+    /*
+     * TypeScript zapisuje cache builda w node_modules/.tmp.
+     * To przyspiesza `tsc -b`, bo kompilator pamięta co już sprawdził.
+     */
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    /*
+     * target/lib mówią "jaki JS i jakie API środowiska zakładamy".
+     * ES2023 = nowoczesna składnia JS. DOM = typy dla document/window/fetch/File.
+     *
+     * Angular porównanie:
+     * Jeśli w Angularze używasz HttpClient, typy przeglądarkowe są ukryte za frameworkiem.
+     * W React/Vite często bezpośrednio używasz fetch, FileReader, localStorage.
+     */
     "target": "es2023",
     "lib": ["ES2023", "DOM"],
+    /*
+     * module esnext zostawia import/export dla bundlera.
+     * Vite/Rolldown rozumie moduły ESM i składa je do paczek dla przeglądarki.
+     */
     "module": "esnext",
+    /*
+     * vite/client dodaje typy dla import.meta.env.
+     * Bez tego TypeScript nie znałby VITE_BACKEND, VITE_API_BASE_URL itd.
+     */
     "types": ["vite/client"],
+    /*
+     * Przyspiesza build: nie sprawdzamy typów w .d.ts bibliotek.
+     * Rekrutacyjnie: to kompromis performance vs ekstremalna dokładność zależności.
+     */
     "skipLibCheck": true,
 
     /* Bundler mode */
+    /*
+     * moduleResolution=bundler dopasowuje TypeScript do świata Vite.
+     * TS nie próbuje udawać Node/CommonJS, tylko akceptuje importy tak,
+     * jak rozwiąże je bundler.
+     */
     "moduleResolution": "bundler",
+    /*
+     * allowImportingTsExtensions pozwala pisać import './App.tsx'.
+     * W większych zespołach często pomija się rozszerzenia, ale Vite to obsługuje.
+     */
     "allowImportingTsExtensions": true,
+    /*
+     * verbatimModuleSyntax = TypeScript nie przerabia import/export.
+     * Jeśli importujesz tylko typy, używaj `import type`, bo runtime import znika.
+     */
     "verbatimModuleSyntax": true,
+    /*
+     * Każdy plik traktuj jak moduł. To chroni przed przypadkowym global scope.
+     */
     "moduleDetection": "force",
+    /*
+     * noEmit = TypeScript tylko sprawdza typy.
+     * Kod produkcyjny emituje Vite, nie tsc.
+     */
     "noEmit": true,
+    /*
+     * react-jsx = nowy transform JSX. Nie trzeba importować React w każdym pliku
+     * tylko po to, żeby JSX działał.
+     */
     "jsx": "react-jsx",
 
     /* Linting */
+    /*
+     * Te opcje robią z TypeScriptu dodatkowego strażnika jakości:
+     * nieużywane zmienne/parametry przerywają build.
+     */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    /*
+     * erasableSyntaxOnly wymusza składnię TS, którą da się "wymazać" do JS.
+     * Dlatego w API client nie używamy np. parameter properties w konstruktorze.
+     */
     "erasableSyntaxOnly": true,
+    /*
+     * Switch bez break potrafi być klasycznym JS bugiem.
+     */
     "noFallthroughCasesInSwitch": true
   },
+  /*
+   * Kod aplikacji mieszka w src/.
+   */
   "include": ["src"]
 }

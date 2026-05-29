@@ -19,7 +19,7 @@ A client-side savings and debt tracker built for clarity. Set goals with deadlin
 | **What-if sliders** | Simulate income change (-5k ... +10k PLN/month) and loan overpayment |
 | **Cumulative savings chart** | Goals as filled areas, loans as descending lines, vertical payoff markers |
 | **Monthly schedule table** | Editable per-goal allocations per month, per-month income/expense overrides |
-| **LocalStorage persistence** | All data survives page reload; no backend, no telemetry |
+| **LocalStorage / API persistence** | Local mode by default; optional Kotlin/Spring Boot backend behind a feature flag |
 | **Export / Import** | One-click JSON backup and restore |
 
 ---
@@ -57,9 +57,23 @@ npm run build     # production build -> dist/
 
 ---
 
+## Backend mode
+
+The app defaults to local-only storage. To use the Spring Boot backend from `backend/`, create `.env.local`:
+
+```bash
+VITE_BACKEND=api
+VITE_API_BASE_URL=http://localhost:8080
+VITE_API_TOKEN=dev-token
+```
+
+Use `VITE_BACKEND=local` or omit it to keep the original browser-only behavior. In API mode, the frontend sends `X-Api-Token` on every `/api/**` request and hydrates Zustand from the backend on startup.
+
+---
+
 ## How it works
 
-All logic runs in the browser. The core engine (`src/domain/allocation.ts`) simulates a monthly schedule:
+The planning engine runs in the browser. The core engine (`src/domain/allocation.ts`) simulates a monthly schedule:
 
 1. **Loan payments** are deducted first (minimum payment + any overpayment, avalanche order).
 2. **Free cash** (income - expenses - loan payments) is distributed to goals:
@@ -68,7 +82,7 @@ All logic runs in the browser. The core engine (`src/domain/allocation.ts`) simu
 3. **What-if bonus pool** (positive income delta) is added on top of fixed allocations, so the slider always has a visible effect.
 4. **GoalProgress** records when each goal completes relative to its deadline: "on time", "missed", or "no deadline".
 
-Data never leaves the device. The schedule is recalculated reactively on every state change via Zustand selectors and `useMemo`.
+In local mode, data never leaves the device. In API mode, the backend is the source of truth and Zustand acts as the UI cache. The schedule is recalculated reactively on every state change via Zustand selectors and `useMemo`.
 
 ---
 

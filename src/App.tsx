@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Hero } from './components/hero/Hero'
 import { AccountsSection } from './components/accounts/AccountsSection'
 import { GoalList } from './components/goals/GoalList'
@@ -12,9 +13,24 @@ import { Collapsible } from './components/ui/Collapsible'
 import { AdvancedSettings } from './components/ui/AdvancedSettings'
 import { useStore } from './store'
 import { formatPLN } from './domain/formatting'
+import { BACKEND_MODE, IS_API_MODE } from './config'
 import { TrendingUp } from 'lucide-react'
 
 export default function App() {
+  /*
+   * Komponent funkcyjny Reacta to zwykła funkcja zwracająca JSX.
+   *
+   * Angular porównanie:
+   * - Angular Component = klasa + template HTML + metadata dekoratora.
+   * - React Component = funkcja; "template" siedzi bezpośrednio w JSX.
+   *
+   * useStore(selector) subskrybuje tylko wycinek Zustand store.
+   * Gdy zmieni się np. loans, komponent odświeży się dlatego, że używa loans.
+   */
+  const hydrateFromBackend = useStore(s => s.hydrateFromBackend)
+  const isHydrating = useStore(s => s.isHydrating)
+  const hasHydratedFromBackend = useStore(s => s.hasHydratedFromBackend)
+  const syncError = useStore(s => s.syncError)
   const goals = useStore(s => s.goals)
   const loans = useStore(s => s.loans)
   const accounts = useStore(s => s.accounts)
@@ -28,8 +44,40 @@ export default function App() {
     .filter(expense => !expense.isPaid)
     .reduce((sum, expense) => sum + expense.amount, 0)
 
+  useEffect(() => {
+    /*
+     * useEffect odpala side effect po renderze.
+     * Tutaj side effectem jest request do backendu.
+     *
+     * Angular porównanie:
+     * Najbliżej temu do ngOnInit(), ale mentalny model jest inny:
+     * useEffect zależy od tablicy dependencies i może odpalić się ponownie,
+     * gdy któraś zależność zmieni referencję/wartość.
+     */
+    if (IS_API_MODE && !hasHydratedFromBackend && !isHydrating) {
+      void hydrateFromBackend()
+    }
+  }, [hasHydratedFromBackend, hydrateFromBackend, isHydrating])
+
   return (
+    /*
+     * className zamiast class:
+     * JSX jest bliżej JS niż HTML. `class` jest słowem zarezerwowanym JS,
+     * więc React używa `className`.
+     *
+     * Fragmentów ngIf/ngFor tutaj nie ma. Warunkowe renderowanie robimy
+     * zwykłym JavaScriptem: condition && <Element /> albo ternary.
+     */
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+      {IS_API_MODE && isHydrating && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-white/80 dark:bg-gray-950/80">
+          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-5 py-4 shadow-lg">
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Ładuję dane z backendu...</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Zustand działa teraz jako cache aplikacji.</p>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
 
         {/* Header */}
@@ -61,9 +109,19 @@ export default function App() {
         {/* Stany kont */}
         <Collapsible
           title="Stany kont"
+          /*
+           * Props w React:
+           * To odpowiednik @Input() w Angularze, ale przekazywany bez dekoratorów.
+           * defaultOpen i badge trafiają do funkcji Collapsible jako argument props.
+           */
           defaultOpen={accounts.length === 0}
           badge={accounts.length > 0 ? String(accounts.length) : undefined}
         >
+          {/*
+            children:
+            Wszystko między <Collapsible>...</Collapsible> trafia do props.children.
+            Angular porównanie: podobna rola do content projection <ng-content>.
+          */}
           <AccountsSection />
         </Collapsible>
 
@@ -120,7 +178,9 @@ export default function App() {
         </Collapsible>
 
         <p className="text-center text-xs text-gray-300 dark:text-gray-700 pb-4">
-          Dane zapisywane lokalnie w przeglądarce · brak serwera · brak telemetrii
+          {BACKEND_MODE === 'api'
+            ? `Dane synchronizowane z backendem przez /api${syncError ? ' · wymaga uwagi' : ''}`
+            : 'Dane zapisywane lokalnie w przeglądarce · brak serwera · brak telemetrii'}
         </p>
       </div>
     </div>
