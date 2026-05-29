@@ -10,6 +10,11 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+build
+backend/build
+backend/.gradle
+backend/.kotlin
+.gradle-codex
 *.local
 
 # Editor directories and files

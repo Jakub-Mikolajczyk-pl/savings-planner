@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: savings-planner-backend
+  jackson:
+    default-property-inclusion: non_null
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: finance
+        jdbc:
+          time_zone: UTC
+  flyway:
+    schemas: finance
+    default-schema: finance
+    create-schemas: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+app:
+  security:
+    api-token: ${API_TOKEN:dev-token}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://savings.lan}
+

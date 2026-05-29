@@ -1,0 +1,9 @@
+app:
+  security:
+    api-token: test-token
+  cors:
+    allowed-origins:
+      - http://localhost:5173
+  seed:
+    enabled: false
+

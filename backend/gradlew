@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+if command -v gradle >/dev/null 2>&1; then
+  exec gradle "$@"
+fi
+if [ -x "$HOME/.gradle/wrapper/dists/gradle-8.4-bin/1w5dpkrfk8irigvoxmyhowfim/gradle-8.4/bin/gradle" ]; then
+  exec "$HOME/.gradle/wrapper/dists/gradle-8.4-bin/1w5dpkrfk8irigvoxmyhowfim/gradle-8.4/bin/gradle" "$@"
+fi
+echo "Gradle is not installed and the local cached Gradle 8.4 distribution was not found." >&2
+echo "Install Gradle or generate a standard wrapper once network is available." >&2
+exit 1
+

@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:192.168.100.164}:${DB_PORT:5432}/${DB_NAME:finance}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+app:
+  seed:
+    enabled: false
+

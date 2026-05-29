@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: savings-planner-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: finance
+      POSTGRES_USER: finance_dev
+      POSTGRES_PASSWORD: finance_dev
+    volumes:
+      - savings-planner-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U finance_dev -d finance"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  savings-planner-postgres:
+

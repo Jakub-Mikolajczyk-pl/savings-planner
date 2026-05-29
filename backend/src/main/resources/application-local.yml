@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:finance}
+    username: ${DB_USER:finance_dev}
+    password: ${DB_PASSWORD:finance_dev}
+  jpa:
+    show-sql: false
+app:
+  seed:
+    enabled: ${DEV_SEED_ENABLED:true}
+
