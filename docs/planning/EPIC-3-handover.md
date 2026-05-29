@@ -160,8 +160,13 @@ Logika (mirror EPIC-1-handover sekcja importera, ale w Kotlinie — patrz ROADMA
 - [ ] PR do `main`; po merge ujednolicić oba remote'y na ten sam SHA (ostatnio rozjazd przez merge commit GitHub — patrz sekcja 10).
 - [ ] brain-memory + Todoist zaktualizowane.
 
-## 10. Workflow remote'ów (żeby przestał się powtarzać rozjazd)
-Każdy epic origin/main dostaje merge commit z PR (GitHub), a forgejo/main zostaje liniowo z tyłu → rozjazd. **Standard po merge PR na GitHub:** `git fetch origin && git push forgejo origin/main:main` (fast-forward, bez force). Tak oba `main` trzymają ten sam SHA.
+## 10. Workflow remote'ów (merge lokalnie, push do obu)
+Przyczyna rozjazdów: rebase na Forgejo vs merge commit na GitHub = ta sama gałąź mergowana niezależnie daje różne SHA. **Standard (zatwierdzony):** NIE klikać „merge" w web UI żadnego forge. Merge robić lokalnie i pushować do obu:
+1. `git switch main && git pull`
+2. `git merge --ff-only feat/epic-3-backend` (zrebase'uj brancha wcześniej jeśli trzeba)
+3. `git push origin main && git push forgejo main`
+4. PR-y na GitHub i Forgejo zamknij ręcznie.
+Forgejo auth bywa migotliwy — przy „credentials expired" zretryuj / odśwież token.
 
 ## 11. Świadome NIE w EPIC 3
 - Bez podłączania frontu do API (to EPIC 4 — feature flag, sync, source of truth).
