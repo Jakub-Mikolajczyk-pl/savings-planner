@@ -13,6 +13,7 @@ env:
   DEPLOY_HOST: 192.168.100.166
   DEPLOY_USER: deploy
   DEPLOY_DIR: /opt/savings-planner
+  SSH_OPTS: -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=~/.ssh/known_hosts
 
 jobs:
   build-push-deploy:
@@ -65,10 +66,10 @@ jobs:
 
       - name: Copy compose file
         run: |
-          ssh -i ~/.ssh/ct111 "${DEPLOY_USER}@${DEPLOY_HOST}" "mkdir -p ${DEPLOY_DIR}"
-          scp -i ~/.ssh/ct111 docker-compose.prod.yml "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_DIR}/docker-compose.prod.yml"
+          ssh -i ~/.ssh/ct111 ${SSH_OPTS} "${DEPLOY_USER}@${DEPLOY_HOST}" "mkdir -p ${DEPLOY_DIR}"
+          scp -i ~/.ssh/ct111 ${SSH_OPTS} docker-compose.prod.yml "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_DIR}/docker-compose.prod.yml"
 
       - name: Deploy on CT111
         run: |
-          ssh -i ~/.ssh/ct111 "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          ssh -i ~/.ssh/ct111 ${SSH_OPTS} "${DEPLOY_USER}@${DEPLOY_HOST}" \
             "cd ${DEPLOY_DIR} && IMAGE_REGISTRY=${REGISTRY}/${REGISTRY_NAMESPACE} IMAGE_TAG=${{ steps.meta.outputs.sha }} docker compose -f docker-compose.prod.yml pull && IMAGE_REGISTRY=${REGISTRY}/${REGISTRY_NAMESPACE} IMAGE_TAG=${{ steps.meta.outputs.sha }} docker compose -f docker-compose.prod.yml up -d --remove-orphans"

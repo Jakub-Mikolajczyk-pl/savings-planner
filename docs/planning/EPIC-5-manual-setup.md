@@ -96,12 +96,37 @@ Z CT110 przetestuj:
 
 ```bash
 # [CT110]
-ssh deploy@192.168.100.166 "docker ps"
+ssh -o StrictHostKeyChecking=accept-new deploy@192.168.100.166 "docker ps"
 ```
 
 ## 4. Registry login na CT111
 
 Zaloguj CT111 do Forgejo registry, żeby `docker compose pull` działał bez przekazywania tokena w deploy jobie:
+
+Ponieważ Forgejo działa w LAN po HTTP (`192.168.100.165:3000`), Docker musi mieć ten registry oznaczony jako insecure registry na CT110 i CT111:
+
+```bash
+# [CT110 i CT111]
+nano /etc/docker/daemon.json
+```
+
+Minimalna zawartość, jeśli pliku jeszcze nie ma:
+
+```json
+{
+  "insecure-registries": ["192.168.100.165:3000"]
+}
+```
+
+Potem:
+
+```bash
+# [CT110 i CT111]
+systemctl restart docker
+docker info | grep -A5 "Insecure Registries"
+```
+
+Na CT110 restart Dockera zrestartuje też kontenery Forgejo/runnera; po chwili sprawdź `docker compose ps` w `/opt/forgejo`.
 
 ```bash
 # [CT111]
