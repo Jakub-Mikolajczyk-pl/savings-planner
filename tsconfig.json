@@ -1,4 +1,15 @@
 {
+  /*
+   * Root tsconfig nie kompiluje kodu bezpośrednio. Jest "koordynatorem"
+   * dla dwóch mniejszych projektów TypeScript:
+   *
+   * - tsconfig.app.json  -> kod przeglądarkowy React/Vite
+   * - tsconfig.node.json -> konfiguracja uruchamiana przez Node, np. vite.config.ts
+   *
+   * Angular porównanie:
+   * Angular CLI też rozdziela konfiguracje: app, spec, server itd.
+   * Tutaj Vite robi to prościej przez project references.
+   */
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },

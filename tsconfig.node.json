@@ -1,6 +1,13 @@
 {
   "compilerOptions": {
+    /*
+     * Osobny cache dla plików uruchamianych w Node.
+     */
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    /*
+     * Ten projekt nie ma DOM, bo vite.config.ts działa w Node, nie w przeglądarce.
+     * Dlatego lib ma tylko ES2023, a typy to "node".
+     */
     "target": "es2023",
     "lib": ["ES2023"],
     "module": "esnext",
@@ -8,6 +15,10 @@
     "skipLibCheck": true,
 
     /* Bundler mode */
+    /*
+     * Konfiguracja Vite też używa ESM import/export, więc resolution zostaje
+     * spójne z aplikacją.
+     */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
@@ -20,5 +31,8 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
+  /*
+   * Tutaj sprawdzamy tylko pliki konfiguracyjne uruchamiane poza przeglądarką.
+   */
   "include": ["vite.config.ts"]
 }

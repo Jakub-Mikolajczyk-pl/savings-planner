@@ -11,6 +11,16 @@ import { NetWorthChart } from './NetWorthChart'
 import { AssetsPie } from './AssetsPie'
 
 export function AccountsSection() {
+  /*
+   * AccountsSection jest "container component":
+   * - czyta dane z globalnego store,
+   * - trzyma lokalny state widoku,
+   * - przekazuje dane/callbacki do mniejszych komponentów prezentacyjnych.
+   *
+   * Angular porównanie:
+   * To komponent z injected service/store i template składającym child components.
+   * Różnica: zamiast DI w konstruktorze używamy hooków.
+   */
   const accounts = useStore(s => s.accounts)
   const snapshots = useStore(s => s.accountSnapshots)
   const emergencyFundBuckets = useStore(s => s.settings.emergencyFundBuckets ?? ['cash', 'investment'])
@@ -30,6 +40,13 @@ export function AccountsSection() {
   const [draftMonths, setDraftMonths] = useState<string[]>([])
   const [selectedMonth, setSelectedMonth] = useState(currentYearMonth())
 
+  /*
+   * useMemo cache'uje wynik obliczenia między renderami.
+   * Używaj go dla obliczeń zależnych od danych, nie jako domyślnego ozdobnika.
+   *
+   * dependencies [draftMonths, snapshots] mówią kiedy przeliczyć.
+   * Jeśli żadna zależność się nie zmieniła referencyjnie, React odda poprzedni wynik.
+   */
   const months = useMemo(() => {
     const combined = [...allSnapshotMonths(snapshots), ...draftMonths]
     return [...new Set(combined)].sort().reverse()
@@ -41,6 +58,10 @@ export function AccountsSection() {
   )
 
   const addDraftMonth = (yearMonth: string) => {
+    /*
+     * setDraftMonths(current => ...) używa poprzedniego state.
+     * To chroni przed problemami z asynchronicznym batchingiem update'ów Reacta.
+     */
     setDraftMonths(current => current.includes(yearMonth) ? current : [...current, yearMonth])
     setSelectedMonth(yearMonth)
   }
@@ -59,9 +80,20 @@ export function AccountsSection() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center gap-2">
         {adding ? (
+          /*
+           * Warunkowe przełączanie widoku add form/button.
+           * React po prostu renderuje inną gałąź drzewa; nie ma osobnej dyrektywy.
+           */
           <div className="w-full p-4 border border-blue-300 dark:border-blue-700 rounded-xl bg-blue-50 dark:bg-blue-900/20">
             <p className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-3">Nowe konto</p>
             <AccountForm
+              /*
+               * Callback jako prop:
+               * dziecko nie zna Zustand store. Dziecko tylko mówi "zapisz te dane",
+               * a rodzic decyduje co to znaczy.
+               *
+               * Angular porównanie: podobne do @Output() save = new EventEmitter().
+               */
               onSave={data => { addAccount(data); setAdding(false) }}
               onCancel={() => setAdding(false)}
             />
@@ -110,6 +142,11 @@ export function AccountsSection() {
       {visibleAccounts.length > 0 && (
         <div className="space-y-2">
           {visibleAccounts.map(account => (
+            /*
+             * key={account.id} pomaga Reactowi zrozumieć, który wiersz jest który
+             * przy dodawaniu/usuwaniu/edycji. To wpływa na zachowanie lokalnego
+             * state w child components.
+             */
             editingId === account.id ? (
               <div key={account.id} className="p-4 border border-blue-300 dark:border-blue-700 rounded-xl bg-blue-50 dark:bg-blue-900/20">
                 <p className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-3">Edytuj konto</p>
@@ -164,6 +201,11 @@ function AccountRow({
   onClose: (yearMonth: string) => void
   onReopen: () => void
 }) {
+  /*
+   * AccountRow ma swój malutki lokalny state closeMonth.
+   * To dobry sygnał architektoniczny: globalny store nie powinien trzymać
+   * każdej tymczasowej wartości inputa.
+   */
   const [closeMonth, setCloseMonth] = useState(account.closedAt ?? latestMonth)
 
   return (

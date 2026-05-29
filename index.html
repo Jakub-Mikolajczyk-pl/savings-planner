@@ -3,11 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!--
+      viewport jest krytyczny dla responsywności.
+      Bez niego mobile browser udaje szeroki desktop i skaluje stronę.
+    -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>savings-planner</title>
   </head>
   <body>
+    <!--
+      React renderuje całą aplikację do tego jednego elementu.
+
+      Angular porównanie:
+      - Angular zwykle startuje od <app-root></app-root>.
+      - React nie ma dekoratora @Component dla roota; w main.tsx mówimy jawnie:
+        "weź #root i wyrenderuj w nim <App />".
+    -->
     <div id="root"></div>
+    <!--
+      type="module" oznacza natywne ES Modules w przeglądarce.
+      Podczas dev Vite serwuje /src/main.tsx bezpośrednio przez swój dev server,
+      a podczas builda podmienia to na wygenerowany bundle w dist/.
+    -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
