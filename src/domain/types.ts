@@ -140,6 +140,8 @@ export interface Settings {
   startMonth: string // "YYYY-MM" format
   horizonMonths: number
   emergencyFundBuckets: AccountBucket[]
+  safetyCushionMonths?: number  // cel poduszki = tyle miesięcy kosztów (domyślnie 6)
+  emergencyFundTarget?: number  // cel funduszu awaryjnego — stała kwota (domyślnie 10000)
 }
 
 export interface MonthOverride {

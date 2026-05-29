@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { CalendarPlus, Eye, EyeOff, FileUp, Lock, Pencil, Plus, Trash2, Unlock } from 'lucide-react'
 import { ACCOUNT_BUCKETS, allSnapshotMonths, balanceAsOf, BUCKET_LABELS } from '../../domain/accounts'
 import { addMonths, currentYearMonth, formatPLN } from '../../domain/formatting'
+import { buildSchedule } from '../../domain/allocation'
 import { useStore } from '../../store'
 import type { Account, AccountBucket, AccountSnapshot } from '../../domain/types'
 import { AccountForm } from './AccountForm'
@@ -25,6 +26,25 @@ export function AccountsSection() {
   const reopenAccount = useStore(s => s.reopenAccount)
   const setSnapshot = useStore(s => s.setSnapshot)
   const removeSnapshot = useStore(s => s.removeSnapshot)
+  const settings = useStore(s => s.settings)
+  const goals = useStore(s => s.goals)
+  const overrides = useStore(s => s.overrides)
+  const subscriptions = useStore(s => s.subscriptions)
+  const upcomingExpenses = useStore(s => s.upcomingExpenses)
+
+  // Cele KPI: poduszka = N miesięcy realnych kosztów (jak na Przeglądzie), fundusz = stała kwota.
+  const { safetyCushionTarget, emergencyFundTarget, safetyCushionMonths } = useMemo(() => {
+    const first = buildSchedule(settings, goals, loans, overrides, 0, 0, mortgagePlan, subscriptions, upcomingExpenses).rows[0]
+    const monthlyCosts = first
+      ? first.expenses + first.subscriptionsTotal + first.loanPaymentsTotal + first.mortgagePaymentTotal
+      : settings.monthlyExpenses
+    const months = settings.safetyCushionMonths ?? 6
+    return {
+      safetyCushionMonths: months,
+      safetyCushionTarget: monthlyCosts * months,
+      emergencyFundTarget: settings.emergencyFundTarget ?? 10000,
+    }
+  }, [settings, goals, loans, overrides, mortgagePlan, subscriptions, upcomingExpenses])
 
   const [adding, setAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -60,7 +80,14 @@ export function AccountsSection() {
 
   return (
     <div className="space-y-5">
-      <AssetsKpi accounts={accounts} snapshots={snapshots} emergencyFundBuckets={emergencyFundBuckets} />
+      <AssetsKpi
+        accounts={accounts}
+        snapshots={snapshots}
+        emergencyFundBuckets={emergencyFundBuckets}
+        safetyCushionTarget={safetyCushionTarget}
+        safetyCushionMonths={safetyCushionMonths}
+        emergencyFundTarget={emergencyFundTarget}
+      />
 
       <EmergencyFundBucketsPanel
         accounts={accounts}

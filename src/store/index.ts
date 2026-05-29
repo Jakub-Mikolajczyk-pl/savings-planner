@@ -124,6 +124,8 @@ export const defaultSettings: Settings = {
   startMonth: currentYearMonth(),
   horizonMonths: 36,
   emergencyFundBuckets: ['safety_cushion'],
+  safetyCushionMonths: 6,
+  emergencyFundTarget: 10000,
 }
 
 /*
