@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react'
 import { Trash2 } from 'lucide-react'
-import { balanceAsOf, isActiveInMonth } from '../../domain/accounts'
+import { balanceAsOf, isActiveInMonth, totalAssetsAsOf } from '../../domain/accounts'
 import { formatPLN, formatYearMonth } from '../../domain/formatting'
 import type { Account, AccountSnapshot } from '../../domain/types'
 import { CurrencyInput } from '../ui/CurrencyInput'
@@ -21,6 +21,18 @@ export function AccountsTable({ accounts, snapshots, months, onSetSnapshot, onRe
     })
     return map
   }, [snapshots])
+
+  // Suma majątku per miesiąc + zmiana m/m (liczone chronologicznie, niezależnie od kolejności wyświetlania).
+  const monthTotals = useMemo(() => {
+    const map = new Map<string, { total: number; delta?: number }>()
+    let previous: number | undefined
+    ;[...months].sort().forEach(yearMonth => {
+      const total = totalAssetsAsOf(accounts, snapshots, yearMonth)
+      map.set(yearMonth, { total, delta: previous === undefined ? undefined : total - previous })
+      previous = total
+    })
+    return map
+  }, [accounts, snapshots, months])
 
   if (accounts.length === 0) {
     return (
@@ -52,6 +64,9 @@ export function AccountsTable({ accounts, snapshots, months, onSetSnapshot, onRe
                 <span className="block normal-case font-normal text-gray-400">{account.currency}</span>
               </th>
             ))}
+            <th className="sticky right-0 z-10 bg-gray-50 px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-800 dark:text-gray-400 min-w-36">
+              Suma majątku
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 dark:divide-gray-800 bg-white dark:bg-gray-900">
@@ -62,6 +77,8 @@ export function AccountsTable({ accounts, snapshots, months, onSetSnapshot, onRe
               accounts={accounts}
               snapshots={snapshots}
               snapshotsByCell={snapshotsByCell}
+              total={monthTotals.get(yearMonth)?.total ?? 0}
+              delta={monthTotals.get(yearMonth)?.delta}
               onSetSnapshot={onSetSnapshot}
               onRemoveSnapshot={onRemoveSnapshot}
             />
@@ -75,6 +92,8 @@ export function AccountsTable({ accounts, snapshots, months, onSetSnapshot, onRe
 interface RowProps extends Omit<Props, 'months'> {
   yearMonth: string
   snapshotsByCell: Map<string, AccountSnapshot>
+  total: number
+  delta?: number
 }
 
 const AccountsTableRow = memo(function AccountsTableRow({
@@ -82,6 +101,8 @@ const AccountsTableRow = memo(function AccountsTableRow({
   accounts,
   snapshots,
   snapshotsByCell,
+  total,
+  delta,
   onSetSnapshot,
   onRemoveSnapshot,
 }: RowProps) {
@@ -130,6 +151,14 @@ const AccountsTableRow = memo(function AccountsTableRow({
           </td>
         )
       })}
+      <td className="sticky right-0 z-10 bg-white px-3 py-3 text-right align-top whitespace-nowrap dark:bg-gray-900">
+        <span className="block font-display text-base font-semibold tnum text-teal-700 dark:text-teal-300">{formatPLN(total)}</span>
+        {delta !== undefined && delta !== 0 && (
+          <span className={`mt-0.5 block text-xs tnum ${delta > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+            {delta > 0 ? '+' : '−'}{formatPLN(Math.abs(delta))} m/m
+          </span>
+        )}
+      </td>
     </tr>
   )
 })

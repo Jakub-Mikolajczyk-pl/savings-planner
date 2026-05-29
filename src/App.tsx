@@ -384,7 +384,7 @@ function NetWorthHero({ overview }: { overview: ReturnType<typeof useOverviewMod
         </div>
         <div className="flex flex-col justify-center gap-2.5 sm:border-l sm:border-gray-200/70 sm:pl-6 sm:dark:border-gray-800">
           <BreakdownRow label="Majątek" value={overview.assetsValue} tone="asset" />
-          <BreakdownRow label="− Długi" value={overview.debtValue} tone="negative" />
+          <BreakdownRow label="Długi" value={`−${overview.debtValue}`} tone="negative" />
         </div>
       </div>
     </div>
