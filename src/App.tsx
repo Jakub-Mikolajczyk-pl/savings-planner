@@ -220,7 +220,7 @@ function OverviewPage({ onNavigate }: { onNavigate: (tab: AppTab) => void }) {
         <StatCard label="Dochód / mc" value={overview.monthlyIncome} detail={overview.cashflowMonthLabel} tone="positive" />
         <StatCard label="Koszty / mc" value={overview.monthlyCosts} detail={overview.costsDetail} tone="negative" />
         <StatCard label="Wolne środki / mc" value={overview.freeCash} detail={overview.freeCashDetail} tone={overview.freeCashTone} />
-        <StatCard label="Fundusz awaryjny" value={overview.emergencyFund} detail={overview.emergencyFundLabel} tone="asset" />
+        <StatCard label="Poduszka bezpieczeństwa" value={overview.emergencyFund} detail={overview.emergencyFundLabel} tone="asset" />
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.65fr)]">

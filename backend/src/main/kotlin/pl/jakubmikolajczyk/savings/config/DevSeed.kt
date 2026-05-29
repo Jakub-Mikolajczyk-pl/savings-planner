@@ -44,8 +44,8 @@ class DevSeed(
          */
         if (accountRepository.count() > 0) return
 
-        val cash = accountService.create(AccountDto(name = "mBank", bucket = AccountBucket.cash, currency = "PLN"))
-        val savings = accountService.create(AccountDto(name = "Obligacje", bucket = AccountBucket.investment, currency = "PLN"))
+        val cash = accountService.create(AccountDto(name = "mBank", bucket = AccountBucket.accounts, currency = "PLN"))
+        val savings = accountService.create(AccountDto(name = "Obligacje", bucket = AccountBucket.investments, currency = "PLN"))
 
         /*
          * requireNotNull is better than `cash.id!!`.
@@ -67,7 +67,7 @@ class DevSeed(
                 monthlyExpenses = BigDecimal("6500"),
                 startMonth = "2026-05",
                 horizonMonths = 36,
-                emergencyFundBuckets = listOf(AccountBucket.cash, AccountBucket.investment),
+                emergencyFundBuckets = listOf(AccountBucket.safety_cushion),
             ),
         )
     }

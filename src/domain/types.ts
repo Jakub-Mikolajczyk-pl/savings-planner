@@ -39,7 +39,14 @@ export interface UpcomingExpense {
 }
 
 // Assets: konta i ich stany w czasie (snapshoty)
-export type AccountBucket = 'cash' | 'investment' | 'retirement' | 'down_payment' | 'crypto'
+export type AccountBucket =
+  | 'accounts'
+  | 'safety_cushion'
+  | 'retirement'
+  | 'renovation'
+  | 'investments'
+  | 'vacation'
+  | 'emergency_fund'
 
 export interface Account {
   id: string

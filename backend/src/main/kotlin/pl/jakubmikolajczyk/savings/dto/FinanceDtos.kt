@@ -47,11 +47,13 @@ import java.util.UUID
  *    Frontend TypeScript can use a string union because it is erased at runtime.
  */
 enum class AccountBucket {
-    cash,
-    investment,
+    accounts,
+    safety_cushion,
     retirement,
-    down_payment,
-    crypto,
+    renovation,
+    investments,
+    vacation,
+    emergency_fund,
 }
 
 data class AccountDto(

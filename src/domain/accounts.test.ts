@@ -4,7 +4,7 @@ import type { Account, AccountSnapshot } from './types'
 
 const makeAccount = (overrides: Partial<Account> & { id: string }): Account => ({
   name: 'Konto',
-  bucket: 'cash',
+  bucket: 'accounts',
   currency: 'PLN',
   ...overrides,
 })
@@ -43,7 +43,7 @@ describe('accounts domain', () => {
   it('sums many accounts with gaps using carry-forward', () => {
     const accounts: Account[] = [
       makeAccount({ id: 'cash' }),
-      makeAccount({ id: 'brokerage', bucket: 'investment' }),
+      makeAccount({ id: 'brokerage', bucket: 'investments' }),
       makeAccount({ id: 'closed', closedAt: '2024-02' }),
     ]
     const snapshots: AccountSnapshot[] = [

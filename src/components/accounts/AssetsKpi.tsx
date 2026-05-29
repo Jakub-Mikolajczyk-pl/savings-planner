@@ -18,8 +18,8 @@ export function AssetsKpi({ accounts, snapshots, emergencyFundBuckets }: Props) 
     return (
       <div className="grid gap-3 md:grid-cols-3">
         <EmptyKpi title="Suma majątku" />
+        <EmptyKpi title="Poduszka bezpieczeństwa" />
         <EmptyKpi title="Fundusz awaryjny" />
-        <EmptyKpi title="Wkład własny" />
       </div>
     )
   }
@@ -27,14 +27,16 @@ export function AssetsKpi({ accounts, snapshots, emergencyFundBuckets }: Props) 
   const totalAssets = totalAssetsAsOf(accounts, snapshots, latestMonth)
   const previousAssets = previousMonth ? totalAssetsAsOf(accounts, snapshots, previousMonth) : undefined
   const totalDelta = previousAssets === undefined ? undefined : totalAssets - previousAssets
-  const emergencyFund = sumBuckets(accounts, snapshots, latestMonth, emergencyFundBuckets)
-  const downPayment = sumBuckets(accounts, snapshots, latestMonth, ['down_payment'])
+  // Poduszka bezpieczeństwa = konfigurowalny zestaw bucketów (docelowo ~6 mies. kosztów rodziny).
+  const safetyCushion = sumBuckets(accounts, snapshots, latestMonth, emergencyFundBuckets)
+  // Fundusz awaryjny = TYLKO konta przypisane do bucketu 'emergency_fund' (mała, szybko dostępna kwota).
+  const emergencyFund = sumBuckets(accounts, snapshots, latestMonth, ['emergency_fund'])
 
   return (
     <div className="grid gap-3 md:grid-cols-3">
       <KpiCard title="Suma majątku" value={formatPLN(totalAssets)} subtitle={formatYearMonth(latestMonth)} delta={totalDelta} />
-      <KpiCard title="Fundusz awaryjny" value={formatPLN(emergencyFund)} subtitle={formatBucketSubtitle(emergencyFundBuckets)} />
-      <KpiCard title="Wkład własny" value={formatPLN(downPayment)} subtitle="Bucket: wkład własny" />
+      <KpiCard title="Poduszka bezpieczeństwa" value={formatPLN(safetyCushion)} subtitle={formatBucketSubtitle(emergencyFundBuckets)} />
+      <KpiCard title="Fundusz awaryjny" value={formatPLN(emergencyFund)} subtitle="Bucket: Fundusz awaryjny" />
     </div>
   )
 }

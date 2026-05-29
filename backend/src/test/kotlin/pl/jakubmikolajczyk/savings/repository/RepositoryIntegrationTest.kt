@@ -24,7 +24,7 @@ class RepositoryIntegrationTest @Autowired constructor(
 ) {
     @Test
     fun `persists account and finds ordered snapshots`() {
-        val account = accounts.save(AccountEntity(name = "mBank", bucket = "cash"))
+        val account = accounts.save(AccountEntity(name = "mBank", bucket = "accounts"))
         snapshots.save(AccountSnapshotEntity(account = account, snapshotDate = LocalDate.of(2026, 5, 1), balance = BigDecimal("100.00")))
         snapshots.save(AccountSnapshotEntity(account = account, snapshotDate = LocalDate.of(2026, 4, 1), balance = BigDecimal("50.00")))
 

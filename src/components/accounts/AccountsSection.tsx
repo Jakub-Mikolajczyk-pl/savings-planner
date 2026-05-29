@@ -14,7 +14,7 @@ import { NetWorthChart } from './NetWorthChart'
 export function AccountsSection() {
   const accounts = useStore(s => s.accounts)
   const snapshots = useStore(s => s.accountSnapshots)
-  const emergencyFundBuckets = useStore(s => s.settings.emergencyFundBuckets ?? ['cash', 'investment'])
+  const emergencyFundBuckets = useStore(s => s.settings.emergencyFundBuckets ?? ['safety_cushion'])
   const loans = useStore(s => s.loans)
   const mortgagePlan = useStore(s => s.mortgagePlan)
   const addAccount = useStore(s => s.addAccount)
@@ -219,9 +219,9 @@ function EmergencyFundBucketsPanel({
     <div className="rounded-md border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Fundusz awaryjny</h2>
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Poduszka bezpieczeństwa</h2>
           <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            Wybierz buckety liczone do KPI. Źródłem prawdy jest istniejące `settings.emergencyFundBuckets`.
+            Wybierz buckety, które sumują się do poduszki (docelowo ~6 miesięcy kosztów rodziny). Fundusz awaryjny liczy się osobno z bucketu „Fundusz awaryjny".
           </p>
         </div>
         <div className="text-right">
