@@ -204,8 +204,15 @@ class CsvAccountImporter(
              * function. This is one of those Kotlin things interviewers like to check.
              */
             val columns = splitCsvLine(rawLine, delimiter)
-            if (columns.isEmpty()) return@forEachIndexed
-            val snapshotDate = parsePolishMonth(columns[0], mapping.year)
+            /*
+             * Pomijamy wiersze, ktore nie sa danymi miesiecznymi:
+             * - pusta pierwsza kolumna => wiersz-separator (",,,,") z konca arkusza,
+             * - nierozpoznany miesiac => sekcja celow na dole (np. "Cel FIRE:").
+             * Bez tego import realnego arkusza wywala sie na pierwszym smieciowym wierszu.
+             */
+            val monthLabel = columns.firstOrNull()?.trim().orEmpty()
+            if (monthLabel.isEmpty()) return@forEachIndexed
+            val snapshotDate = parsePolishMonthOrNull(monthLabel, mapping.year) ?: return@forEachIndexed
             maxImportedMonth = listOfNotNull(maxImportedMonth, snapshotDate).maxOrNull()
 
             headers.drop(1).forEachIndexed { headerIndex, header ->
@@ -334,23 +341,29 @@ class CsvAccountImporter(
         }
     }
 
-    fun parsePolishMonth(label: String, year: Int): LocalDate {
+    fun parsePolishMonth(label: String, year: Int): LocalDate =
         /*
-         * Ta funkcja jest publiczna, bo testy jednostkowe sprawdzaja parser miesiecy bez
-         * odpalania calego importu i bazy.
-         *
-         * Pytanie rekrutacyjne:
-         * "Czy testowac prywatne metody?"
-         * Odp: Zwykle testuj zachowanie publiczne. Jesli maly parser jest wazny i izolowany,
-         * mozna go wydzielic jako publiczna/internal funkcje albo osobna klase.
+         * Wariant rzucajacy: uzywany tam, gdzie etykieta MUSI byc miesiacem
+         * (np. testy jednostkowe). Deleguje do wariantu null-safe.
          */
+        parsePolishMonthOrNull(label, year)
+            ?: throw BadRequestException("Unknown Polish month in '$label'")
+
+    /*
+     * Wariant null-safe: zwraca null, gdy etykieta nie jest rozpoznanym miesiacem.
+     *
+     * Dlaczego istnieje:
+     * Realne arkusze (np. "Finanse - 2022.csv") maja po danych mnostwo PUSTYCH
+     * wierszy-separatorow (",,,,") oraz sekcje celow na dole ("Cel FIRE:", ...).
+     * Pusty wiersz NIE daje pustej listy kolumn, tylko liste pustych stringow,
+     * wiec columns[0] = "" trafialoby do parsera i wywalalo CALY import.
+     * W petli importu wolamy ten wariant i po prostu pomijamy takie wiersze.
+     */
+    fun parsePolishMonthOrNull(label: String, year: Int): LocalDate? {
         val normalized = normalize(label)
-        /*
-         * takeWhile reads characters until predicate becomes false.
-         * For "Maj (31.05)" it extracts "maj".
-         */
+        // takeWhile czyta znaki dopoki sa literami: "Maj (31.05)" -> "maj".
         val monthWord = normalized.takeWhile { it.isLetter() }.trim()
-        val month = polishMonths[monthWord] ?: throw BadRequestException("Unknown Polish month in '$label'")
+        val month = polishMonths[monthWord] ?: return null
         return LocalDate.of(year, month, 1)
     }
 
