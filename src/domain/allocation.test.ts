@@ -7,7 +7,7 @@ const baseSettings: Settings = {
   monthlyExpenses: 6000,
   startMonth: '2026-01',
   horizonMonths: 24,
-  emergencyFundBuckets: ['cash', 'investment'],
+  emergencyFundBuckets: ['safety_cushion'],
 }
 
 const makeGoal = (overrides: Partial<Goal> & { id: string; name: string; targetAmount: number }): Goal => ({

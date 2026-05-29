@@ -107,7 +107,7 @@ export function ImportCsvDialog({ onClose }: Props) {
             {
               action: 'new',
               name: header,
-              bucket: 'cash' as AccountBucket,
+              bucket: 'accounts' as AccountBucket,
               currency: 'PLN',
             },
           ]),
@@ -246,7 +246,7 @@ export function ImportCsvDialog({ onClose }: Props) {
                     <label className="flex flex-col gap-1">
                       <span className="text-xs text-gray-500 dark:text-gray-400">Bucket</span>
                       <select
-                        value={mapping.bucket ?? 'cash'}
+                        value={mapping.bucket ?? 'accounts'}
                         onChange={event => updateMapping(header, { bucket: event.target.value as AccountBucket })}
                         disabled={mapping.action !== 'new'}
                         className="px-2 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm disabled:opacity-50"

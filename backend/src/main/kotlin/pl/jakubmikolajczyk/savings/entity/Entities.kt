@@ -59,7 +59,7 @@ class AccountEntity(
      *    effectively immutable from the outside.
      */
     var name: String = "",
-    var bucket: String = "cash",
+    var bucket: String = "accounts",
     var currency: String = "PLN",
     @Column(name = "opened_at")
     var openedAt: LocalDate? = null,

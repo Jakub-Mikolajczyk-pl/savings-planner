@@ -123,7 +123,7 @@ export const defaultSettings: Settings = {
   monthlyExpenses: 6000,
   startMonth: currentYearMonth(),
   horizonMonths: 36,
-  emergencyFundBuckets: ['cash', 'investment'],
+  emergencyFundBuckets: ['safety_cushion'],
 }
 
 /*

@@ -7,7 +7,7 @@ const baseSettings: Settings = {
   monthlyExpenses: 6000,
   startMonth: '2026-01',
   horizonMonths: 6,
-  emergencyFundBuckets: ['cash', 'investment'],
+  emergencyFundBuckets: ['safety_cushion'],
 }
 
 const goals: Goal[] = [

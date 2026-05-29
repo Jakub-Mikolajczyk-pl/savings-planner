@@ -28,7 +28,7 @@ export function AccountForm({ initial, onSave, onCancel }: Props) {
    * React najczęściej robi to jawnie: value + onChange.
    */
   const [name, setName] = useState(initial?.name ?? '')
-  const [bucket, setBucket] = useState<AccountBucket>(initial?.bucket ?? 'cash')
+  const [bucket, setBucket] = useState<AccountBucket>(initial?.bucket ?? 'accounts')
   const [currency, setCurrency] = useState(initial?.currency ?? 'PLN')
 
   const handleSubmit = (e: React.FormEvent) => {

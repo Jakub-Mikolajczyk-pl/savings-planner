@@ -1,14 +1,27 @@
 import type { Account, AccountBucket, AccountSnapshot } from './types'
 
-export const ACCOUNT_BUCKETS: AccountBucket[] = ['cash', 'investment', 'retirement', 'down_payment', 'crypto']
+export const ACCOUNT_BUCKETS: AccountBucket[] = [
+  'accounts',
+  'safety_cushion',
+  'retirement',
+  'renovation',
+  'investments',
+  'vacation',
+  'emergency_fund',
+]
 
 export const BUCKET_LABELS: Record<AccountBucket, string> = {
-  cash: 'Gotówka / konta',
-  investment: 'Inwestycje',
+  accounts: 'Konta',
+  safety_cushion: 'Poduszka bezpieczeństwa',
   retirement: 'Emerytalne',
-  down_payment: 'Wkład własny',
-  crypto: 'Krypto',
+  renovation: 'Remont',
+  investments: 'Inwestycje',
+  vacation: 'Wakacje',
+  emergency_fund: 'Fundusz awaryjny',
 }
+
+// Domyślny bucket dla nowych/importowanych kont, gdy nic nie wybrano.
+export const DEFAULT_BUCKET: AccountBucket = 'accounts'
 
 export function isActiveInMonth(account: Account, yearMonth: string): boolean {
   if (account.openedAt && yearMonth < account.openedAt) return false
