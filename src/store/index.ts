@@ -18,6 +18,7 @@ import { IS_API_MODE } from '../config'
 import { buildSchedule } from '../domain/allocation'
 import { earliestSnapshotMonth } from '../domain/accounts'
 import { currentYearMonth } from '../domain/formatting'
+import { createId } from '../domain/id'
 import type {
   Account,
   AccountSnapshot,
@@ -505,7 +506,7 @@ export const useStore = create<AppState>()(
            */
           const snapshot = dataSnapshot(get())
           const maxPriority = get().goals.reduce((m, g) => Math.max(m, g.priority), 0)
-          const goal: Goal = { ...goalData, id: crypto.randomUUID(), priority: maxPriority + 1 }
+          const goal: Goal = { ...goalData, id: createId(), priority: maxPriority + 1 }
           set(s => ({ goals: [...s.goals, goal] }))
 
           if (IS_API_MODE) {
@@ -554,7 +555,7 @@ export const useStore = create<AppState>()(
 
         addLoan: (loanData) => {
           const snapshot = dataSnapshot(get())
-          const loan: Loan = { ...loanData, id: crypto.randomUUID() }
+          const loan: Loan = { ...loanData, id: createId() }
           set(s => ({ loans: [...s.loans, loan] }))
 
           if (IS_API_MODE) {
@@ -585,7 +586,7 @@ export const useStore = create<AppState>()(
 
         addAccount: (accountData) => {
           const snapshot = dataSnapshot(get())
-          const account: Account = { ...accountData, currency: accountData.currency ?? 'PLN', id: crypto.randomUUID() }
+          const account: Account = { ...accountData, currency: accountData.currency ?? 'PLN', id: createId() }
           set(s => ({ accounts: [...s.accounts, account] }))
 
           if (IS_API_MODE) {
@@ -679,7 +680,7 @@ export const useStore = create<AppState>()(
           const snapshot = dataSnapshot(get())
           const mortgagePlan: MortgagePlan = {
             ...planData,
-            id: planData.id ?? get().mortgagePlan?.id ?? crypto.randomUUID(),
+            id: planData.id ?? get().mortgagePlan?.id ?? createId(),
           }
           set({ mortgagePlan })
           runMutation(snapshot, () => mortgageApi.put(mortgagePlan))
@@ -693,7 +694,7 @@ export const useStore = create<AppState>()(
 
         addSubscription: (subscriptionData) => {
           const snapshot = dataSnapshot(get())
-          const subscription: Subscription = { ...subscriptionData, id: crypto.randomUUID() }
+          const subscription: Subscription = { ...subscriptionData, id: createId() }
           set(s => ({ subscriptions: [...s.subscriptions, subscription] }))
 
           if (IS_API_MODE) {
@@ -730,7 +731,7 @@ export const useStore = create<AppState>()(
 
         addUpcomingExpense: (expenseData) => {
           const snapshot = dataSnapshot(get())
-          const expense: UpcomingExpense = { ...expenseData, id: crypto.randomUUID() }
+          const expense: UpcomingExpense = { ...expenseData, id: createId() }
           set(s => ({ upcomingExpenses: [...s.upcomingExpenses, expense] }))
 
           if (IS_API_MODE) {

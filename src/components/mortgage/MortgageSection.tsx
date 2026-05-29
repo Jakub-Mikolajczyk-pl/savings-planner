@@ -4,6 +4,7 @@ import { useStore } from '../../store'
 import type { MortgageOneTimeOverpayment, MortgageOverpaymentMode, MortgagePlan } from '../../domain/types'
 import { buildMortgageSchedule } from '../../domain/mortgage'
 import { formatPLN, formatYearMonth } from '../../domain/formatting'
+import { createId } from '../../domain/id'
 import { CurrencyInput } from '../ui/CurrencyInput'
 
 const defaultPlan = (): Omit<MortgagePlan, 'id'> => ({
@@ -97,7 +98,7 @@ export function MortgageSection() {
     updateDraft({
       oneTimeOverpayments: [
         ...draft.oneTimeOverpayments,
-        { id: crypto.randomUUID(), yearMonth: settings.startMonth, amount: 0 },
+        { id: createId(), yearMonth: settings.startMonth, amount: 0 },
       ],
     })
   }
