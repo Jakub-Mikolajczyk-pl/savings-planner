@@ -304,7 +304,7 @@ export function ImportCsvDialog({ onClose }: Props) {
             <button
               type="submit"
               disabled={!file || isImporting}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white text-sm font-medium rounded-lg"
+              className="flex items-center gap-2 px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 dark:bg-gray-100 dark:text-gray-950 dark:hover:bg-white dark:disabled:bg-gray-700 text-white text-sm font-medium rounded-md"
             >
               <FileUp size={15} />
               {isImporting ? 'Importuję...' : 'Importuj'}

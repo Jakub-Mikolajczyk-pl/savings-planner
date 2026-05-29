@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { buildSchedule } from '../../domain/allocation'
 import { formatPLN } from '../../domain/formatting'
@@ -47,12 +47,15 @@ export function ScheduleTable() {
   const setOverride = useStore(s => s.setOverride)
   const setGoalAllocationOverride = useStore(s => s.setGoalAllocationOverride)
   const clearOverride = useStore(s => s.clearOverride)
+  const [visibleRowsCount, setVisibleRowsCount] = useState(24)
 
   const schedule = useMemo(
     () => buildSchedule(settings, goals, loans, overrides, 0, 0, mortgagePlan, subscriptions, upcomingExpenses),
     [settings, goals, loans, overrides, mortgagePlan, subscriptions, upcomingExpenses],
   )
   const sortedGoals = [...goals].sort((a, b) => a.priority - b.priority)
+  const visibleRows = schedule.rows.slice(0, visibleRowsCount)
+  const hasMoreRows = visibleRowsCount < schedule.rows.length
 
   if (goals.length === 0 && !mortgagePlan) {
     return <p className="text-sm text-gray-400 text-center py-4">Dodaj cele lub hipotekę żeby zobaczyć harmonogram</p>
@@ -89,7 +92,7 @@ export function ScheduleTable() {
           </tr>
         </thead>
         <tbody>
-          {schedule.rows.map(row => {
+          {visibleRows.map(row => {
             const override = overrides[row.yearMonth]
             const hasOverride = !!(override && (
               override.income !== undefined ||
@@ -213,6 +216,34 @@ export function ScheduleTable() {
           })}
         </tbody>
       </table>
+
+      {schedule.rows.length > 24 && (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-3 dark:border-gray-800">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Pokazuję {visibleRows.length} z {schedule.rows.length} miesięcy.
+          </p>
+          <div className="flex gap-2">
+            {hasMoreRows && (
+              <button
+                type="button"
+                onClick={() => setVisibleRowsCount(count => Math.min(count + 24, schedule.rows.length))}
+                className="rounded-md border border-gray-200 px-3 py-1.5 text-xs text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+              >
+                Pokaż kolejne 24
+              </button>
+            )}
+            {visibleRows.length > 24 && (
+              <button
+                type="button"
+                onClick={() => setVisibleRowsCount(24)}
+                className="rounded-md border border-gray-200 px-3 py-1.5 text-xs text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+              >
+                Zwiń do 24
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       <p className="text-xs text-gray-400 mt-3 space-y-0.5">
         <span className="block">

@@ -79,6 +79,7 @@ export function MortgageSection() {
   const [draft, setDraft] = useState<Omit<MortgagePlan, 'id'> & { id?: string }>(
     normalizePlan(mortgagePlan),
   )
+  const [visibleEntryCount, setVisibleEntryCount] = useState(36)
 
   const { entries, summary } = useMemo(
     () => buildMortgageSchedule(mortgagePlan, settings.startMonth, settings.horizonMonths, true),
@@ -86,6 +87,8 @@ export function MortgageSection() {
   )
 
   const updateDraft = (patch: Partial<typeof draft>) => setDraft(current => ({ ...current, ...patch }))
+  const visibleEntries = entries.slice(0, visibleEntryCount)
+  const hasMoreEntries = visibleEntryCount < entries.length
   const save = () => {
     if (draft.principal <= 0 || draft.termMonths <= 0 || draft.originalTermMonths <= 0 || draft.annualInterestRate < 0) return
     saveMortgagePlan({
@@ -178,7 +181,7 @@ export function MortgageSection() {
                     onClick={() => updateDraft({ overpaymentMode: value as MortgageOverpaymentMode })}
                     className={`px-3 py-2 text-sm ${
                       draft.overpaymentMode === value
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-950'
                         : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                     }`}
                   >
@@ -242,7 +245,7 @@ export function MortgageSection() {
             <button
               type="button"
               onClick={save}
-              className="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40"
+              className="px-4 py-2 text-sm rounded-md bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-40 dark:bg-gray-100 dark:text-gray-950 dark:hover:bg-white"
               disabled={draft.principal <= 0 || draft.termMonths <= 0 || draft.originalTermMonths <= 0 || !draft.name.trim()}
             >
               Zapisz plan
@@ -296,7 +299,7 @@ export function MortgageSection() {
               </tr>
             </thead>
             <tbody>
-              {entries.map(entry => (
+              {visibleEntries.map(entry => (
                 <tr key={entry.yearMonth} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
                   <td className="py-1.5 pr-3 font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">{formatYearMonth(entry.yearMonth)}</td>
                   <td className="py-1.5 px-2 text-right tabular-nums whitespace-nowrap">{formatPLN(entry.payment)}</td>
@@ -308,6 +311,33 @@ export function MortgageSection() {
               ))}
             </tbody>
           </table>
+          {entries.length > 36 && (
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Pokazuję {visibleEntries.length} z {entries.length} miesięcy hipoteki.
+              </p>
+              <div className="flex gap-2">
+                {hasMoreEntries && (
+                  <button
+                    type="button"
+                    onClick={() => setVisibleEntryCount(count => Math.min(count + 36, entries.length))}
+                    className="rounded-md border border-gray-200 px-3 py-1.5 text-xs text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                  >
+                    Pokaż kolejne 36
+                  </button>
+                )}
+                {visibleEntries.length > 36 && (
+                  <button
+                    type="button"
+                    onClick={() => setVisibleEntryCount(36)}
+                    className="rounded-md border border-gray-200 px-3 py-1.5 text-xs text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                  >
+                    Zwiń do 36
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

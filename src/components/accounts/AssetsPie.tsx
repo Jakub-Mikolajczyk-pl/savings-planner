@@ -60,13 +60,13 @@ export function AssetsPie({ accounts, snapshots }: Props) {
         <div className="inline-flex rounded-lg border border-gray-200 dark:border-gray-700 p-0.5 text-xs">
           <button
             onClick={() => setMode('bucket')}
-            className={`px-3 py-1.5 rounded-md transition-colors ${mode === 'bucket' ? 'bg-blue-600 text-white' : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-100'}`}
+            className={`px-3 py-1.5 rounded-md transition-colors ${mode === 'bucket' ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-950' : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-100'}`}
           >
             Buckety
           </button>
           <button
             onClick={() => setMode('account')}
-            className={`px-3 py-1.5 rounded-md transition-colors ${mode === 'account' ? 'bg-blue-600 text-white' : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-100'}`}
+            className={`px-3 py-1.5 rounded-md transition-colors ${mode === 'account' ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-950' : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-100'}`}
           >
             Konta
           </button>

@@ -71,7 +71,7 @@ export function GoalForm({ initial, onSave, onCancel }: Props) {
       <div className="flex gap-2 pt-2">
         <button
           type="submit"
-          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+          className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-medium py-2 px-4 rounded-md transition-colors dark:bg-gray-100 dark:text-gray-950 dark:hover:bg-white"
         >
           Zapisz
         </button>
