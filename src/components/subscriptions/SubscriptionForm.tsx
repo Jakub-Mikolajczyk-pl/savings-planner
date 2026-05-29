@@ -91,7 +91,7 @@ export function SubscriptionForm({ initial, onSave, onCancel }: Props) {
             nextCharge: nextCharge || undefined,
           })}
           disabled={!valid}
-          className="text-xs px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40"
+          className="text-xs px-3 py-1.5 rounded-md bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-40 dark:bg-gray-100 dark:text-gray-950 dark:hover:bg-white"
         >
           {initial ? 'Zapisz' : 'Dodaj abonament'}
         </button>

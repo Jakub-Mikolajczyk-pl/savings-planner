@@ -1,26 +1,17 @@
 import { useMemo, useState } from 'react'
-import { CalendarPlus, Eye, EyeOff, Lock, Pencil, Plus, Trash2, Unlock } from 'lucide-react'
-import { allSnapshotMonths, BUCKET_LABELS } from '../../domain/accounts'
-import { addMonths, currentYearMonth } from '../../domain/formatting'
+import { CalendarPlus, Eye, EyeOff, FileUp, Lock, Pencil, Plus, Trash2, Unlock } from 'lucide-react'
+import { ACCOUNT_BUCKETS, allSnapshotMonths, balanceAsOf, BUCKET_LABELS } from '../../domain/accounts'
+import { addMonths, currentYearMonth, formatPLN } from '../../domain/formatting'
 import { useStore } from '../../store'
-import type { Account } from '../../domain/types'
+import type { Account, AccountBucket, AccountSnapshot } from '../../domain/types'
 import { AccountForm } from './AccountForm'
 import { AccountsTable } from './AccountsTable'
 import { AssetsKpi } from './AssetsKpi'
-import { NetWorthChart } from './NetWorthChart'
 import { AssetsPie } from './AssetsPie'
+import { ImportCsvDialog } from './ImportCsvDialog'
+import { NetWorthChart } from './NetWorthChart'
 
 export function AccountsSection() {
-  /*
-   * AccountsSection jest "container component":
-   * - czyta dane z globalnego store,
-   * - trzyma lokalny state widoku,
-   * - przekazuje dane/callbacki do mniejszych komponentów prezentacyjnych.
-   *
-   * Angular porównanie:
-   * To komponent z injected service/store i template składającym child components.
-   * Różnica: zamiast DI w konstruktorze używamy hooków.
-   */
   const accounts = useStore(s => s.accounts)
   const snapshots = useStore(s => s.accountSnapshots)
   const emergencyFundBuckets = useStore(s => s.settings.emergencyFundBuckets ?? ['cash', 'investment'])
@@ -28,6 +19,7 @@ export function AccountsSection() {
   const mortgagePlan = useStore(s => s.mortgagePlan)
   const addAccount = useStore(s => s.addAccount)
   const updateAccount = useStore(s => s.updateAccount)
+  const updateSettings = useStore(s => s.updateSettings)
   const removeAccount = useStore(s => s.removeAccount)
   const closeAccount = useStore(s => s.closeAccount)
   const reopenAccount = useStore(s => s.reopenAccount)
@@ -37,16 +29,10 @@ export function AccountsSection() {
   const [adding, setAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showClosed, setShowClosed] = useState(false)
+  const [importCsvOpen, setImportCsvOpen] = useState(false)
   const [draftMonths, setDraftMonths] = useState<string[]>([])
   const [selectedMonth, setSelectedMonth] = useState(currentYearMonth())
 
-  /*
-   * useMemo cache'uje wynik obliczenia między renderami.
-   * Używaj go dla obliczeń zależnych od danych, nie jako domyślnego ozdobnika.
-   *
-   * dependencies [draftMonths, snapshots] mówią kiedy przeliczyć.
-   * Jeśli żadna zależność się nie zmieniła referencyjnie, React odda poprzedni wynik.
-   */
   const months = useMemo(() => {
     const combined = [...allSnapshotMonths(snapshots), ...draftMonths]
     return [...new Set(combined)].sort().reverse()
@@ -58,10 +44,6 @@ export function AccountsSection() {
   )
 
   const addDraftMonth = (yearMonth: string) => {
-    /*
-     * setDraftMonths(current => ...) używa poprzedniego state.
-     * To chroni przed problemami z asynchronicznym batchingiem update'ów Reacta.
-     */
     setDraftMonths(current => current.includes(yearMonth) ? current : [...current, yearMonth])
     setSelectedMonth(yearMonth)
   }
@@ -78,22 +60,31 @@ export function AccountsSection() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center gap-2">
+      <AssetsKpi accounts={accounts} snapshots={snapshots} emergencyFundBuckets={emergencyFundBuckets} />
+
+      <EmergencyFundBucketsPanel
+        accounts={accounts}
+        snapshots={snapshots}
+        selectedBuckets={emergencyFundBuckets}
+        onChange={buckets => updateSettings({ emergencyFundBuckets: buckets })}
+      />
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(22rem,0.55fr)]">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+          <div className="mb-4">
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Historia net worth</h2>
+            <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Pełna oś snapshotów kont z bieżącym długiem jako korektą netto.</p>
+          </div>
+          <NetWorthChart accounts={accounts} snapshots={snapshots} loans={loans} mortgagePlan={mortgagePlan} />
+        </div>
+        <AssetsPie accounts={accounts} snapshots={snapshots} />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
         {adding ? (
-          /*
-           * Warunkowe przełączanie widoku add form/button.
-           * React po prostu renderuje inną gałąź drzewa; nie ma osobnej dyrektywy.
-           */
-          <div className="w-full p-4 border border-blue-300 dark:border-blue-700 rounded-xl bg-blue-50 dark:bg-blue-900/20">
-            <p className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-3">Nowe konto</p>
+          <div className="w-full rounded-md border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-950">
+            <p className="mb-3 text-sm font-medium text-gray-900 dark:text-gray-100">Nowe konto</p>
             <AccountForm
-              /*
-               * Callback jako prop:
-               * dziecko nie zna Zustand store. Dziecko tylko mówi "zapisz te dane",
-               * a rodzic decyduje co to znaczy.
-               *
-               * Angular porównanie: podobne do @Output() save = new EventEmitter().
-               */
               onSave={data => { addAccount(data); setAdding(false) }}
               onCancel={() => setAdding(false)}
             />
@@ -101,7 +92,7 @@ export function AccountsSection() {
         ) : (
           <button
             onClick={() => setAdding(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+            className="flex items-center gap-2 rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-950 dark:hover:bg-white"
           >
             <Plus size={15} />
             Dodaj konto
@@ -110,10 +101,18 @@ export function AccountsSection() {
 
         <button
           onClick={() => setShowClosed(value => !value)}
-          className="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          className="flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
         >
           {showClosed ? <EyeOff size={15} /> : <Eye size={15} />}
           {showClosed ? 'Ukryj zamknięte' : 'Pokaż zamknięte'}
+        </button>
+
+        <button
+          onClick={() => setImportCsvOpen(true)}
+          className="flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+        >
+          <FileUp size={15} />
+          Import CSV
         </button>
 
         <div className="ml-auto flex flex-wrap items-center gap-2">
@@ -121,18 +120,18 @@ export function AccountsSection() {
             type="month"
             value={selectedMonth}
             onChange={e => setSelectedMonth(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
           />
           <button
             onClick={() => addDraftMonth(selectedMonth)}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            className="flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
           >
             <CalendarPlus size={15} />
             Dodaj miesiąc
           </button>
           <button
             onClick={addNextMonth}
-            className="px-4 py-2 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
           >
             Kolejny
           </button>
@@ -142,14 +141,9 @@ export function AccountsSection() {
       {visibleAccounts.length > 0 && (
         <div className="space-y-2">
           {visibleAccounts.map(account => (
-            /*
-             * key={account.id} pomaga Reactowi zrozumieć, który wiersz jest który
-             * przy dodawaniu/usuwaniu/edycji. To wpływa na zachowanie lokalnego
-             * state w child components.
-             */
             editingId === account.id ? (
-              <div key={account.id} className="p-4 border border-blue-300 dark:border-blue-700 rounded-xl bg-blue-50 dark:bg-blue-900/20">
-                <p className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-3">Edytuj konto</p>
+              <div key={account.id} className="rounded-md border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-950">
+                <p className="mb-3 text-sm font-medium text-gray-900 dark:text-gray-100">Edytuj konto</p>
                 <AccountForm
                   initial={account}
                   onSave={data => { updateAccount(account.id, data); setEditingId(null) }}
@@ -171,17 +165,99 @@ export function AccountsSection() {
         </div>
       )}
 
-      <AssetsKpi accounts={accounts} snapshots={snapshots} emergencyFundBuckets={emergencyFundBuckets} />
-      <NetWorthChart accounts={accounts} snapshots={snapshots} loans={loans} mortgagePlan={mortgagePlan} />
-      <AssetsPie accounts={accounts} snapshots={snapshots} />
+      <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+        <div className="mb-4">
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Snapshoty kont</h2>
+          <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Tabela jest tylko w domenie Majątek; cashflow mieszka w zakładce Plan.</p>
+        </div>
+        <AccountsTable
+          accounts={visibleAccounts}
+          snapshots={snapshots}
+          months={months}
+          onSetSnapshot={handleSetSnapshot}
+          onRemoveSnapshot={removeSnapshot}
+        />
+      </div>
 
-      <AccountsTable
-        accounts={visibleAccounts}
-        snapshots={snapshots}
-        months={months}
-        onSetSnapshot={handleSetSnapshot}
-        onRemoveSnapshot={removeSnapshot}
-      />
+      {importCsvOpen && <ImportCsvDialog onClose={() => setImportCsvOpen(false)} />}
+    </div>
+  )
+}
+
+function EmergencyFundBucketsPanel({
+  accounts,
+  snapshots,
+  selectedBuckets,
+  onChange,
+}: {
+  accounts: Account[]
+  snapshots: AccountSnapshot[]
+  selectedBuckets: AccountBucket[]
+  onChange: (buckets: AccountBucket[]) => void
+}) {
+  const latestMonth = allSnapshotMonths(snapshots).at(-1)
+  const toggleBucket = (bucket: AccountBucket) => {
+    if (selectedBuckets.includes(bucket)) {
+      if (selectedBuckets.length === 1) return
+      onChange(selectedBuckets.filter(item => item !== bucket))
+      return
+    }
+    onChange([...selectedBuckets, bucket])
+  }
+
+  const total = latestMonth
+    ? accounts
+        .filter(account => selectedBuckets.includes(account.bucket))
+        .reduce((sum, account) => sum + balanceAsOf(snapshots, account, latestMonth), 0)
+    : 0
+
+  return (
+    <div className="rounded-md border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Fundusz awaryjny</h2>
+          <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+            Wybierz buckety liczone do KPI. Źródłem prawdy jest istniejące `settings.emergencyFundBuckets`.
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-xs text-gray-500 dark:text-gray-400">{latestMonth ?? 'Brak snapshotów'}</p>
+          <p className="text-xl font-semibold tabular-nums text-gray-900 dark:text-gray-100">{formatPLN(total)}</p>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+        {ACCOUNT_BUCKETS.map(bucket => {
+          const selected = selectedBuckets.includes(bucket)
+          const bucketTotal = latestMonth
+            ? accounts
+                .filter(account => account.bucket === bucket)
+                .reduce((sum, account) => sum + balanceAsOf(snapshots, account, latestMonth), 0)
+            : 0
+
+          return (
+            <label
+              key={bucket}
+              className={`flex cursor-pointer items-start gap-2 rounded-lg border p-3 text-sm transition-colors ${
+                selected
+                  ? 'border-gray-400 bg-gray-100 text-gray-950 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100'
+                  : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800'
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={selected}
+                onChange={() => toggleBucket(bucket)}
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-400"
+              />
+              <span className="min-w-0">
+                <span className="block font-medium">{BUCKET_LABELS[bucket]}</span>
+                <span className="block text-xs tabular-nums text-gray-500 dark:text-gray-400">{formatPLN(bucketTotal)}</span>
+              </span>
+            </label>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -201,20 +277,15 @@ function AccountRow({
   onClose: (yearMonth: string) => void
   onReopen: () => void
 }) {
-  /*
-   * AccountRow ma swój malutki lokalny state closeMonth.
-   * To dobry sygnał architektoniczny: globalny store nie powinien trzymać
-   * każdej tymczasowej wartości inputa.
-   */
   const [closeMonth, setCloseMonth] = useState(account.closedAt ?? latestMonth)
 
   return (
-    <div className="flex flex-wrap items-center gap-3 px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-      <div className="flex-1 min-w-56">
+    <div className="flex flex-wrap items-center gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2.5 dark:border-gray-800 dark:bg-gray-900">
+      <div className="min-w-56 flex-1">
         <div className="flex items-center gap-2">
           <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{account.name}</p>
           {account.closedAt && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">zamknięte</span>
+            <span className="rounded-md bg-gray-100 px-2 py-0.5 text-xs text-gray-500 dark:bg-gray-800 dark:text-gray-400">zamknięte</span>
           )}
         </div>
         <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -229,7 +300,7 @@ function AccountRow({
           type="month"
           value={closeMonth}
           onChange={e => setCloseMonth(e.target.value)}
-          className="px-2 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
           aria-label="Miesiąc zamknięcia"
         />
       )}
@@ -238,7 +309,7 @@ function AccountRow({
         {account.closedAt ? (
           <button
             onClick={onReopen}
-            className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
+            className="rounded p-1.5 text-gray-400 transition-colors hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-950/30"
             aria-label="Otwórz konto"
             title="Otwórz konto"
           >
@@ -247,7 +318,7 @@ function AccountRow({
         ) : (
           <button
             onClick={() => onClose(closeMonth)}
-            className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded transition-colors"
+            className="rounded p-1.5 text-gray-400 transition-colors hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-950/30"
             aria-label="Zamknij konto"
             title="Zamknij konto"
           >
@@ -256,7 +327,7 @@ function AccountRow({
         )}
         <button
           onClick={onEdit}
-          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+          className="rounded p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-gray-100"
           aria-label="Edytuj konto"
           title="Edytuj konto"
         >
@@ -264,7 +335,7 @@ function AccountRow({
         </button>
         <button
           onClick={onRemove}
-          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+          className="rounded p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
           aria-label="Usuń konto"
           title="Usuń konto"
         >
