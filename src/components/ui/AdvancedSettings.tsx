@@ -139,6 +139,34 @@ export function AdvancedSettings() {
             className="rounded-md border border-gray-200 bg-white px-3 py-2 text-right text-gray-900 tabular-nums focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
           />
         </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Poduszka bezpieczeństwa (mies. kosztów)</label>
+          <input
+            type="number"
+            min={1}
+            max={24}
+            value={settings.safetyCushionMonths ?? 6}
+            onChange={e => {
+              const value = parseInt(e.target.value)
+              if (!isNaN(value) && value >= 1 && value <= 24) updateSettings({ safetyCushionMonths: value })
+            }}
+            className="rounded-md border border-gray-200 bg-white px-3 py-2 text-right text-gray-900 tabular-nums focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Cel funduszu awaryjnego (zł)</label>
+          <input
+            type="number"
+            min={0}
+            step={500}
+            value={settings.emergencyFundTarget ?? 10000}
+            onChange={e => {
+              const value = parseFloat(e.target.value)
+              if (!isNaN(value) && value >= 0) updateSettings({ emergencyFundTarget: value })
+            }}
+            className="rounded-md border border-gray-200 bg-white px-3 py-2 text-right text-gray-900 tabular-nums focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
+          />
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-3 border-t border-gray-100 pt-4 dark:border-gray-800">

@@ -218,6 +218,10 @@ data class SettingsDto(
     @field:NotBlank val startMonth: String,
     @field:Min(1) val horizonMonths: Int,
     @field:NotEmpty val emergencyFundBuckets: List<AccountBucket>,
+    // Cel poduszki = tyle miesięcy kosztów; cel funduszu = stała kwota docelowa.
+    // Defaulty pozwalają zdeserializować stare ustawienia bez tych pól.
+    @field:Min(1) val safetyCushionMonths: Int = 6,
+    @field:NotNull val emergencyFundTarget: BigDecimal = BigDecimal("10000"),
 )
 
 data class MonthOverrideDto(

@@ -7,9 +7,12 @@ interface Props {
   accounts: Account[]
   snapshots: AccountSnapshot[]
   emergencyFundBuckets: AccountBucket[]
+  safetyCushionTarget: number
+  safetyCushionMonths: number
+  emergencyFundTarget: number
 }
 
-export function AssetsKpi({ accounts, snapshots, emergencyFundBuckets }: Props) {
+export function AssetsKpi({ accounts, snapshots, emergencyFundBuckets, safetyCushionTarget, safetyCushionMonths, emergencyFundTarget }: Props) {
   const months = allSnapshotMonths(snapshots)
   const latestMonth = months.at(-1)
   const previousMonth = months.at(-2)
@@ -35,8 +38,20 @@ export function AssetsKpi({ accounts, snapshots, emergencyFundBuckets }: Props) 
   return (
     <div className="grid gap-3 md:grid-cols-3">
       <KpiCard title="Suma majątku" value={formatPLN(totalAssets)} subtitle={formatYearMonth(latestMonth)} delta={totalDelta} />
-      <KpiCard title="Poduszka bezpieczeństwa" value={formatPLN(safetyCushion)} subtitle={formatBucketSubtitle(emergencyFundBuckets)} />
-      <KpiCard title="Fundusz awaryjny" value={formatPLN(emergencyFund)} subtitle="Bucket: Fundusz awaryjny" />
+      <KpiCard
+        title="Poduszka bezpieczeństwa"
+        value={formatPLN(safetyCushion)}
+        subtitle={`${formatBucketSubtitle(emergencyFundBuckets)} · cel ${safetyCushionMonths} mies.`}
+        current={safetyCushion}
+        target={safetyCushionTarget}
+      />
+      <KpiCard
+        title="Fundusz awaryjny"
+        value={formatPLN(emergencyFund)}
+        subtitle="Bucket: Fundusz awaryjny"
+        current={emergencyFund}
+        target={emergencyFundTarget}
+      />
     </div>
   )
 }
@@ -56,8 +71,11 @@ function EmptyKpi({ title }: { title: string }) {
   return <KpiCard title={title} value="-" subtitle="Brak snapshotów" />
 }
 
-function KpiCard({ title, value, subtitle, delta }: { title: string; value: string; subtitle: string; delta?: number }) {
+function KpiCard({ title, value, subtitle, delta, current, target }: { title: string; value: string; subtitle: string; delta?: number; current?: number; target?: number }) {
   const DeltaIcon = (delta ?? 0) >= 0 ? TrendingUp : TrendingDown
+  const hasProgress = target !== undefined && target > 0 && current !== undefined
+  const pct = hasProgress ? Math.min(100, Math.round((current / target) * 100)) : 0
+  const reached = pct >= 100
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
@@ -76,6 +94,19 @@ function KpiCard({ title, value, subtitle, delta }: { title: string; value: stri
           <DeltaIcon size={13} />
           {delta >= 0 ? '+' : ''}{formatPLN(delta)} m/m
         </p>
+      )}
+      {hasProgress && (
+        <div className="mt-3">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+            <div
+              className={`h-full rounded-full ${reached ? 'bg-emerald-500 dark:bg-emerald-400' : 'bg-teal-500 dark:bg-teal-400'}`}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 tabular-nums">
+            {reached ? '✓ cel osiągnięty' : `${pct}% celu`} · {formatPLN(target)}
+          </p>
+        </div>
       )}
     </div>
   )
