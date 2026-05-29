@@ -1,0 +1,12 @@
+node_modules
+dist
+dist-ssr
+build
+.git
+.gradle
+.gradle-codex
+backend/build
+backend/.gradle
+backend/.kotlin
+*.local
+*.log

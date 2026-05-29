@@ -71,6 +71,37 @@ Use `VITE_BACKEND=local` or omit it to keep the original browser-only behavior. 
 
 ---
 
+## Homelab deploy
+
+Production deploy is built for Forgejo Actions on the homelab runner:
+
+- `.forgejo/workflows/ci.yml` runs frontend lint/test/build and backend test/build.
+- `.forgejo/workflows/deploy.yml` runs on `main`, builds frontend/backend Docker images, pushes them to Forgejo registry, and deploys them to CT111 over SSH.
+- `docker-compose.prod.yml` runs two services on CT111: `frontend` nginx on port 80 and private `backend` on the compose network.
+- `nginx.conf.template` serves the SPA and proxies `/api/**` to `backend:8080`, injecting `X-Api-Token` from the container env. The token is not baked into the browser bundle.
+
+Required Forgejo Actions secrets:
+
+```bash
+REGISTRY_USER=<forgejo-user>
+REGISTRY_TOKEN=<forgejo-package-token>
+CT111_SSH_KEY=<private-key-for-deploy-user>
+```
+
+Required CT111 env file: `/opt/savings-planner/.env` based on `.env.example`.
+
+Manual setup checklist: `docs/planning/EPIC-5-manual-setup.md`.
+
+Rollback to a previous image SHA on CT111:
+
+```bash
+cd /opt/savings-planner
+IMAGE_TAG=<previous-sha> docker compose -f docker-compose.prod.yml pull
+IMAGE_TAG=<previous-sha> docker compose -f docker-compose.prod.yml up -d
+```
+
+---
+
 ## How it works
 
 The planning engine runs in the browser. The core engine (`src/domain/allocation.ts`) simulates a monthly schedule:

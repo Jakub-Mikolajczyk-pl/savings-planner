@@ -1,0 +1,74 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  REGISTRY: 192.168.100.165:3000
+  REGISTRY_NAMESPACE: jakub
+  FRONTEND_IMAGE: savings-planner-frontend
+  BACKEND_IMAGE: savings-planner-backend
+  DEPLOY_HOST: 192.168.100.166
+  DEPLOY_USER: deploy
+  DEPLOY_DIR: /opt/savings-planner
+
+jobs:
+  build-push-deploy:
+    name: Build, push, deploy to CT111
+    runs-on: host
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Compute image tags
+        id: meta
+        run: |
+          SHORT_SHA="$(git rev-parse --short=12 HEAD)"
+          echo "sha=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "backend=${REGISTRY}/${REGISTRY_NAMESPACE}/${BACKEND_IMAGE}:${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "frontend=${REGISTRY}/${REGISTRY_NAMESPACE}/${FRONTEND_IMAGE}:${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Login to Forgejo registry
+        run: echo "${{ secrets.REGISTRY_TOKEN }}" | docker login "${REGISTRY}" --username "${{ secrets.REGISTRY_USER }}" --password-stdin
+
+      - name: Build backend image
+        run: |
+          docker build \
+            --tag "${{ steps.meta.outputs.backend }}" \
+            --tag "${REGISTRY}/${REGISTRY_NAMESPACE}/${BACKEND_IMAGE}:latest" \
+            ./backend
+
+      - name: Build frontend image
+        run: |
+          docker build \
+            --build-arg VITE_BACKEND=api \
+            --build-arg VITE_API_BASE_URL= \
+            --tag "${{ steps.meta.outputs.frontend }}" \
+            --tag "${REGISTRY}/${REGISTRY_NAMESPACE}/${FRONTEND_IMAGE}:latest" \
+            .
+
+      - name: Push images
+        run: |
+          docker push "${{ steps.meta.outputs.backend }}"
+          docker push "${REGISTRY}/${REGISTRY_NAMESPACE}/${BACKEND_IMAGE}:latest"
+          docker push "${{ steps.meta.outputs.frontend }}"
+          docker push "${REGISTRY}/${REGISTRY_NAMESPACE}/${FRONTEND_IMAGE}:latest"
+
+      - name: Prepare SSH key
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.CT111_SSH_KEY }}" > ~/.ssh/ct111
+          chmod 600 ~/.ssh/ct111
+          ssh-keyscan -H "${DEPLOY_HOST}" >> ~/.ssh/known_hosts
+
+      - name: Copy compose file
+        run: |
+          ssh -i ~/.ssh/ct111 "${DEPLOY_USER}@${DEPLOY_HOST}" "mkdir -p ${DEPLOY_DIR}"
+          scp -i ~/.ssh/ct111 docker-compose.prod.yml "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_DIR}/docker-compose.prod.yml"
+
+      - name: Deploy on CT111
+        run: |
+          ssh -i ~/.ssh/ct111 "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "cd ${DEPLOY_DIR} && IMAGE_REGISTRY=${REGISTRY}/${REGISTRY_NAMESPACE} IMAGE_TAG=${{ steps.meta.outputs.sha }} docker compose -f docker-compose.prod.yml pull && IMAGE_REGISTRY=${REGISTRY}/${REGISTRY_NAMESPACE} IMAGE_TAG=${{ steps.meta.outputs.sha }} docker compose -f docker-compose.prod.yml up -d --remove-orphans"

@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  frontend:
+    name: Frontend lint, test, build
+    runs-on: host
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+  backend:
+    name: Backend test, build
+    runs-on: host
+    env:
+      DOCKER_HOST: unix:///var/run/docker.sock
+      GRADLE_USER_HOME: ${{ github.workspace }}/.gradle-ci
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Test and build
+        working-directory: backend
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon test build
