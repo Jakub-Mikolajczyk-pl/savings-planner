@@ -459,27 +459,40 @@ class CsvAccountImporter(
         return result
     }
 
-    private fun parseAmount(raw: String): BigDecimal? {
+    internal fun parseAmount(raw: String): BigDecimal? {
         /*
-         * Money parsing:
-         * - remove PLN/zl labels,
-         * - remove spaces,
-         * - convert decimal comma to decimal dot,
-         * - return null for blank cells.
+         * Money parsing odporne na DWA formaty:
+         * - US/arkuszowy: "3,600.00 zł"  (przecinek = tysiace, kropka = dziesietne) = 3600.00
+         * - europejski:   "3.600,00 zł"  (kropka = tysiace, przecinek = dziesietne) = 3600.00
+         *
+         * Kluczowa zasada: separatorem DZIESIETNYM jest ten, ktory wystepuje JAKO OSTATNI.
+         * Drugi (jesli jest) to separator tysiecy i go usuwamy.
+         *
+         * Stary kod zakladal na sztywno format europejski, wiec "3,600.00" liczyl jako 3.6.
          *
          * INTERVIEW Q: "Why return null for blank amount?"
-         * A: Blank spreadsheet cell means no snapshot value. Zero is a real value and would mean
-         *    "account exists this month with 0 balance".
+         * A: Pusta komorka = brak snapshota. Zero to realna wartosc (konto z saldem 0).
          */
         val cleaned = raw
             .replace("zł", "", ignoreCase = true)
             .replace("PLN", "", ignoreCase = true)
             .replace(" ", "")
+            .replace(" ", "") // twarda spacja (NBSP) bywa separatorem tysiecy
             .trim()
         if (cleaned.isBlank() || cleaned == "-") return null
 
+        val lastComma = cleaned.lastIndexOf(',')
+        val lastDot = cleaned.lastIndexOf('.')
         val normalized = when {
-            cleaned.contains(",") -> cleaned.replace(".", "").replace(",", ".")
+            // Oba separatory: ostatni = dziesietny, drugi = tysiace (usuwamy).
+            lastComma >= 0 && lastDot >= 0 ->
+                if (lastComma > lastDot) cleaned.replace(".", "").replace(",", ".")
+                else cleaned.replace(",", "")
+            // Tylko przecinek: 3 cyfry po nim => tysiace ("3,600"); inaczej dziesietny ("453,59").
+            lastComma >= 0 ->
+                if (cleaned.length - lastComma - 1 == 3) cleaned.replace(",", "")
+                else cleaned.replace(",", ".")
+            // Tylko kropka (lub brak): kropka jest juz dziesietna.
             else -> cleaned
         }.filter { it.isDigit() || it == '.' || it == '-' }
 
