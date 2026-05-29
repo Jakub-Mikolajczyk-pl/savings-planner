@@ -21,6 +21,23 @@ export interface LoanProgress {
   projectedPayoffMonth?: string // beyond horizon
 }
 
+export interface Subscription {
+  id: string
+  name: string
+  monthlyAmount: number
+  active: boolean
+  category?: string
+  nextCharge?: string // "YYYY-MM-DD", opcjonalne pod alerty
+}
+
+export interface UpcomingExpense {
+  id: string
+  name: string
+  amount: number
+  targetMonth: string // "YYYY-MM"
+  isPaid: boolean
+}
+
 // Assets: konta i ich stany w czasie (snapshoty)
 export type AccountBucket = 'cash' | 'investment' | 'retirement' | 'down_payment' | 'crypto'
 
@@ -133,6 +150,8 @@ export interface MonthRow {
   label: string
   income: number
   expenses: number
+  subscriptionsTotal: number
+  oneTimeExpensesTotal: number
   loanPaymentsTotal: number
   mortgagePaymentTotal: number
   freeCash: number

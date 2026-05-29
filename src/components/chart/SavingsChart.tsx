@@ -30,23 +30,39 @@ export function SavingsChart() {
   const goals = useStore(s => s.goals)
   const loans = useStore(s => s.loans)
   const mortgagePlan = useStore(s => s.mortgagePlan)
+  const subscriptions = useStore(s => s.subscriptions)
+  const upcomingExpenses = useStore(s => s.upcomingExpenses)
   const overrides = useStore(s => s.overrides)
   const whatIfDelta = useStore(s => s.whatIfDelta)
   const loanOverpayment = useStore(s => s.loanOverpayment)
 
   const schedule = useMemo(
-    () => buildSchedule(settings, goals, loans, overrides, 0, 0, mortgagePlan),
-    [settings, goals, loans, overrides, mortgagePlan],
+    () => buildSchedule(settings, goals, loans, overrides, 0, 0, mortgagePlan, subscriptions, upcomingExpenses),
+    [settings, goals, loans, overrides, mortgagePlan, subscriptions, upcomingExpenses],
   )
   const whatIfSchedule = useMemo(
-    () => buildSchedule(settings, goals, loans, overrides, whatIfDelta, loanOverpayment, mortgagePlan),
-    [settings, goals, loans, overrides, whatIfDelta, loanOverpayment, mortgagePlan],
+    () => buildSchedule(
+      settings,
+      goals,
+      loans,
+      overrides,
+      whatIfDelta,
+      loanOverpayment,
+      mortgagePlan,
+      subscriptions,
+      upcomingExpenses,
+    ),
+    [settings, goals, loans, overrides, whatIfDelta, loanOverpayment, mortgagePlan, subscriptions, upcomingExpenses],
   )
   const sortedGoals = [...goals].sort((a, b) => a.priority - b.priority)
 
   const hasWhatIf = whatIfDelta !== 0 || loanOverpayment > 0
+  const visibleMonths = new Set(schedule.rows.map(row => row.yearMonth))
+  const upcomingMarkers = upcomingExpenses
+    .filter(expense => !expense.isPaid && visibleMonths.has(expense.targetMonth))
+    .sort((a, b) => a.targetMonth.localeCompare(b.targetMonth))
 
-  if (goals.length === 0 && loans.length === 0) {
+  if (goals.length === 0 && loans.length === 0 && upcomingMarkers.length === 0) {
     return <p className="text-sm text-gray-400 text-center py-8">Dodaj cele lub kredyty żeby zobaczyć wykres</p>
   }
 
@@ -73,7 +89,6 @@ export function SavingsChart() {
   })
 
   const tickInterval = Math.max(1, Math.floor(data.length / 12))
-
   // What-if summary: goal ETA deltas + loan payoff deltas
   const goalSummary = sortedGoals.map((goal, i) => {
     const base = schedule.goalProgress.find(g => g.goalId === goal.id)
@@ -255,6 +270,25 @@ export function SavingsChart() {
           })}
 
           {/* Goal actual areas — solid, filled */}
+          {upcomingMarkers.map((expense, i) => {
+            const short = expense.name.length > 10 ? `${expense.name.slice(0, 10)}...` : expense.name
+            return (
+              <ReferenceLine
+                key={`upcoming-${expense.id}`}
+                x={formatYearMonth(expense.targetMonth)}
+                stroke="#9333ea"
+                strokeDasharray="3 3"
+                strokeOpacity={0.65}
+                label={{
+                  value: `${short} ${formatPLN(expense.amount)}`,
+                  fontSize: 9,
+                  fill: '#9333ea',
+                  position: i % 2 === 0 ? 'insideTopLeft' : 'insideBottomLeft',
+                }}
+              />
+            )
+          })}
+
           {sortedGoals.map((goal, i) => (
             <Area
               key={`goal_${goal.id}`}

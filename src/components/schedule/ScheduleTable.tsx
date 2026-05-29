@@ -41,14 +41,16 @@ export function ScheduleTable() {
   const goals = useStore(s => s.goals)
   const loans = useStore(s => s.loans)
   const mortgagePlan = useStore(s => s.mortgagePlan)
+  const subscriptions = useStore(s => s.subscriptions)
+  const upcomingExpenses = useStore(s => s.upcomingExpenses)
   const overrides = useStore(s => s.overrides)
   const setOverride = useStore(s => s.setOverride)
   const setGoalAllocationOverride = useStore(s => s.setGoalAllocationOverride)
   const clearOverride = useStore(s => s.clearOverride)
 
   const schedule = useMemo(
-    () => buildSchedule(settings, goals, loans, overrides, 0, 0, mortgagePlan),
-    [settings, goals, loans, overrides, mortgagePlan],
+    () => buildSchedule(settings, goals, loans, overrides, 0, 0, mortgagePlan, subscriptions, upcomingExpenses),
+    [settings, goals, loans, overrides, mortgagePlan, subscriptions, upcomingExpenses],
   )
   const sortedGoals = [...goals].sort((a, b) => a.priority - b.priority)
 
@@ -124,6 +126,21 @@ export function ScheduleTable() {
                     value={row.expenses}
                     onCommit={v => setOverride(row.yearMonth, { expenses: v })}
                   />
+                  {(row.subscriptionsTotal > 0 || row.oneTimeExpensesTotal > 0) && (
+                    <div className="mt-1 text-[10px] leading-4 text-gray-400 dark:text-gray-500 whitespace-nowrap">
+                      <span title="Wydatki życiowe">życiowe {formatPLN(row.expenses)}</span>
+                      {row.subscriptionsTotal > 0 && (
+                        <span className="block text-sky-600 dark:text-sky-400">
+                          + abon. {formatPLN(row.subscriptionsTotal)}
+                        </span>
+                      )}
+                      {row.oneTimeExpensesTotal > 0 && (
+                        <span className="block text-purple-600 dark:text-purple-400">
+                          + jedn. {formatPLN(row.oneTimeExpensesTotal)}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </td>
 
                 {/* Free cash */}
