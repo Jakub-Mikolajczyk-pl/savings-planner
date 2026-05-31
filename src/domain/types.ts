@@ -64,6 +64,46 @@ export interface AccountSnapshot {
   notes?: string
 }
 
+export type CategoryKind = 'variable' | 'fixed' | 'recurring'
+export type RuleMatchField = 'description' | 'counterparty'
+export type RuleMatchType = 'contains' | 'regex'
+export type CategoryRuleSource = 'manual' | 'seed' | 'llm'
+
+export interface Category {
+  id: number
+  name: string
+  kind: CategoryKind
+  parentId?: number
+}
+
+export interface CategoryRule {
+  id: number
+  matchField: RuleMatchField
+  matchType: RuleMatchType
+  pattern: string
+  categoryId: number
+  priority: number
+  source: CategoryRuleSource
+}
+
+export interface BankTransaction {
+  id: number
+  accountId: string
+  bookedAt: string // "YYYY-MM-DD"
+  amount: number
+  currency: string
+  description: string
+  counterparty?: string
+  source: string
+  categoryId?: number
+  categoryLocked: boolean
+}
+
+export interface RecategorizeResult {
+  categorized: number
+  total: number
+}
+
 export type MortgageOverpaymentMode = 'shortenTerm' | 'reducePayment'
 
 export interface MortgageOneTimeOverpayment {

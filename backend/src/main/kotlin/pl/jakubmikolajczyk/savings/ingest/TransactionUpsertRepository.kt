@@ -19,13 +19,17 @@ class TransactionUpsertRepository(
     private val jdbc: NamedParameterJdbcTemplate,
     private val objectMapper: ObjectMapper,
 ) {
-    fun insertIgnoreDuplicate(insert: TransactionInsert): Boolean {
+    fun insertIgnoreDuplicate(insert: TransactionInsert): Boolean =
+        insertReturningIdIgnoreDuplicate(insert) != null
+
+    fun insertReturningIdIgnoreDuplicate(insert: TransactionInsert): Long? {
         val sql = """
             insert into finance.transactions
                 (account_id, booked_at, amount, currency, description, counterparty, source, fingerprint, raw)
             values
                 (:accountId, :bookedAt, :amount, :currency, :description, :counterparty, :source, :fingerprint, cast(:raw as jsonb))
             on conflict (fingerprint) do nothing
+            returning id
         """.trimIndent()
 
         val params = MapSqlParameterSource()
@@ -39,6 +43,6 @@ class TransactionUpsertRepository(
             .addValue("fingerprint", insert.fingerprint)
             .addValue("raw", objectMapper.writeValueAsString(insert.tx.raw))
 
-        return jdbc.update(sql, params) == 1
+        return jdbc.query(sql, params) { rs, _ -> rs.getLong("id") }.firstOrNull()
     }
 }

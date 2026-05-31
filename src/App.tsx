@@ -10,6 +10,7 @@ import {
   ReceiptText,
   Settings,
   ShieldCheck,
+  Tags,
   TrendingUp,
   WalletCards,
 } from 'lucide-react'
@@ -17,6 +18,7 @@ import { AccountsSection } from './components/accounts/AccountsSection'
 import { AssetsPie } from './components/accounts/AssetsPie'
 import { NetWorthChart } from './components/accounts/NetWorthChart'
 import { SavingsChart } from './components/chart/SavingsChart'
+import { CategorizationSection } from './components/categorization/CategorizationSection'
 import { WhatIfSlider } from './components/chart/WhatIfSlider'
 import { UpcomingExpenseList } from './components/expenses/UpcomingExpenseList'
 import { GoalList } from './components/goals/GoalList'
@@ -34,13 +36,14 @@ import type { Account, AccountBucket, AccountSnapshot } from './domain/types'
 import { BACKEND_MODE, IS_API_MODE } from './config'
 import { useStore } from './store'
 
-type AppTab = 'overview' | 'assets' | 'plan' | 'settings'
+type AppTab = 'overview' | 'assets' | 'plan' | 'transactions' | 'settings'
 type AppIcon = typeof LayoutDashboard
 
 const TABS: Array<{ id: AppTab; label: string; icon: AppIcon }> = [
   { id: 'overview', label: 'Przegląd', icon: LayoutDashboard },
   { id: 'assets', label: 'Majątek', icon: WalletCards },
   { id: 'plan', label: 'Plan', icon: BarChart3 },
+  { id: 'transactions', label: 'Transakcje', icon: Tags },
   { id: 'settings', label: 'Ustawienia', icon: Settings },
 ]
 
@@ -48,6 +51,7 @@ const TAB_HASH: Record<AppTab, string> = {
   overview: '#/przeglad',
   assets: '#/majatek',
   plan: '#/plan',
+  transactions: '#/transakcje',
   settings: '#/ustawienia',
 }
 
@@ -56,6 +60,7 @@ const HASH_TAB: Record<string, AppTab> = {
   '#/': 'overview',
   '#/majatek': 'assets',
   '#/plan': 'plan',
+  '#/transakcje': 'transactions',
   '#/ustawienia': 'settings',
 }
 
@@ -161,6 +166,7 @@ export default function App() {
             {activeTab === 'overview' && <OverviewPage onNavigate={navigate} />}
             {activeTab === 'assets' && <AssetsPage />}
             {activeTab === 'plan' && <PlanPage />}
+            {activeTab === 'transactions' && <TransactionsPage />}
             {activeTab === 'settings' && <SettingsPage />}
           </main>
 
@@ -331,6 +337,17 @@ function PlanPage() {
 
       <SectionCard title="Harmonogram miesięczny" description="Nadpisania przychodów, kosztów i alokacji celów." icon={BarChart3} accent="plan">
         <ScheduleTable />
+      </SectionCard>
+    </div>
+  )
+}
+
+function TransactionsPage() {
+  return (
+    <div className="space-y-5">
+      <PageHeader title="Transakcje" description="Kategorie, reguly i reczne przypisania importowanych operacji." icon={Tags} accent="assets" />
+      <SectionCard title="Kategoryzacja" icon={Tags} accent="assets">
+        <CategorizationSection />
       </SectionCard>
     </div>
   )
