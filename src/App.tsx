@@ -25,6 +25,7 @@ import { GoalList } from './components/goals/GoalList'
 import { Hero } from './components/hero/Hero'
 import { LoanList } from './components/loans/LoanList'
 import { MortgageSection } from './components/mortgage/MortgageSection'
+import { PayPeriodsSection } from './components/payperiods/PayPeriodsSection'
 import { ScheduleTable } from './components/schedule/ScheduleTable'
 import { SubscriptionList } from './components/subscriptions/SubscriptionList'
 import { AdvancedSettings } from './components/ui/AdvancedSettings'
@@ -345,7 +346,10 @@ function PlanPage() {
 function TransactionsPage() {
   return (
     <div className="space-y-5">
-      <PageHeader title="Transakcje" description="Kategorie, reguly i reczne przypisania importowanych operacji." icon={Tags} accent="assets" />
+      <PageHeader title="Transakcje" description="Cykle od wyplaty do wyplaty, kategorie i reczne przypisania operacji." icon={Tags} accent="assets" />
+      <SectionCard title="Cykle budzetowe" icon={CalendarClock} accent="assets">
+        <PayPeriodsSection />
+      </SectionCard>
       <SectionCard title="Kategoryzacja" icon={Tags} accent="assets">
         <CategorizationSection />
       </SectionCard>

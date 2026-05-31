@@ -6,6 +6,7 @@ import pl.jakubmikolajczyk.savings.categorization.CategorizationService
 import pl.jakubmikolajczyk.savings.domain.BadRequestException
 import pl.jakubmikolajczyk.savings.domain.NotFoundException
 import pl.jakubmikolajczyk.savings.domain.UnprocessableEntityException
+import pl.jakubmikolajczyk.savings.payperiod.PayPeriodService
 import pl.jakubmikolajczyk.savings.repository.AccountRepository
 import java.io.InputStream
 import java.math.RoundingMode
@@ -26,6 +27,7 @@ class IngestService(
     private val accounts: AccountRepository,
     private val transactions: TransactionUpsertRepository,
     private val categorization: CategorizationService,
+    private val payPeriods: PayPeriodService,
 ) {
     @Transactional
     fun ingest(bank: BankSource, accountId: UUID, input: InputStream): IngestResultDto {
@@ -61,6 +63,10 @@ class IngestService(
                 categorization.categorizeInsertedTransaction(insertedId, tx.description, tx.counterparty)
                 inserted++
             }
+        }
+
+        if (inserted > 0) {
+            payPeriods.refreshPayPeriods()
         }
 
         return IngestResultDto(

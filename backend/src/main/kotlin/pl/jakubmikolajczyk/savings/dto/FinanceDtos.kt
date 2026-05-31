@@ -316,3 +316,48 @@ data class RecategorizeResultDto(
     val categorized: Int,
     val total: Int,
 )
+
+data class IncomeAnchorDto(
+    val id: Long,
+    val accountId: UUID,
+    @field:NotBlank val accountName: String,
+    @field:NotBlank val counterparty: String,
+    @field:NotBlank val createdAt: String,
+)
+
+data class IncomeAnchorCandidateDto(
+    val accountId: UUID,
+    @field:NotBlank val accountName: String,
+    @field:NotBlank val counterparty: String,
+    @field:Min(1) val transactionCount: Int,
+    @field:NotBlank val firstBookedAt: String,
+    @field:NotBlank val lastBookedAt: String,
+    @field:NotNull val totalIncome: BigDecimal,
+    val alreadyAnchored: Boolean,
+)
+
+data class IncomeAnchorCreateDto(
+    @field:NotNull val accountId: UUID,
+    @field:NotBlank val counterparty: String,
+)
+
+data class PayPeriodSettingsDto(
+    @field:Min(1) val minCycleDays: Int = 14,
+)
+
+data class PayPeriodDto(
+    @field:Min(1) val periodNo: Int,
+    val accountId: UUID,
+    @field:NotBlank val accountName: String,
+    @field:NotBlank val periodStart: String,
+    val periodEnd: String? = null,
+    val anchorTxId: Long,
+    val isPartial: Boolean,
+    @field:NotNull val income: BigDecimal,
+    @field:NotNull val expense: BigDecimal,
+    @field:NotNull val net: BigDecimal,
+)
+
+data class PayPeriodRefreshResultDto(
+    val periods: Int,
+)
