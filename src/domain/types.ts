@@ -144,6 +144,71 @@ export interface PayPeriodRefreshResult {
   periods: number
 }
 
+export type BankSource = 'ALIOR_CSV' | 'VELO_PDF'
+
+export interface IngestResult {
+  inserted: number
+  skipped: number
+  bank: BankSource
+  accountId: string
+}
+
+export interface CycleCategoryRollup {
+  categoryId?: number
+  categoryName: string
+  categoryKind?: CategoryKind
+  amount: number
+  income: number
+  expense: number
+  transactionCount: number
+}
+
+export interface RecurringLeak {
+  counterparty: string
+  categoryId?: number
+  categoryName?: string
+  categoryKind?: CategoryKind
+  transactionCount: number
+  averageAmount: number
+  currentCycleAmount: number
+  firstBookedAt: string
+  lastBookedAt: string
+}
+
+export interface MicroExpenseRollup {
+  categoryId?: number
+  categoryName: string
+  categoryKind?: CategoryKind
+  expense: number
+  transactionCount: number
+}
+
+export interface CycleDelta {
+  categoryId?: number
+  categoryName: string
+  categoryKind?: CategoryKind
+  currentExpense: number
+  baselineAverage: number
+  increase: number
+  increasePct?: number
+}
+
+export interface CycleLeakAnalysis {
+  periodNo: number
+  accountId: string
+  accountName: string
+  periodStart: string
+  periodEnd?: string
+  isPartial: boolean
+  income: number
+  expense: number
+  net: number
+  topCategories: CycleCategoryRollup[]
+  recurring: RecurringLeak[]
+  microExpenses: MicroExpenseRollup[]
+  deltas: CycleDelta[]
+}
+
 export type MortgageOverpaymentMode = 'shortenTerm' | 'reducePayment'
 
 export interface MortgageOneTimeOverpayment {

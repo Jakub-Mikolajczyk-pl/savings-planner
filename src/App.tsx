@@ -4,6 +4,7 @@ import {
   CalendarClock,
   CircleDollarSign,
   Database,
+  FileUp,
   Home,
   LayoutDashboard,
   ListChecks,
@@ -23,6 +24,8 @@ import { WhatIfSlider } from './components/chart/WhatIfSlider'
 import { UpcomingExpenseList } from './components/expenses/UpcomingExpenseList'
 import { GoalList } from './components/goals/GoalList'
 import { Hero } from './components/hero/Hero'
+import { IngestSection } from './components/ingest/IngestSection'
+import { LeakAnalysisSection } from './components/leakanalysis/LeakAnalysisSection'
 import { LoanList } from './components/loans/LoanList'
 import { MortgageSection } from './components/mortgage/MortgageSection'
 import { PayPeriodsSection } from './components/payperiods/PayPeriodsSection'
@@ -33,6 +36,7 @@ import { PageHeader, SectionCard, StatCard, surface } from './components/ui/Layo
 import { allSnapshotMonths, balanceAsOf, BUCKET_LABELS, totalAssetsAsOf } from './domain/accounts'
 import { buildSchedule } from './domain/allocation'
 import { formatPLN, formatYearMonth } from './domain/formatting'
+import { periodKey } from './domain/payPeriods'
 import type { Account, AccountBucket, AccountSnapshot } from './domain/types'
 import { BACKEND_MODE, IS_API_MODE } from './config'
 import { useStore } from './store'
@@ -344,11 +348,24 @@ function PlanPage() {
 }
 
 function TransactionsPage() {
+  const payPeriods = useStore(s => s.payPeriods)
+  const [selectedPayPeriodKey, setSelectedPayPeriodKey] = useState('')
+  const selectedPeriod = useMemo(
+    () => payPeriods.find(period => periodKey(period) === selectedPayPeriodKey) ?? payPeriods[0],
+    [payPeriods, selectedPayPeriodKey],
+  )
+
   return (
     <div className="space-y-5">
       <PageHeader title="Transakcje" description="Cykle od wyplaty do wyplaty, kategorie i reczne przypisania operacji." icon={Tags} accent="assets" />
+      <SectionCard title="Import wyciagu" description="CSV/PDF z banku wpada do transakcji, kategorii i cykli." icon={FileUp} accent="assets">
+        <IngestSection />
+      </SectionCard>
       <SectionCard title="Cykle budzetowe" icon={CalendarClock} accent="assets">
-        <PayPeriodsSection />
+        <PayPeriodsSection selectedKey={selectedPayPeriodKey} onSelectedKeyChange={setSelectedPayPeriodKey} />
+      </SectionCard>
+      <SectionCard title="Analiza wycieku" description="Kategorie, cykliczne obciazenia, mikro-wydatki i wzrosty vs poprzednie cykle." icon={TrendingUp} accent="assets">
+        <LeakAnalysisSection selectedPeriod={selectedPeriod} />
       </SectionCard>
       <SectionCard title="Kategoryzacja" icon={Tags} accent="assets">
         <CategorizationSection />
