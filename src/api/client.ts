@@ -3,10 +3,14 @@ import type {
   Account,
   AccountBucket,
   AccountSnapshot,
+  BankTransaction,
+  Category,
+  CategoryRule,
   Goal,
   Loan,
   MortgagePlan,
   Overrides,
+  RecategorizeResult,
   Settings,
   Subscription,
   UpcomingExpense,
@@ -183,6 +187,37 @@ export const snapshotsApi = {
   upsert: (accountId: string, snapshot: AccountSnapshot) =>
     put<AccountSnapshot>(`/accounts/${accountId}/snapshots/${snapshot.yearMonth}`, snapshot),
   remove: (accountId: string, yearMonth: string) => del(`/accounts/${accountId}/snapshots/${yearMonth}`),
+}
+
+export const categoriesApi = {
+  list: () => get<Category[]>('/categories'),
+  create: (category: Omit<Category, 'id'> & { id?: number }) => post<Category>('/categories', category),
+  update: (id: number, category: Category) => put<Category>(`/categories/${id}`, category),
+  remove: (id: number) => del(`/categories/${id}`),
+}
+
+export const categoryRulesApi = {
+  list: () => get<CategoryRule[]>('/category-rules'),
+  create: (rule: Omit<CategoryRule, 'id'> & { id?: number }) => post<CategoryRule>('/category-rules', rule),
+  update: (id: number, rule: CategoryRule) => put<CategoryRule>(`/category-rules/${id}`, rule),
+  remove: (id: number) => del(`/category-rules/${id}`),
+}
+
+export const transactionsApi = {
+  list: (options: { accountId?: string; onlyUncategorized?: boolean; limit?: number } = {}) => {
+    const params = new URLSearchParams()
+    if (options.accountId) params.set('accountId', options.accountId)
+    if (options.onlyUncategorized) params.set('onlyUncategorized', 'true')
+    if (options.limit) params.set('limit', String(options.limit))
+    const query = params.toString()
+    return get<BankTransaction[]>(`/transactions${query ? `?${query}` : ''}`)
+  },
+  overrideCategory: (id: number, categoryId: number | undefined, locked = true) =>
+    put<void>(`/transactions/${id}/category`, { categoryId: categoryId ?? null, locked }),
+}
+
+export const recategorizeApi = {
+  run: (accountId?: string) => post<RecategorizeResult>('/recategorize', accountId ? { accountId } : {}),
 }
 
 export const loansApi = {

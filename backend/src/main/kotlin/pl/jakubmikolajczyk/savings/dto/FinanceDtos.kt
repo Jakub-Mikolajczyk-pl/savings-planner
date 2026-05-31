@@ -256,3 +256,63 @@ data class CsvImportMappingDto(
     @field:Min(2000) val year: Int,
     @field:NotEmpty val columns: Map<String, CsvColumnMappingDto>,
 )
+
+enum class CategoryKind {
+    variable,
+    fixed,
+    recurring,
+}
+
+enum class RuleMatchField {
+    description,
+    counterparty,
+}
+
+enum class RuleMatchType {
+    contains,
+    regex,
+}
+
+data class CategoryDto(
+    val id: Long? = null,
+    @field:NotBlank val name: String,
+    @field:NotNull val kind: CategoryKind,
+    val parentId: Long? = null,
+)
+
+data class CategoryRuleDto(
+    val id: Long? = null,
+    @field:NotNull val matchField: RuleMatchField,
+    @field:NotNull val matchType: RuleMatchType,
+    @field:NotBlank val pattern: String,
+    @field:NotNull val categoryId: Long,
+    val priority: Int = 100,
+    @field:NotBlank val source: String = "manual",
+)
+
+data class TransactionDto(
+    val id: Long,
+    val accountId: UUID,
+    @field:NotBlank val bookedAt: String,
+    @field:NotNull val amount: BigDecimal,
+    @field:NotBlank val currency: String,
+    @field:NotBlank val description: String,
+    val counterparty: String? = null,
+    @field:NotBlank val source: String,
+    val categoryId: Long? = null,
+    val categoryLocked: Boolean = false,
+)
+
+data class TransactionCategoryOverrideDto(
+    val categoryId: Long? = null,
+    val locked: Boolean = true,
+)
+
+data class RecategorizeRequestDto(
+    val accountId: UUID? = null,
+)
+
+data class RecategorizeResultDto(
+    val categorized: Int,
+    val total: Int,
+)
