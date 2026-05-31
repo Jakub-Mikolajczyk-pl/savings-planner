@@ -18,6 +18,7 @@ import pl.jakubmikolajczyk.savings.dto.CategoryDto
 import pl.jakubmikolajczyk.savings.dto.CategoryRuleDto
 import pl.jakubmikolajczyk.savings.dto.RecategorizeRequestDto
 import pl.jakubmikolajczyk.savings.dto.TransactionCategoryOverrideDto
+import pl.jakubmikolajczyk.savings.payperiod.PayPeriodService
 import java.util.UUID
 
 @RestController
@@ -60,9 +61,14 @@ class TransactionController(private val service: CategorizationService) {
 
 @RestController
 @RequestMapping("/api/recategorize")
-class RecategorizeController(private val service: CategorizationService) {
+class RecategorizeController(
+    private val service: CategorizationService,
+    private val payPeriods: PayPeriodService,
+) {
     @Operation(summary = "Re-run category rules for unlocked transactions")
     @PostMapping
     fun recategorize(@RequestBody(required = false) dto: RecategorizeRequestDto?) =
-        service.recategorize(dto?.accountId)
+        service.recategorize(dto?.accountId).also {
+            payPeriods.refreshPayPeriods()
+        }
 }

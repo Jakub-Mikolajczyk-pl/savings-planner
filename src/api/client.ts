@@ -7,9 +7,14 @@ import type {
   Category,
   CategoryRule,
   Goal,
+  IncomeAnchor,
+  IncomeAnchorCandidate,
   Loan,
   MortgagePlan,
   Overrides,
+  PayPeriod,
+  PayPeriodRefreshResult,
+  PayPeriodSettings,
   RecategorizeResult,
   Settings,
   Subscription,
@@ -218,6 +223,26 @@ export const transactionsApi = {
 
 export const recategorizeApi = {
   run: (accountId?: string) => post<RecategorizeResult>('/recategorize', accountId ? { accountId } : {}),
+}
+
+export const incomeAnchorsApi = {
+  list: () => get<IncomeAnchor[]>('/income-anchors'),
+  candidates: (limit = 25) => get<IncomeAnchorCandidate[]>(`/income-anchors/candidates?limit=${limit}`),
+  create: (anchor: { accountId: string; counterparty: string }) => post<IncomeAnchor>('/income-anchors', anchor),
+  remove: (id: number) => del(`/income-anchors/${id}`),
+}
+
+export const payPeriodsApi = {
+  list: (options: { accountId?: string; limit?: number } = {}) => {
+    const params = new URLSearchParams()
+    if (options.accountId) params.set('accountId', options.accountId)
+    if (options.limit) params.set('limit', String(options.limit))
+    const query = params.toString()
+    return get<PayPeriod[]>(`/pay-periods${query ? `?${query}` : ''}`)
+  },
+  refresh: () => post<PayPeriodRefreshResult>('/pay-periods/refresh', {}),
+  settings: () => get<PayPeriodSettings>('/pay-periods/settings'),
+  updateSettings: (settings: PayPeriodSettings) => put<PayPeriodSettings>('/pay-periods/settings', settings),
 }
 
 export const loansApi = {

@@ -104,6 +104,46 @@ export interface RecategorizeResult {
   total: number
 }
 
+export interface IncomeAnchor {
+  id: number
+  accountId: string
+  accountName: string
+  counterparty: string
+  createdAt: string
+}
+
+export interface IncomeAnchorCandidate {
+  accountId: string
+  accountName: string
+  counterparty: string
+  transactionCount: number
+  firstBookedAt: string
+  lastBookedAt: string
+  totalIncome: number
+  alreadyAnchored: boolean
+}
+
+export interface PayPeriodSettings {
+  minCycleDays: number
+}
+
+export interface PayPeriod {
+  periodNo: number
+  accountId: string
+  accountName: string
+  periodStart: string
+  periodEnd?: string
+  anchorTxId: number
+  isPartial: boolean
+  income: number
+  expense: number
+  net: number
+}
+
+export interface PayPeriodRefreshResult {
+  periods: number
+}
+
 export type MortgageOverpaymentMode = 'shortenTerm' | 'reducePayment'
 
 export interface MortgageOneTimeOverpayment {

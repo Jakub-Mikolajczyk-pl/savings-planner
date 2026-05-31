@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test
 import pl.jakubmikolajczyk.savings.categorization.CategorizationService
+import pl.jakubmikolajczyk.savings.payperiod.PayPeriodService
 import pl.jakubmikolajczyk.savings.repository.AccountRepository
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -16,6 +17,7 @@ class IngestServiceTest {
         accounts = mockk<AccountRepository>(relaxed = true),
         transactions = mockk<TransactionUpsertRepository>(relaxed = true),
         categorization = mockk<CategorizationService>(relaxed = true),
+        payPeriods = mockk<PayPeriodService>(relaxed = true),
     )
 
     @Test

@@ -5,10 +5,12 @@ import {
   categoriesApi,
   categoryRulesApi,
   goalsApi,
+  incomeAnchorsApi,
   importApi,
   loansApi,
   mortgageApi,
   overridesApi,
+  payPeriodsApi,
   recategorizeApi,
   settingsApi,
   snapshotsApi,
@@ -30,9 +32,14 @@ import type {
   Category,
   CategoryRule,
   Goal,
+  IncomeAnchor,
+  IncomeAnchorCandidate,
   Loan,
   Settings,
   Overrides,
+  PayPeriod,
+  PayPeriodRefreshResult,
+  PayPeriodSettings,
   RecategorizeResult,
   Schedule,
   MortgagePlan,
@@ -57,6 +64,10 @@ interface DataState {
   categories: Category[]
   categoryRules: CategoryRule[]
   transactions: BankTransaction[]
+  incomeAnchors: IncomeAnchor[]
+  incomeAnchorCandidates: IncomeAnchorCandidate[]
+  payPeriods: PayPeriod[]
+  payPeriodSettings: PayPeriodSettings
   mortgagePlan?: MortgagePlan
   subscriptions: Subscription[]
   upcomingExpenses: UpcomingExpense[]
@@ -88,6 +99,7 @@ interface AppState extends DataState, SyncState {
   bootstrapBackendFromLocal: () => Promise<BootstrapResult>
   importAccountSnapshotsCsv: (file: File, mapping: CsvImportMapping) => Promise<CsvImportResult>
   loadCategorization: (onlyUncategorized?: boolean) => Promise<void>
+  loadPayPeriods: () => Promise<void>
   clearSyncError: () => void
 
   // Actions
@@ -114,6 +126,10 @@ interface AppState extends DataState, SyncState {
   removeCategoryRule: (id: number) => void
   overrideTransactionCategory: (id: number, categoryId: number | undefined, locked?: boolean) => void
   recategorizeTransactions: (accountId?: string) => Promise<RecategorizeResult>
+  addIncomeAnchor: (accountId: string, counterparty: string) => Promise<void>
+  removeIncomeAnchor: (id: number) => Promise<void>
+  refreshPayPeriods: () => Promise<PayPeriodRefreshResult>
+  updatePayPeriodSettings: (settings: PayPeriodSettings) => Promise<void>
   saveMortgagePlan: (plan: Omit<MortgagePlan, 'id'> & { id?: string }) => void
   removeMortgagePlan: () => void
   addSubscription: (subscription: Omit<Subscription, 'id'>) => void
@@ -164,6 +180,10 @@ const emptyDataState = (): DataState => ({
   categories: [],
   categoryRules: [],
   transactions: [],
+  incomeAnchors: [],
+  incomeAnchorCandidates: [],
+  payPeriods: [],
+  payPeriodSettings: { minCycleDays: 14 },
   mortgagePlan: undefined,
   subscriptions: [],
   upcomingExpenses: [],
@@ -184,6 +204,10 @@ const dataSnapshot = (state: AppState): DataState => ({
   categories: state.categories,
   categoryRules: state.categoryRules,
   transactions: state.transactions,
+  incomeAnchors: state.incomeAnchors,
+  incomeAnchorCandidates: state.incomeAnchorCandidates,
+  payPeriods: state.payPeriods,
+  payPeriodSettings: state.payPeriodSettings,
   mortgagePlan: state.mortgagePlan,
   subscriptions: state.subscriptions,
   upcomingExpenses: state.upcomingExpenses,
@@ -280,6 +304,10 @@ const readPersistedLocalState = (): DataState | undefined => {
       categories: state.categories ?? [],
       categoryRules: state.categoryRules ?? [],
       transactions: state.transactions ?? [],
+      incomeAnchors: state.incomeAnchors ?? [],
+      incomeAnchorCandidates: state.incomeAnchorCandidates ?? [],
+      payPeriods: state.payPeriods ?? [],
+      payPeriodSettings: state.payPeriodSettings ?? { minCycleDays: 14 },
       mortgagePlan: state.mortgagePlan,
       subscriptions: state.subscriptions ?? [],
       upcomingExpenses: state.upcomingExpenses ?? [],
@@ -318,7 +346,23 @@ const remapGoalOverrides = (overrides: Overrides, goalIdMap: Map<string, string>
  * Snapshoty są pobierane per konto, bo kontrakt backendu ma historię pod kontem.
  */
 async function loadBackendState(): Promise<DataState> {
-  const [accounts, loans, subscriptions, upcomingExpenses, goals, mortgagePlan, settingsFromApi, overrides, categories, categoryRules, transactions] =
+  const [
+    accounts,
+    loans,
+    subscriptions,
+    upcomingExpenses,
+    goals,
+    mortgagePlan,
+    settingsFromApi,
+    overrides,
+    categories,
+    categoryRules,
+    transactions,
+    incomeAnchors,
+    incomeAnchorCandidates,
+    payPeriods,
+    payPeriodSettings,
+  ] =
     await Promise.all([
       accountsApi.list(),
       loansApi.list(),
@@ -331,6 +375,10 @@ async function loadBackendState(): Promise<DataState> {
       categoriesApi.list(),
       categoryRulesApi.list(),
       transactionsApi.list({ limit: 200 }),
+      incomeAnchorsApi.list(),
+      incomeAnchorsApi.candidates(25),
+      payPeriodsApi.list({ limit: 100 }),
+      payPeriodsApi.settings(),
     ])
 
   const accountSnapshots = (await Promise.all(accounts.map(account => snapshotsApi.history(account.id)))).flat()
@@ -345,6 +393,10 @@ async function loadBackendState(): Promise<DataState> {
     categories,
     categoryRules,
     transactions,
+    incomeAnchors,
+    incomeAnchorCandidates,
+    payPeriods,
+    payPeriodSettings,
     mortgagePlan,
     subscriptions,
     upcomingExpenses,
@@ -527,6 +579,22 @@ export const useStore = create<AppState>()(
               transactionsApi.list({ onlyUncategorized, limit: 200 }),
             ])
             set({ categories, categoryRules, transactions, lastSyncedAt: syncStamp() })
+          } catch (error) {
+            set({ syncError: describeSyncError(error) })
+          }
+        },
+
+        loadPayPeriods: async () => {
+          if (!IS_API_MODE) return
+          set({ syncError: undefined })
+          try {
+            const [incomeAnchors, incomeAnchorCandidates, payPeriods, payPeriodSettings] = await Promise.all([
+              incomeAnchorsApi.list(),
+              incomeAnchorsApi.candidates(25),
+              payPeriodsApi.list({ limit: 100 }),
+              payPeriodsApi.settings(),
+            ])
+            set({ incomeAnchors, incomeAnchorCandidates, payPeriods, payPeriodSettings, lastSyncedAt: syncStamp() })
           } catch (error) {
             set({ syncError: describeSyncError(error) })
           }
@@ -822,6 +890,53 @@ export const useStore = create<AppState>()(
           }
         },
 
+        addIncomeAnchor: async (accountId, counterparty) => {
+          if (!IS_API_MODE) return
+          set({ syncError: undefined })
+          try {
+            await incomeAnchorsApi.create({ accountId, counterparty })
+            await get().loadPayPeriods()
+          } catch (error) {
+            set({ syncError: describeSyncError(error) })
+          }
+        },
+
+        removeIncomeAnchor: async (id) => {
+          if (!IS_API_MODE) return
+          set({ syncError: undefined })
+          try {
+            await incomeAnchorsApi.remove(id)
+            await get().loadPayPeriods()
+          } catch (error) {
+            set({ syncError: describeSyncError(error) })
+          }
+        },
+
+        refreshPayPeriods: async () => {
+          if (!IS_API_MODE) return { periods: 0 }
+          set({ syncError: undefined })
+          try {
+            const result = await payPeriodsApi.refresh()
+            await get().loadPayPeriods()
+            return result
+          } catch (error) {
+            set({ syncError: describeSyncError(error) })
+            return { periods: 0 }
+          }
+        },
+
+        updatePayPeriodSettings: async (payPeriodSettings) => {
+          if (!IS_API_MODE) return
+          set({ payPeriodSettings, syncError: undefined })
+          try {
+            const updated = await payPeriodsApi.updateSettings(payPeriodSettings)
+            await get().loadPayPeriods()
+            set({ payPeriodSettings: updated, lastSyncedAt: syncStamp() })
+          } catch (error) {
+            set({ syncError: describeSyncError(error) })
+          }
+        },
+
         saveMortgagePlan: (planData) => {
           const snapshot = dataSnapshot(get())
           const mortgagePlan: MortgagePlan = {
@@ -980,6 +1095,10 @@ export const useStore = create<AppState>()(
             categories: data.categories ?? [],
             categoryRules: data.categoryRules ?? [],
             transactions: data.transactions ?? [],
+            incomeAnchors: data.incomeAnchors ?? [],
+            incomeAnchorCandidates: data.incomeAnchorCandidates ?? [],
+            payPeriods: data.payPeriods ?? [],
+            payPeriodSettings: data.payPeriodSettings ?? { minCycleDays: 14 },
             mortgagePlan: data.mortgagePlan,
             subscriptions: data.subscriptions ?? [],
             upcomingExpenses: data.upcomingExpenses ?? [],
