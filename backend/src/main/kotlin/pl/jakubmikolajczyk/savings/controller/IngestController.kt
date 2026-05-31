@@ -23,6 +23,15 @@ class IngestController(private val service: IngestService) {
         @RequestParam("accountId") accountId: UUID,
         @RequestParam("file") file: MultipartFile,
     ) = file.inputStream.use { input ->
+        /*
+         * `use {}` is Kotlin's AutoCloseable helper.
+         *
+         * JAVA comparison:
+         * try (InputStream input = file.getInputStream()) { ... }
+         *
+         * Even if parsing throws, the stream is closed. That matters for uploads,
+         * because multipart temp files/streams should not leak handles on Windows.
+         */
         if (file.isEmpty) throw BadRequestException("Uploaded bank statement file is empty")
         service.ingest(parseBank(bank), accountId, input)
     }

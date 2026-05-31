@@ -6,7 +6,9 @@ import {
   categoryRulesApi,
   goalsApi,
   incomeAnchorsApi,
+  ingestApi,
   importApi,
+  leakAnalysisApi,
   loansApi,
   mortgageApi,
   overridesApi,
@@ -28,12 +30,15 @@ import { createId } from '../domain/id'
 import type {
   Account,
   AccountSnapshot,
+  BankSource,
   BankTransaction,
   Category,
   CategoryRule,
+  CycleLeakAnalysis,
   Goal,
   IncomeAnchor,
   IncomeAnchorCandidate,
+  IngestResult,
   Loan,
   Settings,
   Overrides,
@@ -83,6 +88,7 @@ interface SyncState {
   hasHydratedFromBackend: boolean
   syncError?: string
   lastSyncedAt?: string
+  leakAnalysis?: CycleLeakAnalysis
 }
 
 interface BootstrapResult {
@@ -98,8 +104,10 @@ interface AppState extends DataState, SyncState {
   hydrateFromBackend: () => Promise<void>
   bootstrapBackendFromLocal: () => Promise<BootstrapResult>
   importAccountSnapshotsCsv: (file: File, mapping: CsvImportMapping) => Promise<CsvImportResult>
+  importBankStatement: (bank: BankSource, accountId: string, file: File) => Promise<IngestResult>
   loadCategorization: (onlyUncategorized?: boolean) => Promise<void>
   loadPayPeriods: () => Promise<void>
+  loadLeakAnalysis: (accountId: string, periodNo: number) => Promise<void>
   clearSyncError: () => void
 
   // Actions
@@ -447,6 +455,7 @@ export const useStore = create<AppState>()(
         hasHydratedFromBackend: false,
         syncError: undefined,
         lastSyncedAt: undefined,
+        leakAnalysis: undefined,
         whatIfDelta: 0,
         loanOverpayment: 0,
 
@@ -569,6 +578,28 @@ export const useStore = create<AppState>()(
           return result
         },
 
+        importBankStatement: async (bank, accountId, file) => {
+          if (!IS_API_MODE) throw new Error('Import wyciagu bankowego jest dostepny tylko w trybie API.')
+          set({ syncError: undefined })
+          try {
+            const result = await ingestApi.upload(bank, accountId, file)
+            /*
+             * The backend already categorizes and refreshes periods inside the
+             * ingest transaction. The frontend still reloads both read models so
+             * the screen shows the new facts instead of stale Zustand cache.
+             */
+            await Promise.all([
+              get().loadCategorization(),
+              get().loadPayPeriods(),
+            ])
+            set({ lastSyncedAt: syncStamp() })
+            return result
+          } catch (error) {
+            set({ syncError: describeSyncError(error) })
+            throw error
+          }
+        },
+
         loadCategorization: async (onlyUncategorized = false) => {
           if (!IS_API_MODE) return
           set({ syncError: undefined })
@@ -597,6 +628,17 @@ export const useStore = create<AppState>()(
             set({ incomeAnchors, incomeAnchorCandidates, payPeriods, payPeriodSettings, lastSyncedAt: syncStamp() })
           } catch (error) {
             set({ syncError: describeSyncError(error) })
+          }
+        },
+
+        loadLeakAnalysis: async (accountId, periodNo) => {
+          if (!IS_API_MODE) return
+          set({ syncError: undefined })
+          try {
+            const leakAnalysis = await leakAnalysisApi.cycle(accountId, periodNo)
+            set({ leakAnalysis, lastSyncedAt: syncStamp() })
+          } catch (error) {
+            set({ leakAnalysis: undefined, syncError: describeSyncError(error) })
           }
         },
 

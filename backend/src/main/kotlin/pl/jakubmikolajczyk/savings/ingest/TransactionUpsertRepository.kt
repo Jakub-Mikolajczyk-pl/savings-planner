@@ -23,6 +23,16 @@ class TransactionUpsertRepository(
         insertReturningIdIgnoreDuplicate(insert) != null
 
     fun insertReturningIdIgnoreDuplicate(insert: TransactionInsert): Long? {
+        /*
+         * PostgreSQL trick worth knowing:
+         * `on conflict (...) do nothing returning id` gives us a one-query upsert:
+         * - inserted row -> query returns its id,
+         * - duplicate fingerprint -> query returns no rows -> Kotlin `firstOrNull()` becomes null.
+         *
+         * JAVA comparison:
+         * The JDBC idea is the same, but Kotlin's nullable Long? makes the two
+         * outcomes explicit in the function signature.
+         */
         val sql = """
             insert into finance.transactions
                 (account_id, booked_at, amount, currency, description, counterparty, source, fingerprint, raw)
@@ -41,6 +51,11 @@ class TransactionUpsertRepository(
             .addValue("counterparty", insert.tx.counterparty)
             .addValue("source", insert.source)
             .addValue("fingerprint", insert.fingerprint)
+            /*
+             * raw is a Map<String, Any?> in Kotlin. JDBC does not magically know how
+             * to send that as PostgreSQL jsonb, so we serialize it with Jackson and
+             * cast the SQL parameter to jsonb in the query.
+             */
             .addValue("raw", objectMapper.writeValueAsString(insert.tx.raw))
 
         return jdbc.query(sql, params) { rs, _ -> rs.getLong("id") }.firstOrNull()

@@ -2,10 +2,16 @@ import { useEffect, useMemo, useState } from 'react'
 import { RefreshCw, Trash2 } from 'lucide-react'
 import { IS_API_MODE } from '../../config'
 import { formatPLN } from '../../domain/formatting'
+import { periodKey } from '../../domain/payPeriods'
 import { useStore } from '../../store'
 import { Collapsible } from '../ui/Collapsible'
 
-export function PayPeriodsSection() {
+interface Props {
+  selectedKey?: string
+  onSelectedKeyChange?: (key: string) => void
+}
+
+export function PayPeriodsSection({ selectedKey: controlledSelectedKey, onSelectedKeyChange }: Props = {}) {
   const incomeAnchors = useStore(s => s.incomeAnchors)
   const candidates = useStore(s => s.incomeAnchorCandidates)
   const payPeriods = useStore(s => s.payPeriods)
@@ -15,8 +21,9 @@ export function PayPeriodsSection() {
   const removeIncomeAnchor = useStore(s => s.removeIncomeAnchor)
   const refreshPayPeriods = useStore(s => s.refreshPayPeriods)
   const updatePayPeriodSettings = useStore(s => s.updatePayPeriodSettings)
-  const [selectedKey, setSelectedKey] = useState('')
+  const [localSelectedKey, setLocalSelectedKey] = useState('')
   const [lastRefresh, setLastRefresh] = useState<string | undefined>()
+  const selectedKey = controlledSelectedKey ?? localSelectedKey
 
   useEffect(() => {
     void loadPayPeriods()
@@ -26,6 +33,11 @@ export function PayPeriodsSection() {
     () => payPeriods.find(period => periodKey(period) === selectedKey) ?? payPeriods[0],
     [payPeriods, selectedKey],
   )
+
+  const selectPeriod = (key: string) => {
+    setLocalSelectedKey(key)
+    onSelectedKeyChange?.(key)
+  }
 
   const saveSettings = (rawValue: string) => {
     const parsed = Number(rawValue)
@@ -83,7 +95,7 @@ export function PayPeriodsSection() {
           <div className="space-y-3">
             <select
               value={periodKey(selectedPeriod)}
-              onChange={event => setSelectedKey(event.target.value)}
+              onChange={event => selectPeriod(event.target.value)}
               className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-100"
             >
               {payPeriods.map(period => (
@@ -180,10 +192,6 @@ function Metric({ label, value, tone = 'neutral' }: { label: string; value: stri
       <p className={`mt-1 text-sm font-semibold tabular-nums ${toneClass}`}>{value}</p>
     </div>
   )
-}
-
-function periodKey(period: { accountId: string; periodNo: number }) {
-  return `${period.accountId}:${period.periodNo}`
 }
 
 function selectedPeriodLabel(period: { periodStart: string; periodEnd?: string; isPartial: boolean }) {

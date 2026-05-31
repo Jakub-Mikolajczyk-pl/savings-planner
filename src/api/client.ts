@@ -3,12 +3,15 @@ import type {
   Account,
   AccountBucket,
   AccountSnapshot,
+  BankSource,
   BankTransaction,
   Category,
   CategoryRule,
+  CycleLeakAnalysis,
   Goal,
   IncomeAnchor,
   IncomeAnchorCandidate,
+  IngestResult,
   Loan,
   MortgagePlan,
   Overrides,
@@ -243,6 +246,28 @@ export const payPeriodsApi = {
   refresh: () => post<PayPeriodRefreshResult>('/pay-periods/refresh', {}),
   settings: () => get<PayPeriodSettings>('/pay-periods/settings'),
   updateSettings: (settings: PayPeriodSettings) => put<PayPeriodSettings>('/pay-periods/settings', settings),
+}
+
+export const ingestApi = {
+  upload: (bank: BankSource, accountId: string, file: File) => {
+    const formData = new FormData()
+    /*
+     * This endpoint uses @RequestParam on the Spring side, not @RequestPart.
+     * That means bank/accountId should be plain form fields, while file is the
+     * binary part. The shared request() helper will preserve multipart headers.
+     */
+    formData.append('bank', bank)
+    formData.append('accountId', accountId)
+    formData.append('file', file)
+    return request<IngestResult>('/ingest', { method: 'POST', body: formData })
+  },
+}
+
+export const leakAnalysisApi = {
+  cycle: (accountId: string, periodNo: number) => {
+    const params = new URLSearchParams({ accountId, periodNo: String(periodNo) })
+    return get<CycleLeakAnalysis>(`/leak-analysis/cycle?${params.toString()}`)
+  },
 }
 
 export const loansApi = {

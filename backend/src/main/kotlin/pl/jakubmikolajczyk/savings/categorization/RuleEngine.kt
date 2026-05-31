@@ -30,6 +30,14 @@ class RuleEngine {
         value.trim().replace(Regex("\\s+"), " ").lowercase(Locale.ROOT)
 
     private fun matches(input: RuleInput, rule: CategoryRule): Boolean {
+        /*
+         * `when` is Kotlin's nicer switch, but it is also an expression.
+         *
+         * JAVA comparison:
+         * Java's modern switch expression is now close, but Kotlin had this style
+         * early. Because RuleMatchField is an enum, the compiler can warn us if a
+         * new enum value appears and this branch stops being exhaustive.
+         */
         val rawValue = when (rule.matchField) {
             RuleMatchField.description -> input.description
             RuleMatchField.counterparty -> input.counterparty
@@ -40,6 +48,14 @@ class RuleEngine {
 
         return when (rule.matchType) {
             RuleMatchType.contains -> value.contains(pattern)
+            /*
+             * runCatching wraps exceptions into Result instead of throwing through
+             * the call stack. Nice for "try this risky parser/matcher and degrade".
+             *
+             * INTERVIEW Q: "Should every exception be swallowed with runCatching?"
+             * A: No. Use it at deliberate boundaries. Here a bad regex rule should
+             *    not break categorization of all transactions.
+             */
             RuleMatchType.regex -> runCatching { Regex(rule.pattern, RegexOption.IGNORE_CASE).containsMatchIn(rawValue) }
                 .getOrElse { error ->
                     if (error is PatternSyntaxException || error.cause is PatternSyntaxException) false else false

@@ -361,3 +361,59 @@ data class PayPeriodDto(
 data class PayPeriodRefreshResultDto(
     val periods: Int,
 )
+
+data class CycleCategoryRollupDto(
+    val categoryId: Long? = null,
+    @field:NotBlank val categoryName: String,
+    val categoryKind: CategoryKind? = null,
+    @field:NotNull val amount: BigDecimal,
+    @field:NotNull val income: BigDecimal,
+    @field:NotNull val expense: BigDecimal,
+    @field:Min(0) val transactionCount: Int,
+)
+
+data class RecurringLeakDto(
+    @field:NotBlank val counterparty: String,
+    val categoryId: Long? = null,
+    val categoryName: String? = null,
+    val categoryKind: CategoryKind? = null,
+    @field:Min(1) val transactionCount: Int,
+    @field:NotNull val averageAmount: BigDecimal,
+    @field:NotNull val currentCycleAmount: BigDecimal,
+    @field:NotBlank val firstBookedAt: String,
+    @field:NotBlank val lastBookedAt: String,
+)
+
+data class MicroExpenseRollupDto(
+    val categoryId: Long? = null,
+    @field:NotBlank val categoryName: String,
+    val categoryKind: CategoryKind? = null,
+    @field:NotNull val expense: BigDecimal,
+    @field:Min(1) val transactionCount: Int,
+)
+
+data class CycleDeltaDto(
+    val categoryId: Long? = null,
+    @field:NotBlank val categoryName: String,
+    val categoryKind: CategoryKind? = null,
+    @field:NotNull val currentExpense: BigDecimal,
+    @field:NotNull val baselineAverage: BigDecimal,
+    @field:NotNull val increase: BigDecimal,
+    val increasePct: BigDecimal? = null,
+)
+
+data class CycleLeakAnalysisDto(
+    @field:Min(1) val periodNo: Int,
+    val accountId: UUID,
+    @field:NotBlank val accountName: String,
+    @field:NotBlank val periodStart: String,
+    val periodEnd: String? = null,
+    val isPartial: Boolean,
+    @field:NotNull val income: BigDecimal,
+    @field:NotNull val expense: BigDecimal,
+    @field:NotNull val net: BigDecimal,
+    @field:Valid val topCategories: List<CycleCategoryRollupDto>,
+    @field:Valid val recurring: List<RecurringLeakDto>,
+    @field:Valid val microExpenses: List<MicroExpenseRollupDto>,
+    @field:Valid val deltas: List<CycleDeltaDto>,
+)
