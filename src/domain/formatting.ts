@@ -1,8 +1,8 @@
 const plnFormatter = new Intl.NumberFormat('pl-PL', {
   style: 'currency',
   currency: 'PLN',
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 0,
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
 })
 
 export const formatPLN = (amount: unknown): string => plnFormatter.format(Number(amount ?? 0))

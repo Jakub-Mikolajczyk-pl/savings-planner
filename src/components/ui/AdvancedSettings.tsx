@@ -158,7 +158,7 @@ export function AdvancedSettings() {
           <input
             type="number"
             min={0}
-            step={500}
+            step={0.01}
             value={settings.emergencyFundTarget ?? 10000}
             onChange={e => {
               const value = parseFloat(e.target.value)

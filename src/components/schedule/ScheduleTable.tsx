@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { buildSchedule } from '../../domain/allocation'
+import { formatCurrencyInput, parseCurrencyInput, sanitizeCurrencyInput } from '../../domain/currency'
 import { formatPLN } from '../../domain/formatting'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 
@@ -16,19 +17,17 @@ function InlineNumberEdit({
   return (
     <input
       type="text"
-      inputMode="numeric"
-      defaultValue={value}
+      inputMode="decimal"
+      defaultValue={formatCurrencyInput(value)}
       key={value}
       onFocus={e => e.target.select()}
       onChange={e => {
-        const digits = e.target.value.replace(/[^\d]/g, '')
-        e.target.value = digits ? parseInt(digits, 10).toLocaleString('pl-PL') : ''
+        e.target.value = sanitizeCurrencyInput(e.target.value)
       }}
       onBlur={e => {
-        const digits = e.target.value.replace(/[^\d]/g, '')
-        const v = digits ? parseInt(digits, 10) : value
+        const v = parseCurrencyInput(e.target.value) ?? value
         onCommit(v)
-        e.target.value = v.toLocaleString('pl-PL')
+        e.target.value = formatCurrencyInput(v)
       }}
       onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
       className={`w-20 text-right px-1 py-0.5 rounded border border-blue-300 dark:border-blue-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 tabular-nums focus:outline-none focus:ring-1 focus:ring-blue-500 ${className}`}
