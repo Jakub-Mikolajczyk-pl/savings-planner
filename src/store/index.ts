@@ -2,14 +2,18 @@ import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import {
   accountsApi,
+  categoriesApi,
+  categoryRulesApi,
   goalsApi,
   importApi,
   loansApi,
   mortgageApi,
   overridesApi,
+  recategorizeApi,
   settingsApi,
   snapshotsApi,
   subscriptionsApi,
+  transactionsApi,
   upcomingExpensesApi,
   type CsvImportMapping,
   type CsvImportResult,
@@ -22,10 +26,14 @@ import { createId } from '../domain/id'
 import type {
   Account,
   AccountSnapshot,
+  BankTransaction,
+  Category,
+  CategoryRule,
   Goal,
   Loan,
   Settings,
   Overrides,
+  RecategorizeResult,
   Schedule,
   MortgagePlan,
   Subscription,
@@ -46,6 +54,9 @@ interface DataState {
   loans: Loan[]
   accounts: Account[]
   accountSnapshots: AccountSnapshot[]
+  categories: Category[]
+  categoryRules: CategoryRule[]
+  transactions: BankTransaction[]
   mortgagePlan?: MortgagePlan
   subscriptions: Subscription[]
   upcomingExpenses: UpcomingExpense[]
@@ -76,6 +87,7 @@ interface AppState extends DataState, SyncState {
   hydrateFromBackend: () => Promise<void>
   bootstrapBackendFromLocal: () => Promise<BootstrapResult>
   importAccountSnapshotsCsv: (file: File, mapping: CsvImportMapping) => Promise<CsvImportResult>
+  loadCategorization: (onlyUncategorized?: boolean) => Promise<void>
   clearSyncError: () => void
 
   // Actions
@@ -94,6 +106,14 @@ interface AppState extends DataState, SyncState {
   reopenAccount: (id: string) => void
   setSnapshot: (accountId: string, yearMonth: string, balance: number, notes?: string) => void
   removeSnapshot: (accountId: string, yearMonth: string) => void
+  addCategory: (category: Omit<Category, 'id'>) => void
+  updateCategory: (id: number, patch: Partial<Omit<Category, 'id'>>) => void
+  removeCategory: (id: number) => void
+  addCategoryRule: (rule: Omit<CategoryRule, 'id' | 'source'> & { source?: CategoryRule['source'] }) => void
+  updateCategoryRule: (id: number, patch: Partial<Omit<CategoryRule, 'id'>>) => void
+  removeCategoryRule: (id: number) => void
+  overrideTransactionCategory: (id: number, categoryId: number | undefined, locked?: boolean) => void
+  recategorizeTransactions: (accountId?: string) => Promise<RecategorizeResult>
   saveMortgagePlan: (plan: Omit<MortgagePlan, 'id'> & { id?: string }) => void
   removeMortgagePlan: () => void
   addSubscription: (subscription: Omit<Subscription, 'id'>) => void
@@ -141,6 +161,9 @@ const emptyDataState = (): DataState => ({
   loans: [],
   accounts: [],
   accountSnapshots: [],
+  categories: [],
+  categoryRules: [],
+  transactions: [],
   mortgagePlan: undefined,
   subscriptions: [],
   upcomingExpenses: [],
@@ -158,6 +181,9 @@ const dataSnapshot = (state: AppState): DataState => ({
   loans: state.loans,
   accounts: state.accounts,
   accountSnapshots: state.accountSnapshots,
+  categories: state.categories,
+  categoryRules: state.categoryRules,
+  transactions: state.transactions,
   mortgagePlan: state.mortgagePlan,
   subscriptions: state.subscriptions,
   upcomingExpenses: state.upcomingExpenses,
@@ -251,6 +277,9 @@ const readPersistedLocalState = (): DataState | undefined => {
       loans: state.loans ?? [],
       accounts: state.accounts ?? [],
       accountSnapshots: state.accountSnapshots ?? [],
+      categories: state.categories ?? [],
+      categoryRules: state.categoryRules ?? [],
+      transactions: state.transactions ?? [],
       mortgagePlan: state.mortgagePlan,
       subscriptions: state.subscriptions ?? [],
       upcomingExpenses: state.upcomingExpenses ?? [],
@@ -289,7 +318,7 @@ const remapGoalOverrides = (overrides: Overrides, goalIdMap: Map<string, string>
  * Snapshoty są pobierane per konto, bo kontrakt backendu ma historię pod kontem.
  */
 async function loadBackendState(): Promise<DataState> {
-  const [accounts, loans, subscriptions, upcomingExpenses, goals, mortgagePlan, settingsFromApi, overrides] =
+  const [accounts, loans, subscriptions, upcomingExpenses, goals, mortgagePlan, settingsFromApi, overrides, categories, categoryRules, transactions] =
     await Promise.all([
       accountsApi.list(),
       loansApi.list(),
@@ -299,6 +328,9 @@ async function loadBackendState(): Promise<DataState> {
       mortgageApi.get(),
       settingsApi.get(),
       overridesApi.get(),
+      categoriesApi.list(),
+      categoryRulesApi.list(),
+      transactionsApi.list({ limit: 200 }),
     ])
 
   const accountSnapshots = (await Promise.all(accounts.map(account => snapshotsApi.history(account.id)))).flat()
@@ -310,6 +342,9 @@ async function loadBackendState(): Promise<DataState> {
     loans,
     accounts,
     accountSnapshots,
+    categories,
+    categoryRules,
+    transactions,
     mortgagePlan,
     subscriptions,
     upcomingExpenses,
@@ -480,6 +515,21 @@ export const useStore = create<AppState>()(
             lastSyncedAt: syncStamp(),
           })
           return result
+        },
+
+        loadCategorization: async (onlyUncategorized = false) => {
+          if (!IS_API_MODE) return
+          set({ syncError: undefined })
+          try {
+            const [categories, categoryRules, transactions] = await Promise.all([
+              categoriesApi.list(),
+              categoryRulesApi.list(),
+              transactionsApi.list({ onlyUncategorized, limit: 200 }),
+            ])
+            set({ categories, categoryRules, transactions, lastSyncedAt: syncStamp() })
+          } catch (error) {
+            set({ syncError: describeSyncError(error) })
+          }
         },
 
         clearSyncError: () => set({ syncError: undefined }),
@@ -678,6 +728,100 @@ export const useStore = create<AppState>()(
           runMutation(snapshot, () => snapshotsApi.remove(accountId, yearMonth))
         },
 
+        addCategory: (categoryData) => {
+          const snapshot = dataSnapshot(get())
+          const category: Category = { ...categoryData, id: Date.now() }
+          set(s => ({ categories: [...s.categories, category] }))
+
+          if (IS_API_MODE) {
+            void categoriesApi.create(categoryData)
+              .then(created => set(s => ({
+                categories: s.categories.map(item => item.id === category.id ? created : item),
+                syncError: undefined,
+                lastSyncedAt: syncStamp(),
+              })))
+              .catch(error => rollbackOnFailure(snapshot, error))
+          }
+        },
+
+        updateCategory: (id, patch) => {
+          const snapshot = dataSnapshot(get())
+          const category = get().categories.find(item => item.id === id)
+          if (!category) return
+          const updated = { ...category, ...patch }
+          set(s => ({ categories: s.categories.map(item => item.id === id ? updated : item) }))
+          runMutation(snapshot, () => categoriesApi.update(id, updated))
+        },
+
+        removeCategory: (id) => {
+          const snapshot = dataSnapshot(get())
+          set(s => ({
+            categories: s.categories.filter(category => category.id !== id),
+            categoryRules: s.categoryRules.filter(rule => rule.categoryId !== id),
+          }))
+          runMutation(snapshot, () => categoriesApi.remove(id))
+        },
+
+        addCategoryRule: (ruleData) => {
+          const snapshot = dataSnapshot(get())
+          const rule: CategoryRule = { ...ruleData, id: Date.now(), source: ruleData.source ?? 'manual' }
+          set(s => ({ categoryRules: [...s.categoryRules, rule].sort((a, b) => a.priority - b.priority || a.id - b.id) }))
+
+          if (IS_API_MODE) {
+            void categoryRulesApi.create({ ...ruleData, source: rule.source })
+              .then(created => set(s => ({
+                categoryRules: [...s.categoryRules.filter(item => item.id !== rule.id), created]
+                  .sort((a, b) => a.priority - b.priority || a.id - b.id),
+                syncError: undefined,
+                lastSyncedAt: syncStamp(),
+              })))
+              .catch(error => rollbackOnFailure(snapshot, error))
+          }
+        },
+
+        updateCategoryRule: (id, patch) => {
+          const snapshot = dataSnapshot(get())
+          const rule = get().categoryRules.find(item => item.id === id)
+          if (!rule) return
+          const updated = { ...rule, ...patch }
+          set(s => ({
+            categoryRules: s.categoryRules
+              .map(item => item.id === id ? updated : item)
+              .sort((a, b) => a.priority - b.priority || a.id - b.id),
+          }))
+          runMutation(snapshot, () => categoryRulesApi.update(id, updated))
+        },
+
+        removeCategoryRule: (id) => {
+          const snapshot = dataSnapshot(get())
+          set(s => ({ categoryRules: s.categoryRules.filter(rule => rule.id !== id) }))
+          runMutation(snapshot, () => categoryRulesApi.remove(id))
+        },
+
+        overrideTransactionCategory: (id, categoryId, locked = true) => {
+          const snapshot = dataSnapshot(get())
+          set(s => ({
+            transactions: s.transactions.map(transaction =>
+              transaction.id === id ? { ...transaction, categoryId, categoryLocked: locked } : transaction,
+            ),
+          }))
+          runMutation(snapshot, () => transactionsApi.overrideCategory(id, categoryId, locked))
+        },
+
+        recategorizeTransactions: async (accountId) => {
+          if (!IS_API_MODE) return { categorized: 0, total: 0 }
+          set({ syncError: undefined })
+          try {
+            const result = await recategorizeApi.run(accountId)
+            const transactions = await transactionsApi.list({ limit: 200 })
+            set({ transactions, lastSyncedAt: syncStamp() })
+            return result
+          } catch (error) {
+            set({ syncError: describeSyncError(error) })
+            return { categorized: 0, total: 0 }
+          }
+        },
+
         saveMortgagePlan: (planData) => {
           const snapshot = dataSnapshot(get())
           const mortgagePlan: MortgagePlan = {
@@ -833,6 +977,9 @@ export const useStore = create<AppState>()(
             loans: data.loans ?? [],
             accounts: data.accounts ?? [],
             accountSnapshots: data.accountSnapshots ?? [],
+            categories: data.categories ?? [],
+            categoryRules: data.categoryRules ?? [],
+            transactions: data.transactions ?? [],
             mortgagePlan: data.mortgagePlan,
             subscriptions: data.subscriptions ?? [],
             upcomingExpenses: data.upcomingExpenses ?? [],
@@ -917,6 +1064,8 @@ export const useStore = create<AppState>()(
         loans: s.loans,
         accounts: s.accounts,
         accountSnapshots: s.accountSnapshots,
+        categories: s.categories,
+        categoryRules: s.categoryRules,
         mortgagePlan: s.mortgagePlan,
         subscriptions: s.subscriptions,
         upcomingExpenses: s.upcomingExpenses,

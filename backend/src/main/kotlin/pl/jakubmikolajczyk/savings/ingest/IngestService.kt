@@ -2,6 +2,7 @@ package pl.jakubmikolajczyk.savings.ingest
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import pl.jakubmikolajczyk.savings.categorization.CategorizationService
 import pl.jakubmikolajczyk.savings.domain.BadRequestException
 import pl.jakubmikolajczyk.savings.domain.NotFoundException
 import pl.jakubmikolajczyk.savings.domain.UnprocessableEntityException
@@ -24,6 +25,7 @@ class IngestService(
     private val adapters: List<BankStatementAdapter>,
     private val accounts: AccountRepository,
     private val transactions: TransactionUpsertRepository,
+    private val categorization: CategorizationService,
 ) {
     @Transactional
     fun ingest(bank: BankSource, accountId: UUID, input: InputStream): IngestResultDto {
@@ -47,7 +49,7 @@ class IngestService(
         var inserted = 0
         parsed.forEach { tx ->
             val fingerprint = fingerprint(tx, accountId)
-            val didInsert = transactions.insertIgnoreDuplicate(
+            val insertedId = transactions.insertReturningIdIgnoreDuplicate(
                 TransactionInsert(
                     accountId = accountId,
                     source = bank.sourceValue,
@@ -55,7 +57,10 @@ class IngestService(
                     tx = tx,
                 ),
             )
-            if (didInsert) inserted++
+            if (insertedId != null) {
+                categorization.categorizeInsertedTransaction(insertedId, tx.description, tx.counterparty)
+                inserted++
+            }
         }
 
         return IngestResultDto(
