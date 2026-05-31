@@ -14,3 +14,5 @@ package pl.jakubmikolajczyk.savings.domain
 class NotFoundException(message: String) : RuntimeException(message)
 
 class BadRequestException(message: String) : RuntimeException(message)
+
+class UnprocessableEntityException(message: String) : RuntimeException(message)

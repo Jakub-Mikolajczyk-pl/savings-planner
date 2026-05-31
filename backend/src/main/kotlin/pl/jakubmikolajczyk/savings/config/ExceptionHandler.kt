@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import pl.jakubmikolajczyk.savings.domain.BadRequestException
 import pl.jakubmikolajczyk.savings.domain.NotFoundException
+import pl.jakubmikolajczyk.savings.domain.UnprocessableEntityException
 import java.time.Instant
 
 data class ApiError(
@@ -39,6 +40,10 @@ class GlobalExceptionHandler {
     @ExceptionHandler(BadRequestException::class, IllegalArgumentException::class)
     fun badRequest(ex: RuntimeException, request: HttpServletRequest) =
         error(HttpStatus.BAD_REQUEST, ex.message ?: "Bad request", request)
+
+    @ExceptionHandler(UnprocessableEntityException::class)
+    fun unprocessable(ex: UnprocessableEntityException, request: HttpServletRequest) =
+        error(HttpStatus.UNPROCESSABLE_ENTITY, ex.message ?: "Unprocessable entity", request)
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun validation(ex: MethodArgumentNotValidException, request: HttpServletRequest): ResponseEntity<ApiError> {
