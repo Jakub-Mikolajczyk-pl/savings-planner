@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { formatCurrencyInput, parseCurrencyInput, sanitizeCurrencyInput } from '../../domain/currency'
 
 interface Props {
   value: number
@@ -8,30 +9,18 @@ interface Props {
   placeholder?: string
 }
 
-export function CurrencyInput({ value, onChange, label, className = '', placeholder = '0' }: Props) {
+export function CurrencyInput({ value, onChange, label, className = '', placeholder = '0,00' }: Props) {
   /*
-   * CurrencyInput pokazuje ważny React pattern:
-   * parent trzyma wartość liczbową (value), a komponent lokalnie trzyma string
-   * do wyświetlenia z separatorami tysięcy.
-   *
-   * Dlaczego dwa stany?
-   * Liczba 10000 jest dobra dla domeny, ale użytkownik chce widzieć "10 000".
-   * Input HTML zawsze operuje stringami.
+   * Parent stores the domain number, while this component stores the editable
+   * text. That lets the user type decimal separators naturally, then we format
+   * to Polish money notation on blur.
    */
-  const [display, setDisplay] = useState(value === 0 ? '' : value.toLocaleString('pl-PL'))
-  /*
-   * useRef jako flaga "czy user teraz edytuje".
-   * Zmiana ref.current nie robi rerenderu, więc nadaje się do takich technicznych flag.
-   */
+  const [display, setDisplay] = useState(value === 0 ? '' : formatCurrencyInput(value))
   const focused = useRef(false)
 
-  /*
-   * Synchronizujemy display z zewnętrznym value tylko gdy input nie jest aktywnie
-   * edytowany. Inaczej parent update mógłby przesuwać kursor podczas pisania.
-   */
   useEffect(() => {
     if (!focused.current) {
-      setDisplay(value === 0 ? '' : value.toLocaleString('pl-PL'))
+      setDisplay(value === 0 ? '' : formatCurrencyInput(value))
     }
   }, [value])
 
@@ -40,45 +29,36 @@ export function CurrencyInput({ value, onChange, label, className = '', placehol
     e.target.select()
   }
 
-  const handleBlur = () => {
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     focused.current = false
-    // Normalize display to match stored value
-    setDisplay(value === 0 ? '' : value.toLocaleString('pl-PL'))
+    const num = parseCurrencyInput(e.target.value)
+    if (num === null || num === 0) {
+      onChange(0)
+      setDisplay('')
+      return
+    }
+
+    onChange(num)
+    setDisplay(formatCurrencyInput(num))
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    /*
-     * JS string/regex:
-     * replace(/[^\d]/g, '') usuwa wszystko poza cyframi.
-     * Dzięki temu "12 345 zł" i "12345" prowadzą do tej samej liczby.
-     */
-    const raw = e.target.value
-    const digits = raw.replace(/[^\d]/g, '')
+    const raw = sanitizeCurrencyInput(e.target.value)
+    const num = parseCurrencyInput(raw)
 
-    if (digits === '') {
+    if (num === null) {
       setDisplay('')
       onChange(0)
       return
     }
 
-    const num = parseInt(digits, 10)
     onChange(num)
-
-    /*
-     * toLocaleString('pl-PL') formatuje liczbę wg polskich ustawień.
-     * To API przeglądarki/Intl, nie biblioteka Reacta.
-     */
-    const formatted = num.toLocaleString('pl-PL')
-    setDisplay(formatted)
+    setDisplay(raw)
   }
 
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
       {label && (
-        /*
-         * Krótkie && w JSX:
-         * Jeśli label jest pusty/undefined, React nie renderuje elementu.
-         */
         <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
           {label}
         </label>
@@ -86,7 +66,7 @@ export function CurrencyInput({ value, onChange, label, className = '', placehol
       <div className="relative">
         <input
           type="text"
-          inputMode="numeric"
+          inputMode="decimal"
           value={display}
           placeholder={placeholder}
           onFocus={handleFocus}
