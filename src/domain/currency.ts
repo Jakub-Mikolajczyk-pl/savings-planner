@@ -1,12 +1,15 @@
-const moneyDisplayFormatter = new Intl.NumberFormat('pl-PL', {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-})
-
 const roundToGrosze = (value: number): number => Math.round(value * 100) / 100
 
 export function formatCurrencyInput(value: number): string {
-  return moneyDisplayFormatter.format(Number(value ?? 0))
+  /*
+   * Avoid Intl here. Some CI/act Node runtimes have limited ICU data and silently
+   * fall back from pl-PL to en-US, which formats 1234.5 as "1,234.50".
+   */
+  const amount = Number.isFinite(value) ? value : 0
+  const sign = amount < 0 ? '-' : ''
+  const [whole, grosze] = Math.abs(amount).toFixed(2).split('.')
+  const groupedWhole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+  return `${sign}${groupedWhole},${grosze}`
 }
 
 export function sanitizeCurrencyInput(raw: string): string {
