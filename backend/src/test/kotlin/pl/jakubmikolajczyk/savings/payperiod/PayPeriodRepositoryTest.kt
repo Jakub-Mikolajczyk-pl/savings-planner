@@ -34,10 +34,13 @@ class PayPeriodRepositoryTest @Autowired constructor(
     @Test
     fun `refresh creates guarded pay periods and range-joins transactions`() {
         val account = accounts.save(AccountEntity(name = "Alior", bucket = "accounts"))
+        val transferCategory = categoryId("Transfery")
         insertTransaction(account.id, "2026-01-01", "J1 SP ZOO", "Faktura J1", "10000.00")
         insertTransaction(account.id, "2026-01-10", "J1  SP   ZOO", "Druga faktura J1", "2000.00")
         insertTransaction(account.id, "2026-01-20", "J1 SP ZOO", "Faktura J1", "10000.00")
         insertTransaction(account.id, "2026-01-22", "BIEDRONKA", "Zakupy", "-123.45")
+        insertTransaction(account.id, "2026-01-23", "VELO", "Przelew wlasny", "500.00", transferCategory)
+        insertTransaction(account.id, "2026-01-24", "VELO", "Przelew wlasny", "-250.00", transferCategory)
 
         val anchor = service.createAnchor(IncomeAnchorCreateDto(account.id, "j1 sp zoo"))
         assertNotNull(anchor.id)
@@ -76,13 +79,14 @@ class PayPeriodRepositoryTest @Autowired constructor(
         counterparty: String,
         description: String,
         amount: String,
+        categoryId: Long? = null,
     ): Long =
         jdbc.query(
             """
                 insert into finance.transactions
-                    (account_id, booked_at, amount, currency, description, counterparty, source, fingerprint, raw)
+                    (account_id, booked_at, amount, currency, description, counterparty, source, fingerprint, raw, category_id)
                 values
-                    (:accountId, :bookedAt, :amount, 'PLN', :description, :counterparty, 'test', :fingerprint, '{}'::jsonb)
+                    (:accountId, :bookedAt, :amount, 'PLN', :description, :counterparty, 'test', :fingerprint, '{}'::jsonb, :categoryId)
                 returning id
             """.trimIndent(),
             MapSqlParameterSource()
@@ -91,8 +95,15 @@ class PayPeriodRepositoryTest @Autowired constructor(
                 .addValue("amount", BigDecimal(amount))
                 .addValue("description", description)
                 .addValue("counterparty", counterparty)
-                .addValue("fingerprint", "$accountId-$bookedAt-$amount-$description"),
+                .addValue("fingerprint", "$accountId-$bookedAt-$amount-$description")
+                .addValue("categoryId", categoryId),
         ) { rs, _ -> rs.getLong("id") }.first()
+
+    private fun categoryId(name: String): Long =
+        jdbc.query(
+            "select id from finance.categories where name = :name",
+            mapOf("name" to name),
+        ) { rs, _ -> rs.getLong("id") }.single()
 
     companion object {
         @Container

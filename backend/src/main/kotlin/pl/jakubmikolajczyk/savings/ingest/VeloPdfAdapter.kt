@@ -2,13 +2,17 @@ package pl.jakubmikolajczyk.savings.ingest
 
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.text.PDFTextStripper
+import pl.jakubmikolajczyk.savings.config.IngestProperties
 import org.springframework.stereotype.Component
 import java.io.InputStream
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @Component
-class VeloPdfAdapter : BankStatementAdapter {
+class VeloPdfAdapter(
+    ingestProperties: IngestProperties = IngestProperties(),
+) : BankStatementAdapter {
     private val isoDate = DateTimeFormatter.ISO_LOCAL_DATE
     private val polishDate = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     private val dashedDate = DateTimeFormatter.ofPattern("dd-MM-yyyy")
@@ -18,6 +22,10 @@ class VeloPdfAdapter : BankStatementAdapter {
     private val amountPattern = Regex("""([+\-\u2212]?\d[\d .\u00a0]*[,.]\d{2})\s*(PLN)?""")
     private val amountCellPattern = Regex("""^[+\-\u2212]?\d[\d .\u00a0]*[,.]\d{2}\s*(PLN)?$""")
     private val summaryStartPattern = Regex("""^(Obroty|Saldo)\b""", RegexOption.IGNORE_CASE)
+    private val internalTransferSourceAccounts = ingestProperties.internalTransferSourceAccounts
+        .map(::normalizeAccountNumber)
+        .filter { it.isNotBlank() }
+        .toSet()
 
     override fun supports(bank: BankSource): Boolean = bank == BankSource.VELO_PDF
 
@@ -70,11 +78,19 @@ class VeloPdfAdapter : BankStatementAdapter {
             .trim()
             .ifBlank { "Velo transaction" }
 
+        val amount = MoneyParser.parseAmount(transactionAmount.raw)
+        val normalizedDescription = description.replace(Regex("\\s+"), " ").trim()
+        val canonicalDescription = if (isInternalIncomingTransfer(amount, normalizedDescription)) {
+            "Przelew wlasny $normalizedDescription"
+        } else {
+            normalizedDescription
+        }
+
         return CanonicalTx(
             bookedAt = parseDate(rowLines[0]),
-            amount = MoneyParser.parseAmount(transactionAmount.raw),
+            amount = amount,
             currency = "PLN",
-            description = description,
+            description = canonicalDescription,
             counterparty = null,
             raw = mapOf("lines" to usableLines),
         )
@@ -93,11 +109,18 @@ class VeloPdfAdapter : BankStatementAdapter {
             .trim()
             .ifBlank { "Velo transaction" }
 
+        val amount = MoneyParser.parseAmount(rawAmount)
+        val canonicalDescription = if (isInternalIncomingTransfer(amount, description)) {
+            "Przelew wlasny $description"
+        } else {
+            description
+        }
+
         return CanonicalTx(
             bookedAt = parseDate(dateMatch.value),
-            amount = MoneyParser.parseAmount(rawAmount),
+            amount = amount,
             currency = currency.uppercase(),
-            description = description,
+            description = canonicalDescription,
             counterparty = null,
             raw = mapOf("line" to line),
         )
@@ -112,9 +135,17 @@ class VeloPdfAdapter : BankStatementAdapter {
     private fun isDateCell(line: String): Boolean = dateCellPattern.matches(line)
 
     private fun isAmountCell(line: String): Boolean = amountCellPattern.matches(line)
+
+    private fun isInternalIncomingTransfer(amount: BigDecimal, description: String): Boolean =
+        amount > BigDecimal.ZERO &&
+            internalTransferSourceAccounts.isNotEmpty() &&
+            internalTransferSourceAccounts.any { normalizeAccountNumber(description).contains(it) }
 }
 
 private data class IndexedAmount(
     val index: Int,
     val raw: String,
 )
+
+private fun normalizeAccountNumber(value: String): String =
+    value.filter(Char::isDigit)

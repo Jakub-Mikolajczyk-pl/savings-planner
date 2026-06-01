@@ -38,6 +38,7 @@ class GoalIntegrationRepositoryTest @Autowired constructor(
         val fixedCategory = categoryId("Podatki i ZUS")
         val recurringCategory = categoryId("Media i internet")
         val variableCategory = categoryId("Zakupy spozywcze")
+        val transferCategory = categoryId("Transfery")
 
         insertTransaction(account.id, "2026-01-01", "Firma", "Wynagrodzenie", "5000.00")
         insertTransaction(account.id, "2026-02-01", "Firma", "Wynagrodzenie", "5000.00")
@@ -45,6 +46,8 @@ class GoalIntegrationRepositoryTest @Autowired constructor(
         insertTransaction(account.id, "2026-02-03", "Netia", "Internet", "-100.00", recurringCategory)
         insertTransaction(account.id, "2026-02-04", "Biedronka", "Jedzenie", "-300.00", variableCategory)
         insertTransaction(account.id, "2026-02-05", "Mystery", "Bez kategorii", "-50.00")
+        insertTransaction(account.id, "2026-02-06", "Alior", "Przelew wlasny Alior -> Velo", "6000.00", transferCategory)
+        insertTransaction(account.id, "2026-02-07", "Alior", "Przelew wlasny Velo -> Alior", "-2000.00", transferCategory)
 
         payPeriods.createAnchor(IncomeAnchorCreateDto(account.id, "Firma"))
 

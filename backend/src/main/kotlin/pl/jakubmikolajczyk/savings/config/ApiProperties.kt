@@ -31,3 +31,14 @@ data class CorsProperties(
      */
     val allowedOrigins: List<String>,
 )
+
+@ConfigurationProperties(prefix = "app.ingest")
+data class IngestProperties(
+    /*
+     * NRB/IBAN values for accounts owned by Jakub, used only to detect
+     * "left pocket -> right pocket" transfers in bank statements.
+     *
+     * Keep the real numbers in CT111 `.env`, not in git.
+     */
+    val internalTransferSourceAccounts: List<String> = emptyList(),
+)

@@ -68,13 +68,14 @@ class LeakAnalysisRepository(private val jdbc: NamedParameterJdbcTemplate) {
                     period.period_end,
                     period.anchor_tx_id,
                     period.is_partial,
-                    coalesce(sum(case when tx.amount > 0 then tx.amount else 0 end), 0) as income,
-                    coalesce(sum(case when tx.amount < 0 then abs(tx.amount) else 0 end), 0) as expense,
-                    coalesce(sum(tx.amount), 0) as net
+                    coalesce(sum(case when tx.amount > 0 and coalesce(category.name, '') <> 'Transfery' then tx.amount else 0 end), 0) as income,
+                    coalesce(sum(case when tx.amount < 0 and coalesce(category.name, '') <> 'Transfery' then abs(tx.amount) else 0 end), 0) as expense,
+                    coalesce(sum(case when coalesce(category.name, '') = 'Transfery' then 0 else tx.amount end), 0) as net
                 from finance.pay_periods period
                 join finance.accounts account on account.id = period.account_id
                 left join finance.tx_with_period tx
                   on tx.account_id = period.account_id and tx.period_no = period.period_no
+                left join finance.categories category on category.id = tx.category_id
                 where period.account_id = :accountId and period.period_no = :periodNo
                 group by period.period_no, period.account_id, account.name, period.period_start,
                          period.period_end, period.anchor_tx_id, period.is_partial
