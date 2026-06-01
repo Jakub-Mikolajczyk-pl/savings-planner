@@ -12,8 +12,12 @@ class VeloPdfAdapter : BankStatementAdapter {
     private val isoDate = DateTimeFormatter.ISO_LOCAL_DATE
     private val polishDate = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     private val dashedDate = DateTimeFormatter.ofPattern("dd-MM-yyyy")
-    private val datePattern = Regex("""\b(\d{4}-\d{2}-\d{2}|\d{2}[.-]\d{2}[.-]\d{4})\b""")
-    private val amountPattern = Regex("""([+\-\u2212]?\d[\d .]*[,.]\d{2})\s*(PLN)?""")
+    private val yearFirstDotDate = DateTimeFormatter.ofPattern("yyyy.MM.dd")
+    private val datePattern = Regex("""\b(\d{4}[-.]\d{2}[-.]\d{2}|\d{2}[.-]\d{2}[.-]\d{4})\b""")
+    private val dateCellPattern = Regex("""^(\d{4}[-.]\d{2}[-.]\d{2}|\d{2}[.-]\d{2}[.-]\d{4})$""")
+    private val amountPattern = Regex("""([+\-\u2212]?\d[\d .\u00a0]*[,.]\d{2})\s*(PLN)?""")
+    private val amountCellPattern = Regex("""^[+\-\u2212]?\d[\d .\u00a0]*[,.]\d{2}\s*(PLN)?$""")
+    private val summaryStartPattern = Regex("""^(Obroty|Saldo)\b""", RegexOption.IGNORE_CASE)
 
     override fun supports(bank: BankSource): Boolean = bank == BankSource.VELO_PDF
 
@@ -23,12 +27,58 @@ class VeloPdfAdapter : BankStatementAdapter {
         return parseText(text)
     }
 
-    internal fun parseText(text: String): List<CanonicalTx> =
-        text.lineSequence()
+    internal fun parseText(text: String): List<CanonicalTx> {
+        val lines = text.lineSequence()
             .map { it.trim() }
             .filter { it.isNotBlank() }
-            .mapNotNull { parseLine(it) }
             .toList()
+
+        val tableRows = parseTableRows(lines)
+        if (tableRows.isNotEmpty()) return tableRows
+
+        return lines.mapNotNull { parseLine(it) }
+    }
+
+    private fun parseTableRows(lines: List<String>): List<CanonicalTx> {
+        val rowStarts = lines.indices
+            .filter { index -> isDateCell(lines[index]) && lines.getOrNull(index + 1)?.let(::isDateCell) == true }
+
+        if (rowStarts.isEmpty()) return emptyList()
+
+        return rowStarts.mapNotNull { start ->
+            val nextStart = rowStarts.firstOrNull { it > start } ?: lines.size
+            parseTableRow(lines.subList(start, nextStart))
+        }
+    }
+
+    private fun parseTableRow(rowLines: List<String>): CanonicalTx? {
+        if (rowLines.size < 4 || !isDateCell(rowLines[0]) || !isDateCell(rowLines[1])) return null
+
+        val usableLines = rowLines.takeWhile { !summaryStartPattern.containsMatchIn(it) }
+        val amountCells = usableLines
+            .mapIndexedNotNull { index, line -> if (isAmountCell(line)) IndexedAmount(index, line) else null }
+
+        if (amountCells.size < 2) return null
+
+        val transactionAmount = amountCells[amountCells.lastIndex - 1]
+        val description = usableLines
+            .drop(2)
+            .take(transactionAmount.index - 2)
+            .filterNot(::isAmountCell)
+            .joinToString(" ")
+            .replace(Regex("\\s+"), " ")
+            .trim()
+            .ifBlank { "Velo transaction" }
+
+        return CanonicalTx(
+            bookedAt = parseDate(rowLines[0]),
+            amount = MoneyParser.parseAmount(transactionAmount.raw),
+            currency = "PLN",
+            description = description,
+            counterparty = null,
+            raw = mapOf("lines" to usableLines),
+        )
+    }
 
     private fun parseLine(line: String): CanonicalTx? {
         val dateMatch = datePattern.find(line) ?: return null
@@ -55,6 +105,16 @@ class VeloPdfAdapter : BankStatementAdapter {
 
     private fun parseDate(raw: String): LocalDate =
         runCatching { LocalDate.parse(raw, isoDate) }
+            .recoverCatching { LocalDate.parse(raw, yearFirstDotDate) }
             .recoverCatching { LocalDate.parse(raw, polishDate) }
             .getOrElse { LocalDate.parse(raw, dashedDate) }
+
+    private fun isDateCell(line: String): Boolean = dateCellPattern.matches(line)
+
+    private fun isAmountCell(line: String): Boolean = amountCellPattern.matches(line)
 }
+
+private data class IndexedAmount(
+    val index: Int,
+    val raw: String,
+)
