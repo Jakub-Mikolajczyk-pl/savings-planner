@@ -78,7 +78,11 @@ export function CategorizationSection() {
 
   const runRecategorize = async () => {
     const result = await recategorizeTransactions()
-    setLastRun(`${result.categorized}/${result.total}`)
+    setLastRun(
+      `${result.categorized}/${result.total}` +
+      (result.llmAttempted ? `, LLM ${result.llmAttempted}` : '') +
+      (result.llmLimitReached ? ', uruchom ponownie' : ''),
+    )
   }
 
   if (!IS_API_MODE) {

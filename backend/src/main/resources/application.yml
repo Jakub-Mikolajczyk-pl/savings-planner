@@ -36,4 +36,5 @@ app:
     model: ${LLM_MODEL:qwen3:14b}
     min-confidence: ${LLM_MIN_CONFIDENCE:0.70}
     timeout-seconds: ${LLM_TIMEOUT_SECONDS:30}
+    recategorize-batch-size: ${LLM_RECATEGORIZE_BATCH_SIZE:10}
 
