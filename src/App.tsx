@@ -75,6 +75,10 @@ function tabFromHash() {
   return HASH_TAB[window.location.hash] ?? 'overview'
 }
 
+function tabNeedsAccountSnapshots(tab: AppTab) {
+  return tab === 'overview' || tab === 'assets'
+}
+
 export default function App() {
   const hydrateFromBackend = useStore(s => s.hydrateFromBackend)
   const isHydrating = useStore(s => s.isHydrating)
@@ -85,9 +89,9 @@ export default function App() {
 
   useEffect(() => {
     if (IS_API_MODE && !hasHydratedFromBackend && !isHydrating) {
-      void hydrateFromBackend()
+      void hydrateFromBackend({ includeAccountSnapshots: tabNeedsAccountSnapshots(activeTab) })
     }
-  }, [hasHydratedFromBackend, hydrateFromBackend, isHydrating])
+  }, [activeTab, hasHydratedFromBackend, hydrateFromBackend, isHydrating])
 
   useEffect(() => {
     const handleHashChange = () => setActiveTab(tabFromHash())
@@ -215,6 +219,7 @@ function AppNav({ activeTab, onNavigate, compact = false }: { activeTab: AppTab;
 }
 
 function OverviewPage({ onNavigate }: { onNavigate: (tab: AppTab) => void }) {
+  useAccountSnapshotsOnDemand()
   const overview = useOverviewModel()
 
   return (
@@ -293,12 +298,25 @@ function OverviewPage({ onNavigate }: { onNavigate: (tab: AppTab) => void }) {
 }
 
 function AssetsPage() {
+  useAccountSnapshotsOnDemand()
   return (
     <div className="space-y-5">
       <PageHeader title="Majątek" description="Snapshoty kont, struktura majątku i fundusz awaryjny." icon={WalletCards} accent="assets" />
       <AccountsSection />
     </div>
   )
+}
+
+function useAccountSnapshotsOnDemand() {
+  const hasHydratedFromBackend = useStore(s => s.hasHydratedFromBackend)
+  const hasLoadedAccountSnapshots = useStore(s => s.hasLoadedAccountSnapshots)
+  const loadAccountSnapshots = useStore(s => s.loadAccountSnapshots)
+
+  useEffect(() => {
+    if (IS_API_MODE && hasHydratedFromBackend && !hasLoadedAccountSnapshots) {
+      void loadAccountSnapshots()
+    }
+  }, [hasHydratedFromBackend, hasLoadedAccountSnapshots, loadAccountSnapshots])
 }
 
 function PlanPage() {

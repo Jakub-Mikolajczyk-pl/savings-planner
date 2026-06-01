@@ -88,6 +88,7 @@ interface SyncState {
    */
   isHydrating: boolean
   hasHydratedFromBackend: boolean
+  hasLoadedAccountSnapshots: boolean
   syncError?: string
   lastSyncedAt?: string
   leakAnalysis?: CycleLeakAnalysis
@@ -99,15 +100,20 @@ interface BootstrapResult {
   message: string
 }
 
+interface HydrateOptions {
+  includeAccountSnapshots?: boolean
+}
+
 interface AppState extends DataState, SyncState {
   whatIfDelta: number
   loanOverpayment: number
 
   // API sync
-  hydrateFromBackend: () => Promise<void>
+  hydrateFromBackend: (options?: HydrateOptions) => Promise<void>
   bootstrapBackendFromLocal: () => Promise<BootstrapResult>
   importAccountSnapshotsCsv: (file: File, mapping: CsvImportMapping) => Promise<CsvImportResult>
   importBankStatement: (bank: BankSource, accountId: string, file: File) => Promise<IngestResult>
+  loadAccountSnapshots: () => Promise<void>
   loadCategorization: (onlyUncategorized?: boolean) => Promise<void>
   loadPayPeriods: () => Promise<void>
   loadLeakAnalysis: (accountId: string, periodNo: number) => Promise<void>
@@ -357,7 +363,7 @@ const remapGoalOverrides = (overrides: Overrides, goalIdMap: Map<string, string>
  * Backend nie ma endpointu "GET everything", więc składamy stan z kilku zasobów.
  * Snapshoty są pobierane per konto, bo kontrakt backendu ma historię pod kontem.
  */
-async function loadBackendState(): Promise<DataState> {
+async function loadBackendState(options: HydrateOptions = {}): Promise<DataState> {
   const [
     accounts,
     loans,
@@ -393,7 +399,14 @@ async function loadBackendState(): Promise<DataState> {
       payPeriodsApi.settings(),
     ])
 
-  const accountSnapshots = (await Promise.all(accounts.map(account => snapshotsApi.history(account.id)))).flat()
+  /*
+   * Snapshoty kont sa najwiekszym "fan-outem" tego bootstrapu: jeden request
+   * per konto. Na zakladce Transakcje nie sa potrzebne, wiec mozemy je pominac
+   * i dociagnac dopiero przy wejściu w Przeglad/Majatek.
+   */
+  const accountSnapshots = options.includeAccountSnapshots === false
+    ? []
+    : (await Promise.all(accounts.map(account => snapshotsApi.history(account.id)))).flat()
   const settings = settingsFromApi ?? await settingsApi.put(defaultSettings)
 
   return {
@@ -457,6 +470,7 @@ export const useStore = create<AppState>()(
         ...emptyDataState(),
         isHydrating: false,
         hasHydratedFromBackend: false,
+        hasLoadedAccountSnapshots: false,
         syncError: undefined,
         lastSyncedAt: undefined,
         leakAnalysis: undefined,
@@ -464,7 +478,7 @@ export const useStore = create<AppState>()(
         whatIfDelta: 0,
         loanOverpayment: 0,
 
-        hydrateFromBackend: async () => {
+        hydrateFromBackend: async (options = {}) => {
           /*
            * useEffect w App woła tę metodę na starcie w trybie API.
            * Po sukcesie Zustand cache zostaje zastąpiony stanem z bazy.
@@ -472,15 +486,24 @@ export const useStore = create<AppState>()(
           if (!IS_API_MODE) return
           set({ isHydrating: true, syncError: undefined })
           try {
+            const includeAccountSnapshots = options.includeAccountSnapshots !== false
             const [backendState, goalInsights] = await Promise.all([
-              loadBackendState(),
+              loadBackendState({ includeAccountSnapshots }),
               goalInsightsApi.summary({ cycles: 6 }).catch(() => undefined),
             ])
             set({
               ...backendState,
+              /*
+               * Gdy startujemy na Transakcjach, nie pobieramy snapshotow kont.
+               * Nie zerujemy jednak dotychczasowego cache z localStorage, bo API
+               * mode i local mode dziela ten sam persist. Ekrany majatku i tak
+               * dociagna swieze snapshoty przed uzyciem.
+               */
+              accountSnapshots: includeAccountSnapshots ? backendState.accountSnapshots : get().accountSnapshots,
               goalInsights,
               isHydrating: false,
               hasHydratedFromBackend: true,
+              hasLoadedAccountSnapshots: includeAccountSnapshots,
               syncError: undefined,
               lastSyncedAt: syncStamp(),
             })
@@ -557,6 +580,7 @@ export const useStore = create<AppState>()(
               ...backendState,
               isHydrating: false,
               hasHydratedFromBackend: true,
+              hasLoadedAccountSnapshots: true,
               syncError: undefined,
               lastSyncedAt: syncStamp(),
             })
@@ -581,6 +605,7 @@ export const useStore = create<AppState>()(
           set({
             ...backendState,
             hasHydratedFromBackend: true,
+            hasLoadedAccountSnapshots: true,
             syncError: undefined,
             lastSyncedAt: syncStamp(),
           })
@@ -607,6 +632,27 @@ export const useStore = create<AppState>()(
           } catch (error) {
             set({ syncError: describeSyncError(error) })
             throw error
+          }
+        },
+
+        loadAccountSnapshots: async () => {
+          if (!IS_API_MODE) return
+          const accounts = get().accounts
+          if (accounts.length === 0) {
+            set({ accountSnapshots: [], hasLoadedAccountSnapshots: true })
+            return
+          }
+
+          set({ syncError: undefined })
+          try {
+            const accountSnapshots = (await Promise.all(accounts.map(account => snapshotsApi.history(account.id)))).flat()
+            set({
+              accountSnapshots,
+              hasLoadedAccountSnapshots: true,
+              lastSyncedAt: syncStamp(),
+            })
+          } catch (error) {
+            set({ syncError: describeSyncError(error) })
           }
         },
 
