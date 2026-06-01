@@ -13,12 +13,14 @@ import pl.jakubmikolajczyk.savings.dto.TransactionCategoryOverrideDto
 import pl.jakubmikolajczyk.savings.dto.TransactionDto
 import pl.jakubmikolajczyk.savings.ingest.InternalTransferDetector
 import java.math.BigDecimal
+import java.text.Normalizer
 import java.util.UUID
 
 @Service
 class CategorizationService(
     private val repository: CategorizationRepository,
     ingestProperties: IngestProperties = IngestProperties(),
+    private val llmCategorySuggester: LlmCategorySuggester = DisabledLlmCategorySuggester,
 ) {
     private val ruleEngine = RuleEngine()
     private val internalTransfers = InternalTransferDetector(ingestProperties)
@@ -63,6 +65,7 @@ class CategorizationService(
     @Transactional
     fun recategorize(accountId: UUID?): RecategorizeResultDto {
         val rules = repository.listEngineRules()
+        val categories = repository.listCategories()
         val transactions = repository.transactionsForRecategorization(accountId)
         var categorized = 0
 
@@ -72,6 +75,15 @@ class CategorizationService(
                     RuleInput(description = tx.description, counterparty = tx.counterparty),
                     rules,
                 )?.categoryId
+                ?: llmCategoryId(
+                    input = LlmCategorizationInput(
+                        description = tx.description,
+                        counterparty = tx.counterparty,
+                        amount = tx.amount,
+                        currency = tx.currency,
+                    ),
+                    categories = categories,
+                )
 
             repository.setTransactionCategoryIfUnlocked(tx.id, categoryId)
             if (categoryId != null) categorized++
@@ -93,12 +105,23 @@ class CategorizationService(
         description: String,
         counterparty: String?,
         amount: BigDecimal,
+        currency: String = "PLN",
     ) {
+        val categories = repository.listCategories()
         val categoryId = internalTransferCategoryId(description, amount)
             ?: ruleEngine.firstMatch(
                 RuleInput(description = description, counterparty = counterparty),
                 repository.listEngineRules(),
             )?.categoryId
+            ?: llmCategoryId(
+                input = LlmCategorizationInput(
+                    description = description,
+                    counterparty = counterparty,
+                    amount = amount,
+                    currency = currency,
+                ),
+                categories = categories,
+            )
             ?: return
 
         repository.setInsertedTransactionCategory(transactionId, categoryId)
@@ -125,4 +148,14 @@ class CategorizationService(
         } else {
             null
         }
+
+    private fun llmCategoryId(input: LlmCategorizationInput, categories: List<CategoryDto>): Long? {
+        val normalizedCategories = categories.associateBy { normalizeLlmCategoryName(it.name) }
+        val suggestion = llmCategorySuggester.suggest(input, categories) ?: return null
+        return normalizedCategories[normalizeLlmCategoryName(suggestion.categoryName)]?.id
+    }
+
+    private fun normalizeLlmCategoryName(value: String): String =
+        Normalizer.normalize(ruleEngine.normalize(value), Normalizer.Form.NFD)
+            .replace(Regex("\\p{M}+"), "")
 }

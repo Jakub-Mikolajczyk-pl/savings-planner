@@ -34,6 +34,13 @@ class CategorizationRepositoryTest @Autowired constructor(
         repository,
         IngestProperties(internalTransferSourceAccounts = listOf("PL00111122223333444455556666")),
     )
+    private val llmFallbackService = CategorizationService(
+        repository,
+        llmCategorySuggester = object : LlmCategorySuggester {
+            override fun suggest(input: LlmCategorizationInput, categories: List<pl.jakubmikolajczyk.savings.dto.CategoryDto>) =
+                LlmCategorySuggestion(categoryName = "Zakupy spożywcze", confidence = BigDecimal("0.91"))
+        },
+    )
 
     @Test
     fun `V4 seeds rules and recategorization is idempotent`() {
@@ -95,6 +102,24 @@ class CategorizationRepositoryTest @Autowired constructor(
         assertEquals(1, result.categorized)
         assertEquals(
             repository.listCategories().first { it.name == "Transfery" }.id,
+            repository.listTransactions(account.id, onlyUncategorized = false, limit = 10).first { it.id == transactionId }.categoryId,
+        )
+    }
+
+    @Test
+    fun `recategorization falls back to llm when no rule matches`() {
+        val account = accounts.save(AccountEntity(name = "Alior", bucket = "accounts"))
+        val transactionId = insertTransaction(
+            accountId = account.id,
+            description = "Nieznany bilet parkingowy centrum",
+            counterparty = "PARKING TEST",
+        )
+
+        val result = llmFallbackService.recategorize(account.id)
+
+        assertEquals(1, result.categorized)
+        assertEquals(
+            repository.listCategories().first { it.name == "Zakupy spozywcze" }.id,
             repository.listTransactions(account.id, onlyUncategorized = false, limit = 10).first { it.id == transactionId }.categoryId,
         )
     }

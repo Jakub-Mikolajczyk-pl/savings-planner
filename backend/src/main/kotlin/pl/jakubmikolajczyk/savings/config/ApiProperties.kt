@@ -1,6 +1,7 @@
 package pl.jakubmikolajczyk.savings.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
+import java.math.BigDecimal
 
 /*
  * CONFIGURATION PROPERTIES
@@ -41,4 +42,13 @@ data class IngestProperties(
      * Keep the real numbers in CT111 `.env`, not in git.
      */
     val internalTransferSourceAccounts: List<String> = emptyList(),
+)
+
+@ConfigurationProperties(prefix = "app.llm")
+data class LlmProperties(
+    val enabled: Boolean = false,
+    val baseUrl: String = "http://localhost:11434",
+    val model: String = "qwen3:14b",
+    val minConfidence: BigDecimal = BigDecimal("0.70"),
+    val timeoutSeconds: Long = 30,
 )
