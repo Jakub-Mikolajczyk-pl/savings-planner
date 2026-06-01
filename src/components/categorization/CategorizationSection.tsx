@@ -29,6 +29,7 @@ export function CategorizationSection() {
   const categories = useStore(s => s.categories)
   const categoryRules = useStore(s => s.categoryRules)
   const transactions = useStore(s => s.transactions)
+  const loadCategorization = useStore(s => s.loadCategorization)
   const addCategory = useStore(s => s.addCategory)
   const removeCategory = useStore(s => s.removeCategory)
   const addCategoryRule = useStore(s => s.addCategoryRule)
@@ -44,6 +45,7 @@ export function CategorizationSection() {
   const [priority, setPriority] = useState(100)
   const [lastRun, setLastRun] = useState<string | undefined>()
   const [visibleTransactionCount, setVisibleTransactionCount] = useState(TRANSACTION_PAGE_SIZE)
+  const [onlyUncategorized, setOnlyUncategorized] = useState(false)
 
   const categoryById = useMemo(
     () => new Map(categories.map(category => [category.id, category])),
@@ -51,8 +53,11 @@ export function CategorizationSection() {
   )
   const selectedRuleCategoryId = ruleCategoryId ?? categories[0]?.id
   const uncategorized = transactions.filter(transaction => transaction.categoryId === undefined).length
-  const visibleTransactions = transactions.slice(0, visibleTransactionCount)
-  const hiddenTransactionCount = Math.max(0, transactions.length - visibleTransactions.length)
+  const filteredTransactions = onlyUncategorized
+    ? transactions.filter(transaction => transaction.categoryId === undefined)
+    : transactions
+  const visibleTransactions = filteredTransactions.slice(0, visibleTransactionCount)
+  const hiddenTransactionCount = Math.max(0, filteredTransactions.length - visibleTransactions.length)
 
   const createCategory = (event: FormEvent) => {
     event.preventDefault()
@@ -78,11 +83,24 @@ export function CategorizationSection() {
 
   const runRecategorize = async () => {
     const result = await recategorizeTransactions()
+    await loadCategorization(onlyUncategorized)
+    setVisibleTransactionCount(TRANSACTION_PAGE_SIZE)
     setLastRun(
       `${result.categorized}/${result.total}` +
       (result.llmAttempted ? `, LLM ${result.llmAttempted}` : '') +
       (result.llmLimitReached ? ', uruchom ponownie' : ''),
     )
+  }
+
+  const toggleOnlyUncategorized = async () => {
+    const next = !onlyUncategorized
+    setOnlyUncategorized(next)
+    setVisibleTransactionCount(TRANSACTION_PAGE_SIZE)
+    await loadCategorization(next)
+  }
+
+  const assignTransactionCategory = (transactionId: number, categoryId: number | undefined, locked = true) => {
+    overrideTransactionCategory(transactionId, categoryId, locked)
   }
 
   if (!IS_API_MODE) {
@@ -101,14 +119,28 @@ export function CategorizationSection() {
           {' '}<span className="font-medium text-gray-900 dark:text-gray-100">{uncategorized}</span> bez kategorii
           {lastRun ? ` - ostatnie przeliczenie ${lastRun}` : ''}
         </div>
-        <button
-          type="button"
-          onClick={runRecategorize}
-          className="inline-flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-800"
-        >
-          <RefreshCw size={16} />
-          Przelicz reguly
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={toggleOnlyUncategorized}
+            className={`rounded-md border px-3 py-2 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 ${
+              onlyUncategorized
+                ? 'border-gray-950 bg-gray-950 text-white dark:border-gray-100 dark:bg-gray-100 dark:text-gray-950'
+                : 'border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-800'
+            }`}
+            aria-pressed={onlyUncategorized}
+          >
+            Bez kategorii
+          </button>
+          <button
+            type="button"
+            onClick={runRecategorize}
+            className="inline-flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-800"
+          >
+            <RefreshCw size={16} />
+            Przelicz reguly
+          </button>
+        </div>
       </div>
 
       <Collapsible title="Kategorie" defaultOpen badge={String(categories.length)}>
@@ -205,7 +237,7 @@ export function CategorizationSection() {
         </div>
       </Collapsible>
 
-      <Collapsible title="Transakcje" defaultOpen badge={`${visibleTransactions.length}/${transactions.length}`}>
+      <Collapsible title="Transakcje" defaultOpen badge={`${visibleTransactions.length}/${filteredTransactions.length}`}>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead className="text-left text-xs text-gray-500 dark:text-gray-400">
@@ -231,7 +263,7 @@ export function CategorizationSection() {
                   <td className="py-2 pr-3">
                     <select
                       value={transaction.categoryId ?? ''}
-                      onChange={event => overrideTransactionCategory(transaction.id, event.target.value ? Number(event.target.value) : undefined, true)}
+                      onChange={event => assignTransactionCategory(transaction.id, event.target.value ? Number(event.target.value) : undefined, true)}
                       className="w-full min-w-44 rounded-md border border-gray-200 bg-white px-2 py-1.5 text-sm dark:border-gray-800 dark:bg-gray-950"
                     >
                       <option value="">Bez kategorii</option>
@@ -241,7 +273,7 @@ export function CategorizationSection() {
                   <td className="whitespace-nowrap py-2 pr-0">
                     <button
                       type="button"
-                      onClick={() => overrideTransactionCategory(transaction.id, transaction.categoryId, !transaction.categoryLocked)}
+                      onClick={() => assignTransactionCategory(transaction.id, transaction.categoryId, !transaction.categoryLocked)}
                       className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 px-2 py-1.5 text-xs text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-800"
                     >
                       {transaction.categoryLocked ? <Lock size={14} /> : <Unlock size={14} />}
