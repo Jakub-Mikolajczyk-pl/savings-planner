@@ -22,6 +22,7 @@ import { SavingsChart } from './components/chart/SavingsChart'
 import { CategorizationSection } from './components/categorization/CategorizationSection'
 import { WhatIfSlider } from './components/chart/WhatIfSlider'
 import { UpcomingExpenseList } from './components/expenses/UpcomingExpenseList'
+import { GoalInsightsSection } from './components/goals/GoalInsightsSection'
 import { GoalList } from './components/goals/GoalList'
 import { Hero } from './components/hero/Hero'
 import { IngestSection } from './components/ingest/IngestSection'
@@ -320,6 +321,8 @@ function PlanPage() {
 
       <div className="grid gap-4 xl:grid-cols-2">
         <SectionCard title="Cele" icon={ListChecks} accent="plan">
+          <GoalInsightsSection />
+          <div className="my-4 border-t border-gray-200 dark:border-gray-800" />
           <GoalList />
         </SectionCard>
         <SectionCard title="Kredyty / raty" icon={ReceiptText} accent="plan">
