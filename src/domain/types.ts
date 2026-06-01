@@ -102,7 +102,14 @@ export interface BankTransaction {
 export interface RecategorizeResult {
   categorized: number
   total: number
+  changed?: number
+  newlyCategorized?: number
+  deterministicMatched?: number
   llmAttempted?: number
+  llmCategorized?: number
+  llmNoSuggestion?: number
+  llmLastTransactionId?: number
+  remainingUncategorized?: number
   llmLimitReached?: boolean
 }
 

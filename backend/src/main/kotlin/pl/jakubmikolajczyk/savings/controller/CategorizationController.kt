@@ -68,7 +68,7 @@ class RecategorizeController(
     @Operation(summary = "Re-run category rules for unlocked transactions")
     @PostMapping
     fun recategorize(@RequestBody(required = false) dto: RecategorizeRequestDto?) =
-        service.recategorize(dto?.accountId).also {
+        service.recategorize(dto?.accountId, dto?.afterTransactionId).also {
             payPeriods.refreshPayPeriods()
         }
 }

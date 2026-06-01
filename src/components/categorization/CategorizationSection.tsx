@@ -3,7 +3,7 @@ import type { FormEvent } from 'react'
 import { Lock, Plus, RefreshCw, Trash2, Unlock } from 'lucide-react'
 import { IS_API_MODE } from '../../config'
 import { formatPLN } from '../../domain/formatting'
-import type { CategoryKind, RuleMatchField, RuleMatchType } from '../../domain/types'
+import type { CategoryKind, RecategorizeResult, RuleMatchField, RuleMatchType } from '../../domain/types'
 import { useStore } from '../../store'
 import { Collapsible } from '../ui/Collapsible'
 
@@ -24,6 +24,36 @@ const TYPE_LABELS: Record<RuleMatchType, string> = {
 }
 
 const TRANSACTION_PAGE_SIZE = 50
+const MAX_LLM_QUEUE_BATCHES = 500
+
+interface LlmQueueStatus {
+  running: boolean
+  batches: number
+  changed: number
+  newlyCategorized: number
+  llmAttempted: number
+  llmCategorized: number
+  llmNoSuggestion: number
+  initialUncategorized?: number
+  remainingUncategorized?: number
+  message?: string
+}
+
+const emptyQueueStatus = (): LlmQueueStatus => ({
+  running: true,
+  batches: 0,
+  changed: 0,
+  newlyCategorized: 0,
+  llmAttempted: 0,
+  llmCategorized: 0,
+  llmNoSuggestion: 0,
+})
+
+const resultSummary = (result: RecategorizeResult) =>
+  `zmieniono ${result.changed ?? 0}, nowe ${result.newlyCategorized ?? 0}, ` +
+  `LLM ${result.llmCategorized ?? 0}/${result.llmAttempted ?? 0}` +
+  (result.llmNoSuggestion ? `, bez werdyktu ${result.llmNoSuggestion}` : '') +
+  (result.remainingUncategorized !== undefined ? `, bez kategorii ${result.remainingUncategorized}` : '')
 
 export function CategorizationSection() {
   const categories = useStore(s => s.categories)
@@ -46,6 +76,7 @@ export function CategorizationSection() {
   const [lastRun, setLastRun] = useState<string | undefined>()
   const [visibleTransactionCount, setVisibleTransactionCount] = useState(TRANSACTION_PAGE_SIZE)
   const [onlyUncategorized, setOnlyUncategorized] = useState(false)
+  const [llmQueueStatus, setLlmQueueStatus] = useState<LlmQueueStatus | undefined>()
 
   const categoryById = useMemo(
     () => new Map(categories.map(category => [category.id, category])),
@@ -58,6 +89,15 @@ export function CategorizationSection() {
     : transactions
   const visibleTransactions = filteredTransactions.slice(0, visibleTransactionCount)
   const hiddenTransactionCount = Math.max(0, filteredTransactions.length - visibleTransactions.length)
+  const queueProgress = llmQueueStatus?.initialUncategorized
+    ? Math.min(
+        100,
+        Math.round(
+          ((llmQueueStatus.initialUncategorized - (llmQueueStatus.remainingUncategorized ?? 0)) /
+            llmQueueStatus.initialUncategorized) * 100,
+        ),
+      )
+    : undefined
 
   const createCategory = (event: FormEvent) => {
     event.preventDefault()
@@ -85,11 +125,49 @@ export function CategorizationSection() {
     const result = await recategorizeTransactions()
     await loadCategorization(onlyUncategorized)
     setVisibleTransactionCount(TRANSACTION_PAGE_SIZE)
-    setLastRun(
-      `${result.categorized}/${result.total}` +
-      (result.llmAttempted ? `, LLM ${result.llmAttempted}` : '') +
-      (result.llmLimitReached ? ', uruchom ponownie' : ''),
-    )
+    setLastRun(resultSummary(result) + (result.llmLimitReached ? ', uruchom kolejke' : ''))
+  }
+
+  const runLlmQueue = async () => {
+    setOnlyUncategorized(true)
+    setVisibleTransactionCount(TRANSACTION_PAGE_SIZE)
+    setLastRun(undefined)
+    setLlmQueueStatus({ ...emptyQueueStatus(), message: 'Szukam transakcji bez kategorii...' })
+    await loadCategorization(true)
+
+    let afterTransactionId: number | undefined
+    let status = emptyQueueStatus()
+
+    for (let batchNo = 1; batchNo <= MAX_LLM_QUEUE_BATCHES; batchNo++) {
+      const result = await recategorizeTransactions(undefined, afterTransactionId)
+      const initialUncategorized = status.initialUncategorized ??
+        Math.max(result.remainingUncategorized ?? 0, (result.remainingUncategorized ?? 0) + (result.newlyCategorized ?? 0))
+
+      status = {
+        running: true,
+        batches: batchNo,
+        changed: status.changed + (result.changed ?? 0),
+        newlyCategorized: status.newlyCategorized + (result.newlyCategorized ?? 0),
+        llmAttempted: status.llmAttempted + (result.llmAttempted ?? 0),
+        llmCategorized: status.llmCategorized + (result.llmCategorized ?? 0),
+        llmNoSuggestion: status.llmNoSuggestion + (result.llmNoSuggestion ?? 0),
+        initialUncategorized,
+        remainingUncategorized: result.remainingUncategorized,
+        message: result.llmLimitReached ? 'Kolejny batch...' : 'Kolejka zakonczona.',
+      }
+      setLlmQueueStatus(status)
+      setLastRun(
+        `kolejka: batchy ${status.batches}, nowe ${status.newlyCategorized}, ` +
+        `LLM ${status.llmCategorized}/${status.llmAttempted}, bez werdyktu ${status.llmNoSuggestion}`,
+      )
+
+      if (!result.llmLimitReached || !result.llmLastTransactionId || (result.llmAttempted ?? 0) === 0) break
+      afterTransactionId = result.llmLastTransactionId
+    }
+
+    await loadCategorization(true)
+    setVisibleTransactionCount(TRANSACTION_PAGE_SIZE)
+    setLlmQueueStatus({ ...status, running: false, message: 'Kolejka zakonczona.' })
   }
 
   const toggleOnlyUncategorized = async () => {
@@ -135,13 +213,45 @@ export function CategorizationSection() {
           <button
             type="button"
             onClick={runRecategorize}
+            disabled={llmQueueStatus?.running}
             className="inline-flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-800"
           >
             <RefreshCw size={16} />
             Przelicz reguly
           </button>
+          <button
+            type="button"
+            onClick={runLlmQueue}
+            disabled={llmQueueStatus?.running}
+            className="inline-flex items-center gap-2 rounded-md bg-gray-950 px-3 py-2 text-sm text-white transition-colors hover:bg-gray-800 disabled:cursor-wait disabled:opacity-60 dark:bg-gray-100 dark:text-gray-950 dark:hover:bg-gray-200"
+          >
+            <RefreshCw size={16} />
+            Kolejka LLM
+          </button>
         </div>
       </div>
+
+      {llmQueueStatus && (
+        <div className="rounded-md border border-gray-200 px-3 py-3 text-sm dark:border-gray-800">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <span className="font-medium text-gray-900 dark:text-gray-100">
+              {llmQueueStatus.running ? 'Kategoryzacja LLM w toku' : 'Kategoryzacja LLM zakończona'}
+            </span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">{llmQueueStatus.message}</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+            <div
+              className="h-full bg-gray-950 transition-[width] dark:bg-gray-100"
+              style={{ width: `${queueProgress ?? (llmQueueStatus.running ? 35 : 100)}%` }}
+            />
+          </div>
+          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+            Batchy {llmQueueStatus.batches} · nowe {llmQueueStatus.newlyCategorized} · zmienione {llmQueueStatus.changed} ·
+            {' '}LLM {llmQueueStatus.llmCategorized}/{llmQueueStatus.llmAttempted} · bez werdyktu {llmQueueStatus.llmNoSuggestion}
+            {llmQueueStatus.remainingUncategorized !== undefined ? ` · bez kategorii ${llmQueueStatus.remainingUncategorized}` : ''}
+          </p>
+        </div>
+      )}
 
       <Collapsible title="Kategorie" defaultOpen badge={String(categories.length)}>
         <form onSubmit={createCategory} className="grid gap-2 sm:grid-cols-[minmax(12rem,1fr)_10rem_auto]">

@@ -310,12 +310,20 @@ data class TransactionCategoryOverrideDto(
 
 data class RecategorizeRequestDto(
     val accountId: UUID? = null,
+    val afterTransactionId: Long? = null,
 )
 
 data class RecategorizeResultDto(
     val categorized: Int,
     val total: Int,
+    @field:Min(0) val changed: Int = 0,
+    @field:Min(0) val newlyCategorized: Int = 0,
+    @field:Min(0) val deterministicMatched: Int = 0,
     @field:Min(0) val llmAttempted: Int = 0,
+    @field:Min(0) val llmCategorized: Int = 0,
+    @field:Min(0) val llmNoSuggestion: Int = 0,
+    val llmLastTransactionId: Long? = null,
+    @field:Min(0) val remainingUncategorized: Int = 0,
     val llmLimitReached: Boolean = false,
 )
 

@@ -224,23 +224,27 @@ class CategorizationRepository(private val jdbc: NamedParameterJdbcTemplate) {
         }
     }
 
-    fun transactionsForRecategorization(accountId: UUID?): List<TransactionForCategorization> {
-        val sql = if (accountId == null) {
-            """
-                select id, description, counterparty, amount, currency, category_id
-                from finance.transactions
-                where category_locked = false
-                order by id
-            """.trimIndent()
-        } else {
-            """
-                select id, description, counterparty, amount, currency, category_id
-                from finance.transactions
-                where category_locked = false and account_id = :accountId
-                order by id
-            """.trimIndent()
+    fun transactionsForRecategorization(accountId: UUID?, afterTransactionId: Long? = null): List<TransactionForCategorization> {
+        val conditions = mutableListOf("category_locked = false")
+        val params = MapSqlParameterSource()
+        if (accountId != null) {
+            conditions += "account_id = :accountId"
+            params.addValue("accountId", accountId)
         }
-        return jdbc.query(sql, mapOf("accountId" to accountId)) { rs, _ ->
+        if (afterTransactionId != null) {
+            conditions += "id > :afterTransactionId"
+            params.addValue("afterTransactionId", afterTransactionId)
+        }
+
+        return jdbc.query(
+            """
+                select id, description, counterparty, amount, currency, category_id
+                from finance.transactions
+                where ${conditions.joinToString(" and ")}
+                order by id
+            """.trimIndent(),
+            params,
+        ) { rs, _ ->
             TransactionForCategorization(
                 id = rs.getLong("id"),
                 description = rs.getString("description"),
@@ -250,6 +254,25 @@ class CategorizationRepository(private val jdbc: NamedParameterJdbcTemplate) {
                 categoryId = rs.getObject("category_id", java.lang.Long::class.java)?.toLong(),
             )
         }
+    }
+
+    fun countUnlockedUncategorized(accountId: UUID?): Int {
+        val conditions = mutableListOf("category_locked = false", "category_id is null")
+        val params = MapSqlParameterSource()
+        if (accountId != null) {
+            conditions += "account_id = :accountId"
+            params.addValue("accountId", accountId)
+        }
+
+        return jdbc.queryForObject(
+            """
+                select count(*)
+                from finance.transactions
+                where ${conditions.joinToString(" and ")}
+            """.trimIndent(),
+            params,
+            Int::class.java,
+        ) ?: 0
     }
 
     fun setTransactionCategoryIfUnlocked(transactionId: Long, categoryId: Long?): Int =
