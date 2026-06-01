@@ -57,9 +57,14 @@ class CategorizationRepositoryTest @Autowired constructor(
         val first = service.recategorize(account.id)
         val second = service.recategorize(account.id)
 
-        assertEquals(first, second)
         assertEquals(1, first.total)
         assertEquals(1, first.categorized)
+        assertEquals(1, first.changed)
+        assertEquals(1, first.newlyCategorized)
+        assertEquals(1, second.total)
+        assertEquals(1, second.categorized)
+        assertEquals(0, second.changed)
+        assertEquals(0, second.newlyCategorized)
         assertEquals(
             repository.listCategories().first { it.name == "Zakupy spozywcze" }.id,
             repository.listTransactions(account.id, onlyUncategorized = false, limit = 10).first { it.id == transactionId }.categoryId,
@@ -100,6 +105,8 @@ class CategorizationRepositoryTest @Autowired constructor(
         val result = ownTransferService.recategorize(account.id)
 
         assertEquals(1, result.categorized)
+        assertEquals(1, result.changed)
+        assertEquals(1, result.newlyCategorized)
         assertEquals(
             repository.listCategories().first { it.name == "Transfery" }.id,
             repository.listTransactions(account.id, onlyUncategorized = false, limit = 10).first { it.id == transactionId }.categoryId,
@@ -118,6 +125,10 @@ class CategorizationRepositoryTest @Autowired constructor(
         val result = llmFallbackService.recategorize(account.id)
 
         assertEquals(1, result.categorized)
+        assertEquals(1, result.llmAttempted)
+        assertEquals(1, result.llmCategorized)
+        assertEquals(0, result.llmNoSuggestion)
+        assertEquals(1, result.newlyCategorized)
         assertEquals(
             repository.listCategories().first { it.name == "Zakupy spozywcze" }.id,
             repository.listTransactions(account.id, onlyUncategorized = false, limit = 10).first { it.id == transactionId }.categoryId,

@@ -226,7 +226,8 @@ export const transactionsApi = {
 }
 
 export const recategorizeApi = {
-  run: (accountId?: string) => post<RecategorizeResult>('/recategorize', accountId ? { accountId } : {}),
+  run: (options: { accountId?: string; afterTransactionId?: number } = {}) =>
+    post<RecategorizeResult>('/recategorize', options),
 }
 
 export const incomeAnchorsApi = {

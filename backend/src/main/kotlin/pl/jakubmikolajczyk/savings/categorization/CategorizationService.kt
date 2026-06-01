@@ -65,7 +65,7 @@ class CategorizationService(
         repository.listTransactions(accountId, onlyUncategorized, limit)
 
     @Transactional
-    fun recategorize(accountId: UUID?): RecategorizeResultDto {
+    fun recategorize(accountId: UUID?, afterTransactionId: Long? = null): RecategorizeResultDto {
         /*
          * BATCH WORK, CZYLI "NIE ROBIMY CALEGO SLONIA W JEDNYM REQUESTCIE"
          *
@@ -88,7 +88,7 @@ class CategorizationService(
          */
         val rules = repository.listEngineRules()
         val categories = repository.listCategories()
-        val transactions = repository.transactionsForRecategorization(accountId)
+        val transactions = repository.transactionsForRecategorization(accountId, afterTransactionId)
         /*
          * coerceAtLeast(0) to ochronny "clamp". Jesli ktos wpisze w ENV -5,
          * traktujemy to jak 0, czyli LLM nie dostanie zadnego batcha.
@@ -106,7 +106,13 @@ class CategorizationService(
          * - czy zatrzymalismy sie na limicie batcha.
          */
         var categorized = 0
+        var changed = 0
+        var newlyCategorized = 0
+        var deterministicMatched = 0
         var llmAttempted = 0
+        var llmCategorized = 0
+        var llmNoSuggestion = 0
+        var llmLastTransactionId: Long? = null
         var llmLimitReached = false
 
         transactions.forEach { tx ->
@@ -127,6 +133,7 @@ class CategorizationService(
                     RuleInput(description = tx.description, counterparty = tx.counterparty),
                     rules,
                 )?.categoryId
+            if (deterministicCategoryId != null) deterministicMatched++
             /*
              * when w Kotlinie to mocniejszy switch. Tu dziala jak czytelny if/else-if/else.
              *
@@ -144,6 +151,7 @@ class CategorizationService(
                      * albo chwilowo zwroci blad, ten request juz zuzyl slot kosztownej pracy.
                      */
                     llmAttempted++
+                    llmLastTransactionId = tx.id
                     llmCategoryId(
                         input = LlmCategorizationInput(
                             description = tx.description,
@@ -152,7 +160,13 @@ class CategorizationService(
                             currency = tx.currency,
                         ),
                         categories = categories,
-                    )
+                    ).also { resolvedCategoryId ->
+                        if (resolvedCategoryId == null) {
+                            llmNoSuggestion++
+                        } else {
+                            llmCategorized++
+                        }
+                    }
                 }
                 else -> {
                     /*
@@ -167,12 +181,23 @@ class CategorizationService(
 
             repository.setTransactionCategoryIfUnlocked(tx.id, categoryId)
             if (categoryId != null) categorized++
+            if (categoryId != tx.categoryId) {
+                changed++
+                if (tx.categoryId == null && categoryId != null) newlyCategorized++
+            }
         }
 
         return RecategorizeResultDto(
             categorized = categorized,
             total = transactions.size,
+            changed = changed,
+            newlyCategorized = newlyCategorized,
+            deterministicMatched = deterministicMatched,
             llmAttempted = llmAttempted,
+            llmCategorized = llmCategorized,
+            llmNoSuggestion = llmNoSuggestion,
+            llmLastTransactionId = llmLastTransactionId,
+            remainingUncategorized = repository.countUnlockedUncategorized(accountId),
             llmLimitReached = llmLimitReached,
         )
     }

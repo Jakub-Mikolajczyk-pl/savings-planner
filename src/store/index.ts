@@ -143,7 +143,7 @@ interface AppState extends DataState, SyncState {
   updateCategoryRule: (id: number, patch: Partial<Omit<CategoryRule, 'id'>>) => void
   removeCategoryRule: (id: number) => void
   overrideTransactionCategory: (id: number, categoryId: number | undefined, locked?: boolean) => void
-  recategorizeTransactions: (accountId?: string) => Promise<RecategorizeResult>
+  recategorizeTransactions: (accountId?: string, afterTransactionId?: number) => Promise<RecategorizeResult>
   addIncomeAnchor: (accountId: string, counterparty: string) => Promise<void>
   removeIncomeAnchor: (id: number) => Promise<void>
   refreshPayPeriods: () => Promise<PayPeriodRefreshResult>
@@ -985,11 +985,11 @@ export const useStore = create<AppState>()(
           runMutation(snapshot, () => transactionsApi.overrideCategory(id, categoryId, locked))
         },
 
-        recategorizeTransactions: async (accountId) => {
+        recategorizeTransactions: async (accountId, afterTransactionId) => {
           if (!IS_API_MODE) return { categorized: 0, total: 0 }
           set({ syncError: undefined })
           try {
-            const result = await recategorizeApi.run(accountId)
+            const result = await recategorizeApi.run({ accountId, afterTransactionId })
             const transactions = await transactionsApi.list({ limit: 200 })
             set({ transactions, lastSyncedAt: syncStamp() })
             return result
