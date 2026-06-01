@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Lock, Plus, RefreshCw, Trash2, Unlock } from 'lucide-react'
 import { IS_API_MODE } from '../../config'
@@ -23,11 +23,12 @@ const TYPE_LABELS: Record<RuleMatchType, string> = {
   regex: 'Regex',
 }
 
+const TRANSACTION_PAGE_SIZE = 50
+
 export function CategorizationSection() {
   const categories = useStore(s => s.categories)
   const categoryRules = useStore(s => s.categoryRules)
   const transactions = useStore(s => s.transactions)
-  const loadCategorization = useStore(s => s.loadCategorization)
   const addCategory = useStore(s => s.addCategory)
   const removeCategory = useStore(s => s.removeCategory)
   const addCategoryRule = useStore(s => s.addCategoryRule)
@@ -42,10 +43,7 @@ export function CategorizationSection() {
   const [ruleCategoryId, setRuleCategoryId] = useState<number | undefined>(undefined)
   const [priority, setPriority] = useState(100)
   const [lastRun, setLastRun] = useState<string | undefined>()
-
-  useEffect(() => {
-    void loadCategorization()
-  }, [loadCategorization])
+  const [visibleTransactionCount, setVisibleTransactionCount] = useState(TRANSACTION_PAGE_SIZE)
 
   const categoryById = useMemo(
     () => new Map(categories.map(category => [category.id, category])),
@@ -53,6 +51,8 @@ export function CategorizationSection() {
   )
   const selectedRuleCategoryId = ruleCategoryId ?? categories[0]?.id
   const uncategorized = transactions.filter(transaction => transaction.categoryId === undefined).length
+  const visibleTransactions = transactions.slice(0, visibleTransactionCount)
+  const hiddenTransactionCount = Math.max(0, transactions.length - visibleTransactions.length)
 
   const createCategory = (event: FormEvent) => {
     event.preventDefault()
@@ -205,7 +205,7 @@ export function CategorizationSection() {
         </div>
       </Collapsible>
 
-      <Collapsible title="Transakcje" defaultOpen badge={String(transactions.length)}>
+      <Collapsible title="Transakcje" defaultOpen badge={`${visibleTransactions.length}/${transactions.length}`}>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead className="text-left text-xs text-gray-500 dark:text-gray-400">
@@ -218,7 +218,7 @@ export function CategorizationSection() {
               </tr>
             </thead>
             <tbody>
-              {transactions.map(transaction => (
+              {visibleTransactions.map(transaction => (
                 <tr key={transaction.id} className="border-b border-gray-100 align-top dark:border-gray-900">
                   <td className="whitespace-nowrap py-2 pr-3 text-gray-500 dark:text-gray-400">{transaction.bookedAt}</td>
                   <td className="min-w-72 py-2 pr-3">
@@ -253,6 +253,17 @@ export function CategorizationSection() {
             </tbody>
           </table>
         </div>
+        {hiddenTransactionCount > 0 && (
+          <div className="mt-3 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setVisibleTransactionCount(count => count + TRANSACTION_PAGE_SIZE)}
+              className="rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-800"
+            >
+              Pokaż kolejne {Math.min(TRANSACTION_PAGE_SIZE, hiddenTransactionCount)}
+            </button>
+          </div>
+        )}
       </Collapsible>
     </div>
   )

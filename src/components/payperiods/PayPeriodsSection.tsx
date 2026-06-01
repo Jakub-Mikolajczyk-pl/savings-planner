@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { RefreshCw, Trash2 } from 'lucide-react'
 import { IS_API_MODE } from '../../config'
 import { formatPLN } from '../../domain/formatting'
@@ -16,7 +16,6 @@ export function PayPeriodsSection({ selectedKey: controlledSelectedKey, onSelect
   const candidates = useStore(s => s.incomeAnchorCandidates)
   const payPeriods = useStore(s => s.payPeriods)
   const settings = useStore(s => s.payPeriodSettings)
-  const loadPayPeriods = useStore(s => s.loadPayPeriods)
   const addIncomeAnchor = useStore(s => s.addIncomeAnchor)
   const removeIncomeAnchor = useStore(s => s.removeIncomeAnchor)
   const refreshPayPeriods = useStore(s => s.refreshPayPeriods)
@@ -24,10 +23,6 @@ export function PayPeriodsSection({ selectedKey: controlledSelectedKey, onSelect
   const [localSelectedKey, setLocalSelectedKey] = useState('')
   const [lastRefresh, setLastRefresh] = useState<string | undefined>()
   const selectedKey = controlledSelectedKey ?? localSelectedKey
-
-  useEffect(() => {
-    void loadPayPeriods()
-  }, [loadPayPeriods])
 
   const selectedPeriod = useMemo(
     () => payPeriods.find(period => periodKey(period) === selectedKey) ?? payPeriods[0],
