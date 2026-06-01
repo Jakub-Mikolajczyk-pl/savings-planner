@@ -13,6 +13,7 @@ import java.time.format.DateTimeFormatter
 class VeloPdfAdapter(
     ingestProperties: IngestProperties = IngestProperties(),
 ) : BankStatementAdapter {
+    private val internalTransfers = InternalTransferDetector(ingestProperties)
     private val isoDate = DateTimeFormatter.ISO_LOCAL_DATE
     private val polishDate = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     private val dashedDate = DateTimeFormatter.ofPattern("dd-MM-yyyy")
@@ -22,10 +23,6 @@ class VeloPdfAdapter(
     private val amountPattern = Regex("""([+\-\u2212]?\d[\d .\u00a0]*[,.]\d{2})\s*(PLN)?""")
     private val amountCellPattern = Regex("""^[+\-\u2212]?\d[\d .\u00a0]*[,.]\d{2}\s*(PLN)?$""")
     private val summaryStartPattern = Regex("""^(Obroty|Saldo)\b""", RegexOption.IGNORE_CASE)
-    private val internalTransferSourceAccounts = ingestProperties.internalTransferSourceAccounts
-        .map(::normalizeAccountNumber)
-        .filter { it.isNotBlank() }
-        .toSet()
 
     override fun supports(bank: BankSource): Boolean = bank == BankSource.VELO_PDF
 
@@ -137,15 +134,10 @@ class VeloPdfAdapter(
     private fun isAmountCell(line: String): Boolean = amountCellPattern.matches(line)
 
     private fun isInternalIncomingTransfer(amount: BigDecimal, description: String): Boolean =
-        amount > BigDecimal.ZERO &&
-            internalTransferSourceAccounts.isNotEmpty() &&
-            internalTransferSourceAccounts.any { normalizeAccountNumber(description).contains(it) }
+        internalTransfers.isIncomingFromOwnSourceAccount(amount, description)
 }
 
 private data class IndexedAmount(
     val index: Int,
     val raw: String,
 )
-
-private fun normalizeAccountNumber(value: String): String =
-    value.filter(Char::isDigit)

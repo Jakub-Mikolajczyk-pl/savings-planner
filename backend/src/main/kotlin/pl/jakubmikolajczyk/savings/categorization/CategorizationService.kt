@@ -2,6 +2,7 @@ package pl.jakubmikolajczyk.savings.categorization
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import pl.jakubmikolajczyk.savings.config.IngestProperties
 import pl.jakubmikolajczyk.savings.domain.BadRequestException
 import pl.jakubmikolajczyk.savings.domain.NotFoundException
 import pl.jakubmikolajczyk.savings.dto.CategoryDto
@@ -10,13 +11,17 @@ import pl.jakubmikolajczyk.savings.dto.RecategorizeResultDto
 import pl.jakubmikolajczyk.savings.dto.RuleMatchType
 import pl.jakubmikolajczyk.savings.dto.TransactionCategoryOverrideDto
 import pl.jakubmikolajczyk.savings.dto.TransactionDto
+import pl.jakubmikolajczyk.savings.ingest.InternalTransferDetector
+import java.math.BigDecimal
 import java.util.UUID
 
 @Service
 class CategorizationService(
     private val repository: CategorizationRepository,
+    ingestProperties: IngestProperties = IngestProperties(),
 ) {
     private val ruleEngine = RuleEngine()
+    private val internalTransfers = InternalTransferDetector(ingestProperties)
     private val allowedSources = setOf("manual", "seed", "llm")
 
     fun listCategories(): List<CategoryDto> = repository.listCategories()
@@ -62,12 +67,14 @@ class CategorizationService(
         var categorized = 0
 
         transactions.forEach { tx ->
-            val match = ruleEngine.firstMatch(
-                RuleInput(description = tx.description, counterparty = tx.counterparty),
-                rules,
-            )
-            repository.setTransactionCategoryIfUnlocked(tx.id, match?.categoryId)
-            if (match != null) categorized++
+            val categoryId = internalTransferCategoryId(tx.description, tx.amount)
+                ?: ruleEngine.firstMatch(
+                    RuleInput(description = tx.description, counterparty = tx.counterparty),
+                    rules,
+                )?.categoryId
+
+            repository.setTransactionCategoryIfUnlocked(tx.id, categoryId)
+            if (categoryId != null) categorized++
         }
 
         return RecategorizeResultDto(categorized = categorized, total = transactions.size)
@@ -81,13 +88,20 @@ class CategorizationService(
         }
     }
 
-    fun categorizeInsertedTransaction(transactionId: Long, description: String, counterparty: String?) {
-        val match = ruleEngine.firstMatch(
-            RuleInput(description = description, counterparty = counterparty),
-            repository.listEngineRules(),
-        ) ?: return
+    fun categorizeInsertedTransaction(
+        transactionId: Long,
+        description: String,
+        counterparty: String?,
+        amount: BigDecimal,
+    ) {
+        val categoryId = internalTransferCategoryId(description, amount)
+            ?: ruleEngine.firstMatch(
+                RuleInput(description = description, counterparty = counterparty),
+                repository.listEngineRules(),
+            )?.categoryId
+            ?: return
 
-        repository.setInsertedTransactionCategory(transactionId, match.categoryId)
+        repository.setInsertedTransactionCategory(transactionId, categoryId)
     }
 
     private fun validateRule(dto: CategoryRuleDto) {
@@ -104,4 +118,11 @@ class CategorizationService(
 
     private fun requireCategory(id: Long) =
         repository.findCategory(id) ?: throw NotFoundException("Category $id not found")
+
+    private fun internalTransferCategoryId(description: String, amount: BigDecimal): Long? =
+        if (internalTransfers.isIncomingFromOwnSourceAccount(amount, description)) {
+            repository.findCategoryByName("Transfery")?.id
+        } else {
+            null
+        }
 }

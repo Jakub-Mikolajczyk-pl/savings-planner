@@ -60,7 +60,7 @@ class IngestService(
                 ),
             )
             if (insertedId != null) {
-                categorization.categorizeInsertedTransaction(insertedId, tx.description, tx.counterparty)
+                categorization.categorizeInsertedTransaction(insertedId, tx.description, tx.counterparty, tx.amount)
                 inserted++
             }
         }
