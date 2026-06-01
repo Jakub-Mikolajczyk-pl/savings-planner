@@ -27,4 +27,53 @@ class VeloPdfAdapterTest {
 
         assertEquals(0, BigDecimal("6000.00").compareTo(transactions[1].amount))
     }
+
+    @Test
+    fun `parses Velo table cells split into separate PDF lines`() {
+        val text = """
+            Wyciag z rachunku
+            Saldo poczatkowe 4 516,39
+            2025.09.01
+            2025.09.01
+            Przelew wychodzacy
+            TESTOWY ODBIORCA
+            Tytul: rata 09-2025
+            -1 184,34
+            3 332,05
+            2025.09.08
+            2025.09.06
+            Platnosc karta
+            66,56 PLN z dnia 2025.09.06
+            TESTOWY SKLEP
+            -66,56
+            2 899,12
+            2025.09.30
+            2025.09.30
+            Przelew przychodzacy
+            TESTOWY NADAWCA
+            6 000,00
+            10 120,97
+            Obroty WN
+            Obroty MA
+            Saldo koncowe
+            -11 555,42
+            17 160,00
+            10 120,97
+        """.trimIndent()
+
+        val transactions = adapter.parseText(text)
+
+        assertEquals(3, transactions.size)
+        assertEquals(LocalDate.of(2025, 9, 1), transactions[0].bookedAt)
+        assertEquals(0, BigDecimal("-1184.34").compareTo(transactions[0].amount))
+        assertEquals("Przelew wychodzacy TESTOWY ODBIORCA Tytul: rata 09-2025", transactions[0].description)
+
+        assertEquals(LocalDate.of(2025, 9, 8), transactions[1].bookedAt)
+        assertEquals(0, BigDecimal("-66.56").compareTo(transactions[1].amount))
+        assertEquals("Platnosc karta 66,56 PLN z dnia 2025.09.06 TESTOWY SKLEP", transactions[1].description)
+
+        assertEquals(LocalDate.of(2025, 9, 30), transactions[2].bookedAt)
+        assertEquals(0, BigDecimal("6000.00").compareTo(transactions[2].amount))
+        assertEquals("Przelew przychodzacy TESTOWY NADAWCA", transactions[2].description)
+    }
 }
