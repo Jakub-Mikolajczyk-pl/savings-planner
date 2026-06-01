@@ -38,7 +38,7 @@ import org.springframework.web.filter.OncePerRequestFilter
  * A: The server does not store login session state. Each request carries credentials.
  */
 @Configuration
-@EnableConfigurationProperties(SecurityProperties::class, CorsProperties::class)
+@EnableConfigurationProperties(SecurityProperties::class, CorsProperties::class, IngestProperties::class)
 class SecurityConfig(
     private val securityProperties: SecurityProperties,
     private val corsProperties: CorsProperties,

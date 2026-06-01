@@ -28,4 +28,6 @@ app:
     api-token: ${API_TOKEN:dev-token}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://savings.lan}
+  ingest:
+    internal-transfer-source-accounts: ${INTERNAL_TRANSFER_SOURCE_ACCOUNTS:}
 
