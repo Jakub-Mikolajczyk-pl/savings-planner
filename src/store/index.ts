@@ -5,6 +5,7 @@ import {
   categoriesApi,
   categoryRulesApi,
   goalsApi,
+  goalInsightsApi,
   incomeAnchorsApi,
   ingestApi,
   importApi,
@@ -36,6 +37,7 @@ import type {
   CategoryRule,
   CycleLeakAnalysis,
   Goal,
+  GoalInsights,
   IncomeAnchor,
   IncomeAnchorCandidate,
   IngestResult,
@@ -89,6 +91,7 @@ interface SyncState {
   syncError?: string
   lastSyncedAt?: string
   leakAnalysis?: CycleLeakAnalysis
+  goalInsights?: GoalInsights
 }
 
 interface BootstrapResult {
@@ -108,6 +111,7 @@ interface AppState extends DataState, SyncState {
   loadCategorization: (onlyUncategorized?: boolean) => Promise<void>
   loadPayPeriods: () => Promise<void>
   loadLeakAnalysis: (accountId: string, periodNo: number) => Promise<void>
+  loadGoalInsights: (accountId?: string) => Promise<void>
   clearSyncError: () => void
 
   // Actions
@@ -456,6 +460,7 @@ export const useStore = create<AppState>()(
         syncError: undefined,
         lastSyncedAt: undefined,
         leakAnalysis: undefined,
+        goalInsights: undefined,
         whatIfDelta: 0,
         loanOverpayment: 0,
 
@@ -467,9 +472,13 @@ export const useStore = create<AppState>()(
           if (!IS_API_MODE) return
           set({ isHydrating: true, syncError: undefined })
           try {
-            const backendState = await loadBackendState()
+            const [backendState, goalInsights] = await Promise.all([
+              loadBackendState(),
+              goalInsightsApi.summary({ cycles: 6 }).catch(() => undefined),
+            ])
             set({
               ...backendState,
+              goalInsights,
               isHydrating: false,
               hasHydratedFromBackend: true,
               syncError: undefined,
@@ -591,6 +600,7 @@ export const useStore = create<AppState>()(
             await Promise.all([
               get().loadCategorization(),
               get().loadPayPeriods(),
+              get().loadGoalInsights(),
             ])
             set({ lastSyncedAt: syncStamp() })
             return result
@@ -639,6 +649,17 @@ export const useStore = create<AppState>()(
             set({ leakAnalysis, lastSyncedAt: syncStamp() })
           } catch (error) {
             set({ leakAnalysis: undefined, syncError: describeSyncError(error) })
+          }
+        },
+
+        loadGoalInsights: async (accountId) => {
+          if (!IS_API_MODE) return
+          set({ syncError: undefined })
+          try {
+            const goalInsights = await goalInsightsApi.summary({ accountId, cycles: 6 })
+            set({ goalInsights, lastSyncedAt: syncStamp() })
+          } catch (error) {
+            set({ goalInsights: undefined, syncError: describeSyncError(error) })
           }
         },
 
@@ -938,6 +959,7 @@ export const useStore = create<AppState>()(
           try {
             await incomeAnchorsApi.create({ accountId, counterparty })
             await get().loadPayPeriods()
+            await get().loadGoalInsights(accountId)
           } catch (error) {
             set({ syncError: describeSyncError(error) })
           }
@@ -949,6 +971,7 @@ export const useStore = create<AppState>()(
           try {
             await incomeAnchorsApi.remove(id)
             await get().loadPayPeriods()
+            await get().loadGoalInsights()
           } catch (error) {
             set({ syncError: describeSyncError(error) })
           }
@@ -960,6 +983,7 @@ export const useStore = create<AppState>()(
           try {
             const result = await payPeriodsApi.refresh()
             await get().loadPayPeriods()
+            await get().loadGoalInsights()
             return result
           } catch (error) {
             set({ syncError: describeSyncError(error) })
@@ -973,6 +997,7 @@ export const useStore = create<AppState>()(
           try {
             const updated = await payPeriodsApi.updateSettings(payPeriodSettings)
             await get().loadPayPeriods()
+            await get().loadGoalInsights()
             set({ payPeriodSettings: updated, lastSyncedAt: syncStamp() })
           } catch (error) {
             set({ syncError: describeSyncError(error) })

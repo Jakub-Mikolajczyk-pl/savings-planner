@@ -209,6 +209,49 @@ export interface CycleLeakAnalysis {
   deltas: CycleDelta[]
 }
 
+export interface FreeCashCycle {
+  periodNo: number
+  accountId: string
+  accountName: string
+  periodStart: string
+  periodEnd?: string
+  isPartial: boolean
+  income: number
+  fixedExpense: number
+  recurringExpense: number
+  committedExpense: number
+  variableExpense: number
+  uncategorizedExpense: number
+  totalExpense: number
+  net: number
+  freeCash: number
+}
+
+export type GoalPaceStatus = 'complete' | 'no_history' | 'unreachable' | 'behind_plan' | 'on_track'
+
+export interface GoalPace {
+  goalId: string
+  name: string
+  targetAmount: number
+  currentSaved: number
+  remainingAmount: number
+  priority: number
+  fixedAllocation?: number
+  plannedPerCycle?: number
+  actualPerCycle: number
+  projectedCycles?: number
+  status: GoalPaceStatus
+}
+
+export interface GoalInsights {
+  currentCycle?: FreeCashCycle
+  recentCycles: FreeCashCycle[]
+  cycleCount: number
+  averageNetPerCycle: number
+  averageFreeCashPerCycle: number
+  goals: GoalPace[]
+}
+
 export type MortgageOverpaymentMode = 'shortenTerm' | 'reducePayment'
 
 export interface MortgageOneTimeOverpayment {

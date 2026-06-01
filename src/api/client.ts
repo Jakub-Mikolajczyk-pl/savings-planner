@@ -9,6 +9,7 @@ import type {
   CategoryRule,
   CycleLeakAnalysis,
   Goal,
+  GoalInsights,
   IncomeAnchor,
   IncomeAnchorCandidate,
   IngestResult,
@@ -267,6 +268,16 @@ export const leakAnalysisApi = {
   cycle: (accountId: string, periodNo: number) => {
     const params = new URLSearchParams({ accountId, periodNo: String(periodNo) })
     return get<CycleLeakAnalysis>(`/leak-analysis/cycle?${params.toString()}`)
+  },
+}
+
+export const goalInsightsApi = {
+  summary: (options: { accountId?: string; cycles?: number } = {}) => {
+    const params = new URLSearchParams()
+    if (options.accountId) params.set('accountId', options.accountId)
+    if (options.cycles) params.set('cycles', String(options.cycles))
+    const query = params.toString()
+    return get<GoalInsights>(`/goal-insights${query ? `?${query}` : ''}`)
   },
 }
 

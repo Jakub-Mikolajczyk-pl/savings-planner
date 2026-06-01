@@ -417,3 +417,52 @@ data class CycleLeakAnalysisDto(
     @field:Valid val microExpenses: List<MicroExpenseRollupDto>,
     @field:Valid val deltas: List<CycleDeltaDto>,
 )
+
+data class FreeCashCycleDto(
+    @field:Min(1) val periodNo: Int,
+    val accountId: UUID,
+    @field:NotBlank val accountName: String,
+    @field:NotBlank val periodStart: String,
+    val periodEnd: String? = null,
+    val isPartial: Boolean,
+    @field:NotNull val income: BigDecimal,
+    @field:NotNull val fixedExpense: BigDecimal,
+    @field:NotNull val recurringExpense: BigDecimal,
+    @field:NotNull val committedExpense: BigDecimal,
+    @field:NotNull val variableExpense: BigDecimal,
+    @field:NotNull val uncategorizedExpense: BigDecimal,
+    @field:NotNull val totalExpense: BigDecimal,
+    @field:NotNull val net: BigDecimal,
+    @field:NotNull val freeCash: BigDecimal,
+)
+
+enum class GoalPaceStatus {
+    complete,
+    no_history,
+    unreachable,
+    behind_plan,
+    on_track,
+}
+
+data class GoalPaceDto(
+    val goalId: UUID,
+    @field:NotBlank val name: String,
+    @field:NotNull val targetAmount: BigDecimal,
+    @field:NotNull val currentSaved: BigDecimal,
+    @field:NotNull val remainingAmount: BigDecimal,
+    @field:Min(1) val priority: Int,
+    val fixedAllocation: BigDecimal? = null,
+    val plannedPerCycle: BigDecimal? = null,
+    @field:NotNull val actualPerCycle: BigDecimal,
+    val projectedCycles: Int? = null,
+    @field:NotNull val status: GoalPaceStatus,
+)
+
+data class GoalInsightsDto(
+    val currentCycle: FreeCashCycleDto? = null,
+    @field:Valid val recentCycles: List<FreeCashCycleDto>,
+    @field:Min(0) val cycleCount: Int,
+    @field:NotNull val averageNetPerCycle: BigDecimal,
+    @field:NotNull val averageFreeCashPerCycle: BigDecimal,
+    @field:Valid val goals: List<GoalPaceDto>,
+)

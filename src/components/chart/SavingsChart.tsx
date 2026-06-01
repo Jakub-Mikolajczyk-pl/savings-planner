@@ -35,6 +35,7 @@ export function SavingsChart() {
   const overrides = useStore(s => s.overrides)
   const whatIfDelta = useStore(s => s.whatIfDelta)
   const loanOverpayment = useStore(s => s.loanOverpayment)
+  const goalInsights = useStore(s => s.goalInsights)
 
   const schedule = useMemo(
     () => buildSchedule(settings, goals, loans, overrides, 0, 0, mortgagePlan, subscriptions, upcomingExpenses),
@@ -120,6 +121,25 @@ export function SavingsChart() {
 
   return (
     <div className="space-y-3">
+      {goalInsights && goalInsights.cycleCount > 0 && (
+        <div className="grid gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm dark:border-gray-800 sm:grid-cols-3">
+          <div>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Realne tempo</p>
+            <p className={`font-semibold tabular-nums ${goalInsights.averageNetPerCycle < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-teal-700 dark:text-teal-300'}`}>
+              {formatPLN(goalInsights.averageNetPerCycle)}/cykl
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Wolna gotowka</p>
+            <p className="font-semibold tabular-nums text-gray-900 dark:text-gray-100">{formatPLN(goalInsights.averageFreeCashPerCycle)}/cykl</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Historia</p>
+            <p className="font-semibold tabular-nums text-gray-900 dark:text-gray-100">{goalInsights.cycleCount} pelnych cykli</p>
+          </div>
+        </div>
+      )}
+
       {/* What-if summary banner */}
       {hasSummary && (
         <div className="flex flex-wrap gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
