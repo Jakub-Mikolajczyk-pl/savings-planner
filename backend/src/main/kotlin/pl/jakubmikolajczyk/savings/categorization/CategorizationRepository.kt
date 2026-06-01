@@ -11,6 +11,7 @@ import pl.jakubmikolajczyk.savings.dto.CategoryRuleDto
 import pl.jakubmikolajczyk.savings.dto.RuleMatchField
 import pl.jakubmikolajczyk.savings.dto.RuleMatchType
 import pl.jakubmikolajczyk.savings.dto.TransactionDto
+import java.math.BigDecimal
 import java.sql.ResultSet
 import java.util.UUID
 
@@ -18,6 +19,7 @@ data class TransactionForCategorization(
     val id: Long,
     val description: String,
     val counterparty: String?,
+    val amount: BigDecimal,
 )
 
 @Repository
@@ -65,6 +67,13 @@ class CategorizationRepository(private val jdbc: NamedParameterJdbcTemplate) {
         jdbc.query(
             "select id, name, kind, parent_id from finance.categories where id = :id",
             mapOf("id" to id),
+            categoryMapper,
+        ).firstOrNull()
+
+    fun findCategoryByName(name: String): CategoryDto? =
+        jdbc.query(
+            "select id, name, kind, parent_id from finance.categories where lower(name) = lower(:name)",
+            mapOf("name" to name),
             categoryMapper,
         ).firstOrNull()
 
@@ -216,14 +225,14 @@ class CategorizationRepository(private val jdbc: NamedParameterJdbcTemplate) {
     fun transactionsForRecategorization(accountId: UUID?): List<TransactionForCategorization> {
         val sql = if (accountId == null) {
             """
-                select id, description, counterparty
+                select id, description, counterparty, amount
                 from finance.transactions
                 where category_locked = false
                 order by id
             """.trimIndent()
         } else {
             """
-                select id, description, counterparty
+                select id, description, counterparty, amount
                 from finance.transactions
                 where category_locked = false and account_id = :accountId
                 order by id
@@ -234,6 +243,7 @@ class CategorizationRepository(private val jdbc: NamedParameterJdbcTemplate) {
                 id = rs.getLong("id"),
                 description = rs.getString("description"),
                 counterparty = rs.getString("counterparty"),
+                amount = rs.getBigDecimal("amount"),
             )
         }
     }

@@ -13,6 +13,7 @@ import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
+import pl.jakubmikolajczyk.savings.config.IngestProperties
 import pl.jakubmikolajczyk.savings.dto.TransactionCategoryOverrideDto
 import pl.jakubmikolajczyk.savings.entity.AccountEntity
 import pl.jakubmikolajczyk.savings.repository.AccountRepository
@@ -29,6 +30,10 @@ class CategorizationRepositoryTest @Autowired constructor(
 ) {
     private val repository = CategorizationRepository(jdbc)
     private val service = CategorizationService(repository)
+    private val ownTransferService = CategorizationService(
+        repository,
+        IngestProperties(internalTransferSourceAccounts = listOf("PL00111122223333444455556666")),
+    )
 
     @Test
     fun `V4 seeds rules and recategorization is idempotent`() {
@@ -75,10 +80,30 @@ class CategorizationRepositoryTest @Autowired constructor(
         assertEquals(true, transaction.categoryLocked)
     }
 
+    @Test
+    fun `recategorization marks existing incoming own-account transfer rows`() {
+        val account = accounts.save(AccountEntity(name = "Velo", bucket = "accounts"))
+        val transactionId = insertTransaction(
+            accountId = account.id,
+            description = "Przelew przychodzacy Rachunek nadawcy: PL00 1111 2222 3333 4444 5555 6666",
+            counterparty = null,
+            amount = "6000.00",
+        )
+
+        val result = ownTransferService.recategorize(account.id)
+
+        assertEquals(1, result.categorized)
+        assertEquals(
+            repository.listCategories().first { it.name == "Transfery" }.id,
+            repository.listTransactions(account.id, onlyUncategorized = false, limit = 10).first { it.id == transactionId }.categoryId,
+        )
+    }
+
     private fun insertTransaction(
         accountId: java.util.UUID,
         description: String,
         counterparty: String?,
+        amount: String = "-12.34",
     ): Long =
         jdbc.query(
             """
@@ -91,7 +116,7 @@ class CategorizationRepositoryTest @Autowired constructor(
             MapSqlParameterSource()
                 .addValue("accountId", accountId)
                 .addValue("bookedAt", Date.valueOf(LocalDate.of(2026, 5, 31)))
-                .addValue("amount", BigDecimal("-12.34"))
+                .addValue("amount", BigDecimal(amount))
                 .addValue("description", description)
                 .addValue("counterparty", counterparty)
                 .addValue("fingerprint", "$accountId-$description"),
