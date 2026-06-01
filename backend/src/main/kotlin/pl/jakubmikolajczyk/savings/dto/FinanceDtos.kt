@@ -315,6 +315,8 @@ data class RecategorizeRequestDto(
 data class RecategorizeResultDto(
     val categorized: Int,
     val total: Int,
+    @field:Min(0) val llmAttempted: Int = 0,
+    val llmLimitReached: Boolean = false,
 )
 
 data class IncomeAnchorDto(

@@ -51,4 +51,5 @@ data class LlmProperties(
     val model: String = "qwen3:14b",
     val minConfidence: BigDecimal = BigDecimal("0.70"),
     val timeoutSeconds: Long = 30,
+    val recategorizeBatchSize: Int = 10,
 )

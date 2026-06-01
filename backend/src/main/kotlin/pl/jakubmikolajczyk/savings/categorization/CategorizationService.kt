@@ -3,6 +3,7 @@ package pl.jakubmikolajczyk.savings.categorization
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pl.jakubmikolajczyk.savings.config.IngestProperties
+import pl.jakubmikolajczyk.savings.config.LlmProperties
 import pl.jakubmikolajczyk.savings.domain.BadRequestException
 import pl.jakubmikolajczyk.savings.domain.NotFoundException
 import pl.jakubmikolajczyk.savings.dto.CategoryDto
@@ -21,6 +22,7 @@ class CategorizationService(
     private val repository: CategorizationRepository,
     ingestProperties: IngestProperties = IngestProperties(),
     private val llmCategorySuggester: LlmCategorySuggester = DisabledLlmCategorySuggester,
+    private val llmProperties: LlmProperties = LlmProperties(),
 ) {
     private val ruleEngine = RuleEngine()
     private val internalTransfers = InternalTransferDetector(ingestProperties)
@@ -67,29 +69,47 @@ class CategorizationService(
         val rules = repository.listEngineRules()
         val categories = repository.listCategories()
         val transactions = repository.transactionsForRecategorization(accountId)
+        val llmBatchSize = llmProperties.recategorizeBatchSize.coerceAtLeast(0)
         var categorized = 0
+        var llmAttempted = 0
+        var llmLimitReached = false
 
         transactions.forEach { tx ->
-            val categoryId = internalTransferCategoryId(tx.description, tx.amount)
+            val deterministicCategoryId = internalTransferCategoryId(tx.description, tx.amount)
                 ?: ruleEngine.firstMatch(
                     RuleInput(description = tx.description, counterparty = tx.counterparty),
                     rules,
                 )?.categoryId
-                ?: llmCategoryId(
-                    input = LlmCategorizationInput(
-                        description = tx.description,
-                        counterparty = tx.counterparty,
-                        amount = tx.amount,
-                        currency = tx.currency,
-                    ),
-                    categories = categories,
-                )
+            val categoryId = deterministicCategoryId ?: when {
+                tx.categoryId != null -> tx.categoryId
+                llmAttempted < llmBatchSize -> {
+                    llmAttempted++
+                    llmCategoryId(
+                        input = LlmCategorizationInput(
+                            description = tx.description,
+                            counterparty = tx.counterparty,
+                            amount = tx.amount,
+                            currency = tx.currency,
+                        ),
+                        categories = categories,
+                    )
+                }
+                else -> {
+                    llmLimitReached = true
+                    null
+                }
+            }
 
             repository.setTransactionCategoryIfUnlocked(tx.id, categoryId)
             if (categoryId != null) categorized++
         }
 
-        return RecategorizeResultDto(categorized = categorized, total = transactions.size)
+        return RecategorizeResultDto(
+            categorized = categorized,
+            total = transactions.size,
+            llmAttempted = llmAttempted,
+            llmLimitReached = llmLimitReached,
+        )
     }
 
     @Transactional

@@ -102,6 +102,8 @@ export interface BankTransaction {
 export interface RecategorizeResult {
   categorized: number
   total: number
+  llmAttempted?: number
+  llmLimitReached?: boolean
 }
 
 export interface IncomeAnchor {

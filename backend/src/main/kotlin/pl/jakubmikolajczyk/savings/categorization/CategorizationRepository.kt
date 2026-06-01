@@ -21,6 +21,7 @@ data class TransactionForCategorization(
     val counterparty: String?,
     val amount: BigDecimal,
     val currency: String,
+    val categoryId: Long?,
 )
 
 @Repository
@@ -226,14 +227,14 @@ class CategorizationRepository(private val jdbc: NamedParameterJdbcTemplate) {
     fun transactionsForRecategorization(accountId: UUID?): List<TransactionForCategorization> {
         val sql = if (accountId == null) {
             """
-                select id, description, counterparty, amount, currency
+                select id, description, counterparty, amount, currency, category_id
                 from finance.transactions
                 where category_locked = false
                 order by id
             """.trimIndent()
         } else {
             """
-                select id, description, counterparty, amount, currency
+                select id, description, counterparty, amount, currency, category_id
                 from finance.transactions
                 where category_locked = false and account_id = :accountId
                 order by id
@@ -246,6 +247,7 @@ class CategorizationRepository(private val jdbc: NamedParameterJdbcTemplate) {
                 counterparty = rs.getString("counterparty"),
                 amount = rs.getBigDecimal("amount"),
                 currency = rs.getString("currency").trim(),
+                categoryId = rs.getObject("category_id", java.lang.Long::class.java)?.toLong(),
             )
         }
     }
