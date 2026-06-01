@@ -66,23 +66,83 @@ class CategorizationService(
 
     @Transactional
     fun recategorize(accountId: UUID?): RecategorizeResultDto {
+        /*
+         * BATCH WORK, CZYLI "NIE ROBIMY CALEGO SLONIA W JEDNYM REQUESTCIE"
+         *
+         * Rekategoryzacja ma dwa rodzaje pracy:
+         * 1. Tania i szybka: nasze deterministyczne reguly w Kotlinie/Postgresie.
+         * 2. Droga i wolna: lokalny LLM, gdzie kazda transakcja to osobne HTTP do Ollamy.
+         *
+         * Gdybysmy dla 500 transakcji bez kategorii zrobili 500 calli do qwen3:14b
+         * w jednym POST /api/recategorize, nginx/proxy prawie na pewno zwroci 504.
+         * Backend albo GPU moglyby dalej mielic, ale uzytkownik widzi blad.
+         *
+         * Dlatego "batch" oznacza tutaj:
+         * - w jednym requestcie przejdz po wszystkich transakcjach,
+         * - reguly lokalne zastosuj bez limitu, bo sa szybkie,
+         * - LLM odpal tylko dla pierwszych N nadal-nieznanych transakcji,
+         * - zwroc flage llmLimitReached, zeby UI moglo powiedziec "uruchom ponownie".
+         *
+         * To nie jest kolejka/asynchroniczny worker. To najprostszy bezpieczny krok:
+         * maly kawalek kosztownej pracy na request, powtarzalny tyle razy, ile trzeba.
+         */
         val rules = repository.listEngineRules()
         val categories = repository.listCategories()
         val transactions = repository.transactionsForRecategorization(accountId)
+        /*
+         * coerceAtLeast(0) to ochronny "clamp". Jesli ktos wpisze w ENV -5,
+         * traktujemy to jak 0, czyli LLM nie dostanie zadnego batcha.
+         *
+         * KOTLIN:
+         * val = read-only reference. Nie znaczy, ze obiekt zawsze jest immutable,
+         * ale tutaj liczba batcha po wyliczeniu nie powinna sie zmieniac.
+         */
         val llmBatchSize = llmProperties.recategorizeBatchSize.coerceAtLeast(0)
+        /*
+         * var = zmienna, ktora bedziemy aktualizowac w petli.
+         * W batch work czesto trzymasz male liczniki postepu:
+         * - ile elementow faktycznie skategoryzowano,
+         * - ile razy uderzylismy w LLM,
+         * - czy zatrzymalismy sie na limicie batcha.
+         */
         var categorized = 0
         var llmAttempted = 0
         var llmLimitReached = false
 
         transactions.forEach { tx ->
+            /*
+             * Najpierw probujemy czesci deterministycznej.
+             *
+             * Operator ?: to "Elvis operator":
+             *   a ?: b
+             * znaczy: jesli a nie jest nullem, uzyj a; jesli a jest nullem, uzyj b.
+             *
+             * Tutaj:
+             * - internalTransferCategoryId(...) zwraca Long? (id kategorii albo null),
+             * - jesli nie znajdzie transferu wlasnego, probujemy ruleEngine,
+             * - jesli reguly tez nie trafia, deterministicCategoryId zostaje null.
+             */
             val deterministicCategoryId = internalTransferCategoryId(tx.description, tx.amount)
                 ?: ruleEngine.firstMatch(
                     RuleInput(description = tx.description, counterparty = tx.counterparty),
                     rules,
                 )?.categoryId
+            /*
+             * when w Kotlinie to mocniejszy switch. Tu dziala jak czytelny if/else-if/else.
+             *
+             * Kolejnosc ma znaczenie:
+             * 1. Jesli deterministycznie znalezlismy kategorie, bierzemy ja.
+             * 2. Jesli transakcja juz miala kategorie, zostawiamy ja i nie marnujemy LLM.
+             * 3. Jesli mamy jeszcze miejsce w batchu, pytamy LLM.
+             * 4. Jesli limit batcha sie skonczyl, ustawiamy flage i zostawiamy null.
+             */
             val categoryId = deterministicCategoryId ?: when {
                 tx.categoryId != null -> tx.categoryId
                 llmAttempted < llmBatchSize -> {
+                    /*
+                     * Inkrementujemy PRZED wywolaniem LLM, bo nawet jesli Ollama nie trafi
+                     * albo chwilowo zwroci blad, ten request juz zuzyl slot kosztownej pracy.
+                     */
                     llmAttempted++
                     llmCategoryId(
                         input = LlmCategorizationInput(
@@ -95,6 +155,11 @@ class CategorizationService(
                     )
                 }
                 else -> {
+                    /*
+                     * Nie przerywamy calej petli, bo pozniejsze transakcje moglyby jeszcze
+                     * dostac kategorie z reguly deterministycznej. Flaga tylko informuje UI,
+                     * ze LLM mial wiecej pracy niz limit obecnego requestu.
+                     */
                     llmLimitReached = true
                     null
                 }
