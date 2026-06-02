@@ -85,9 +85,23 @@ function SubscriptionRow({
         <Power size={14} />
       </button>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{subscription.name}</p>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{subscription.name}</p>
+          {subscription.billingPeriod === 'yearly' && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+              roczny
+            </span>
+          )}
+          {subscription.shared && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
+              rodzinny{subscription.shareCount ? ` ÷${subscription.shareCount}` : ''}
+            </span>
+          )}
+        </div>
         <p className="text-xs text-gray-500 dark:text-gray-400">
           {formatPLN(subscription.monthlyAmount)}/mc
+          {subscription.billingPeriod === 'yearly' && subscription.billingAmount != null &&
+            ` · ${formatPLN(subscription.billingAmount)}/rok`}
           {subscription.category && ` · ${subscription.category}`}
           {subscription.nextCharge && ` · następna płatność: ${subscription.nextCharge}`}
         </p>

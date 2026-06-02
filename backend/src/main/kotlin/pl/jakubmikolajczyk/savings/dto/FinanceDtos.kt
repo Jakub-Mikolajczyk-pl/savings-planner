@@ -156,6 +156,10 @@ data class SubscriptionDto(
     val active: Boolean = true,
     val category: String? = null,
     val nextCharge: String? = null,
+    val billingPeriod: String? = null,
+    val billingAmount: BigDecimal? = null,
+    val shared: Boolean? = null,
+    val shareCount: Int? = null,
 )
 
 data class UpcomingExpenseDto(
