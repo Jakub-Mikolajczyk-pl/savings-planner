@@ -201,9 +201,17 @@ class PayPeriodRepository(private val jdbc: NamedParameterJdbcTemplate) {
                     period.period_end,
                     period.anchor_tx_id,
                     period.is_partial,
-                    coalesce(sum(case when tx.amount > 0 and coalesce(category.name, '') <> 'Transfery' then tx.amount else 0 end), 0) as income,
-                    coalesce(sum(case when tx.amount < 0 and coalesce(category.name, '') <> 'Transfery' then abs(tx.amount) else 0 end), 0) as expense,
-                    coalesce(sum(case when coalesce(category.name, '') = 'Transfery' then 0 else tx.amount end), 0) as net
+                    coalesce(sum(case
+                        when tx.amount > 0
+                         and coalesce(category.cashflow_treatment, 'expense') not in ('internal_transfer', 'savings')
+                        then tx.amount else 0 end), 0) as income,
+                    coalesce(sum(case
+                        when tx.amount < 0
+                         and coalesce(category.cashflow_treatment, 'expense') not in ('internal_transfer', 'savings')
+                        then abs(tx.amount) else 0 end), 0) as expense,
+                    coalesce(sum(case
+                        when coalesce(category.cashflow_treatment, 'expense') = 'internal_transfer' then 0
+                        else tx.amount end), 0) as net
                 from finance.pay_periods period
                 join finance.accounts account on account.id = period.account_id
                 left join finance.tx_with_period tx

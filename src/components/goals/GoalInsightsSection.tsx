@@ -72,6 +72,8 @@ export function GoalInsightsSection() {
 }
 
 function FreeCashPanel({ cycle }: { cycle: FreeCashCycle }) {
+  const savingsContribution = cycle.savingsContribution ?? 0
+  const savingsWithdrawal = cycle.savingsWithdrawal ?? 0
   const total = Math.max(cycle.income, cycle.committedExpense + Math.max(0, cycle.freeCash), 1)
   const committedPct = clampPct(cycle.committedExpense / total)
   const freePct = clampPct(Math.max(0, cycle.freeCash) / total)
@@ -100,9 +102,10 @@ function FreeCashPanel({ cycle }: { cycle: FreeCashCycle }) {
           <div className="bg-teal-500/80" style={{ width: `${freePct}%` }} />
         </div>
       </div>
-      <div className="mt-2 grid gap-2 text-xs text-gray-500 dark:text-gray-400 sm:grid-cols-3">
+      <div className="mt-2 grid gap-2 text-xs text-gray-500 dark:text-gray-400 sm:grid-cols-2 xl:grid-cols-4">
         <span>Koszty stałe: {formatPLN(cycle.committedExpense)}</span>
         <span>Wolna gotówka: {formatPLN(cycle.freeCash)}</span>
+        <span>Oszczędności: {formatPLN(savingsContribution)}{savingsWithdrawal > 0 ? ` / wypłata ${formatPLN(savingsWithdrawal)}` : ''}</span>
         <span>Uznaniowe z wolnej: {formatPLN(cycle.variableExpense + cycle.uncategorizedExpense)} ({Math.round(variableUsedPct)}%)</span>
       </div>
     </div>

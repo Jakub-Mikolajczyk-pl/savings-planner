@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository
 import pl.jakubmikolajczyk.savings.dto.CategoryDto
 import pl.jakubmikolajczyk.savings.dto.CategoryKind
 import pl.jakubmikolajczyk.savings.dto.CategoryRuleDto
+import pl.jakubmikolajczyk.savings.dto.CashflowTreatment
 import pl.jakubmikolajczyk.savings.dto.RuleMatchField
 import pl.jakubmikolajczyk.savings.dto.RuleMatchType
 import pl.jakubmikolajczyk.savings.dto.TransactionDto
@@ -31,6 +32,7 @@ class CategorizationRepository(private val jdbc: NamedParameterJdbcTemplate) {
             id = rs.getLong("id"),
             name = rs.getString("name"),
             kind = CategoryKind.valueOf(rs.getString("kind")),
+            cashflowTreatment = CashflowTreatment.valueOf(rs.getString("cashflow_treatment")),
             parentId = rs.getObject("parent_id", java.lang.Long::class.java)?.toLong(),
         )
     }
@@ -61,20 +63,20 @@ class CategorizationRepository(private val jdbc: NamedParameterJdbcTemplate) {
 
     fun listCategories(): List<CategoryDto> =
         jdbc.query(
-            "select id, name, kind, parent_id from finance.categories order by lower(name), id",
+            "select id, name, kind, cashflow_treatment, parent_id from finance.categories order by lower(name), id",
             categoryMapper,
         )
 
     fun findCategory(id: Long): CategoryDto? =
         jdbc.query(
-            "select id, name, kind, parent_id from finance.categories where id = :id",
+            "select id, name, kind, cashflow_treatment, parent_id from finance.categories where id = :id",
             mapOf("id" to id),
             categoryMapper,
         ).firstOrNull()
 
     fun findCategoryByName(name: String): CategoryDto? =
         jdbc.query(
-            "select id, name, kind, parent_id from finance.categories where lower(name) = lower(:name)",
+            "select id, name, kind, cashflow_treatment, parent_id from finance.categories where lower(name) = lower(:name)",
             mapOf("name" to name),
             categoryMapper,
         ).firstOrNull()
@@ -83,12 +85,13 @@ class CategorizationRepository(private val jdbc: NamedParameterJdbcTemplate) {
         val keyHolder = GeneratedKeyHolder()
         jdbc.update(
             """
-                insert into finance.categories (name, kind, parent_id)
-                values (:name, :kind, :parentId)
+                insert into finance.categories (name, kind, cashflow_treatment, parent_id)
+                values (:name, :kind, :cashflowTreatment, :parentId)
             """.trimIndent(),
             MapSqlParameterSource()
                 .addValue("name", dto.name)
                 .addValue("kind", dto.kind.name)
+                .addValue("cashflowTreatment", dto.cashflowTreatment.name)
                 .addValue("parentId", dto.parentId),
             keyHolder,
             arrayOf("id"),
@@ -100,10 +103,19 @@ class CategorizationRepository(private val jdbc: NamedParameterJdbcTemplate) {
         jdbc.update(
             """
                 update finance.categories
-                set name = :name, kind = :kind, parent_id = :parentId
+                set name = :name,
+                    kind = :kind,
+                    cashflow_treatment = :cashflowTreatment,
+                    parent_id = :parentId
                 where id = :id
             """.trimIndent(),
-            mapOf("id" to id, "name" to dto.name, "kind" to dto.kind.name, "parentId" to dto.parentId),
+            mapOf(
+                "id" to id,
+                "name" to dto.name,
+                "kind" to dto.kind.name,
+                "cashflowTreatment" to dto.cashflowTreatment.name,
+                "parentId" to dto.parentId,
+            ),
         )
         return findCategory(id)
     }

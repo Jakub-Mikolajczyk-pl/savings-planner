@@ -36,11 +36,13 @@ class LeakAnalysisRepositoryTest @Autowired constructor(
     fun `cycle category rollup keeps uncategorized rows visible and reconciles net`() {
         val account = accounts.save(AccountEntity(name = "Alior", bucket = "accounts"))
         val groceriesCategory = categoryId("Zakupy spozywcze")
+        val savingsCategory = categoryId("Oszczednosci")
 
         insertTransaction(account.id, "2026-01-01", "J1", "Invoice", "1000.00")
         insertTransaction(account.id, "2026-02-01", "J1", "Invoice", "1000.00")
         insertTransaction(account.id, "2026-02-05", "Biedronka", "Zakupy", "-40.00", groceriesCategory)
         insertTransaction(account.id, "2026-02-06", "Mystery", "Bez reguly", "-20.00")
+        insertTransaction(account.id, "2026-02-07", "IKZE", "Wplata na IKZE", "-30.00", savingsCategory)
 
         payPeriods.createAnchor(IncomeAnchorCreateDto(account.id, "J1"))
 
@@ -48,9 +50,10 @@ class LeakAnalysisRepositoryTest @Autowired constructor(
         val rollups = repository.categoryRollups(account.id, periodNo = 2)
         val micro = repository.microExpenses(account.id, periodNo = 2)
 
-        assertEquals(BigDecimal("940.00"), period.net)
-        assertEquals(BigDecimal("940.00"), rollups.fold(BigDecimal.ZERO) { sum, row -> sum + row.amount })
+        assertEquals(BigDecimal("910.00"), period.net)
+        assertEquals(BigDecimal("910.00"), rollups.fold(BigDecimal.ZERO) { sum, row -> sum + row.amount })
         assertEquals(1, rollups.count { it.categoryName == "Bez kategorii" })
+        assertEquals(BigDecimal("30.00"), rollups.single { it.categoryName == "Oszczednosci" }.savingsContribution)
         assertEquals(BigDecimal("60.00"), micro.fold(BigDecimal.ZERO) { sum, row -> sum + row.expense })
     }
 

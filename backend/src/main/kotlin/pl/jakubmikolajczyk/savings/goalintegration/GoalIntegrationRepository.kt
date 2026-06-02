@@ -25,6 +25,8 @@ class GoalIntegrationRepository(private val jdbc: NamedParameterJdbcTemplate) {
             variableExpense = rs.getBigDecimal("variable_expense"),
             uncategorizedExpense = rs.getBigDecimal("uncategorized_expense"),
             totalExpense = rs.getBigDecimal("total_expense"),
+            savingsContribution = rs.getBigDecimal("savings_contribution"),
+            savingsWithdrawal = rs.getBigDecimal("savings_withdrawal"),
             net = rs.getBigDecimal("net"),
             freeCash = rs.getBigDecimal("free_cash"),
         )
@@ -48,6 +50,8 @@ class GoalIntegrationRepository(private val jdbc: NamedParameterJdbcTemplate) {
                     variable_expense,
                     uncategorized_expense,
                     total_expense,
+                    savings_contribution,
+                    savings_withdrawal,
                     net,
                     free_cash
                 from finance.free_cash_per_cycle

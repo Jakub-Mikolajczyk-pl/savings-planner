@@ -39,6 +39,7 @@ class GoalIntegrationRepositoryTest @Autowired constructor(
         val recurringCategory = categoryId("Media i internet")
         val variableCategory = categoryId("Zakupy spozywcze")
         val transferCategory = categoryId("Transfery")
+        val savingsCategory = categoryId("Oszczednosci")
 
         insertTransaction(account.id, "2026-01-01", "Firma", "Wynagrodzenie", "5000.00")
         insertTransaction(account.id, "2026-02-01", "Firma", "Wynagrodzenie", "5000.00")
@@ -48,6 +49,7 @@ class GoalIntegrationRepositoryTest @Autowired constructor(
         insertTransaction(account.id, "2026-02-05", "Mystery", "Bez kategorii", "-50.00")
         insertTransaction(account.id, "2026-02-06", "Alior", "Przelew wlasny Alior -> Velo", "6000.00", transferCategory)
         insertTransaction(account.id, "2026-02-07", "Alior", "Przelew wlasny Velo -> Alior", "-2000.00", transferCategory)
+        insertTransaction(account.id, "2026-02-08", "IKZE", "Wplata na IKZE", "-700.00", savingsCategory)
 
         payPeriods.createAnchor(IncomeAnchorCreateDto(account.id, "Firma"))
 
@@ -61,7 +63,9 @@ class GoalIntegrationRepositoryTest @Autowired constructor(
         assertEquals(BigDecimal("300.00"), cycle.variableExpense)
         assertEquals(BigDecimal("50.00"), cycle.uncategorizedExpense)
         assertEquals(BigDecimal("1650.00"), cycle.totalExpense)
-        assertEquals(BigDecimal("3350.00"), cycle.net)
+        assertEquals(BigDecimal("700.00"), cycle.savingsContribution)
+        assertEquals(BigDecimal("0"), cycle.savingsWithdrawal)
+        assertEquals(BigDecimal("2650.00"), cycle.net)
         assertEquals(BigDecimal("3700.00"), cycle.freeCash)
     }
 

@@ -68,18 +68,24 @@ function CycleSummary({ analysis }: { analysis: CycleLeakAnalysis }) {
 }
 
 function TopCategories({ analysis }: { analysis: CycleLeakAnalysis }) {
-  const rows = analysis.topCategories.filter(row => row.expense > 0 || row.income > 0).slice(0, 8)
-  const maxAmount = Math.max(...rows.map(row => row.expense + row.income), 1)
+  const rows = analysis.topCategories
+    .filter(row => row.expense > 0 || row.income > 0 || savingsContribution(row) > 0 || savingsWithdrawal(row) > 0)
+    .slice(0, 8)
+  const maxAmount = Math.max(...rows.map(row => row.expense + row.income + savingsContribution(row) + savingsWithdrawal(row)), 1)
 
   return (
     <Panel title="Top kategorie" icon={TrendingUp}>
       {rows.length === 0 ? (
-        <Empty text="Brak wpływów i wydatków w tym cyklu." />
+        <Empty text="Brak wpływów, wydatków i ruchów oszczędnościowych w tym cyklu." />
       ) : (
         <div className="space-y-2">
           {rows.map(row => {
             const expensePct = (row.expense / maxAmount) * 100
             const incomePct = (row.income / maxAmount) * 100
+            const contribution = savingsContribution(row)
+            const withdrawal = savingsWithdrawal(row)
+            const savingsContributionPct = (contribution / maxAmount) * 100
+            const savingsWithdrawalPct = (withdrawal / maxAmount) * 100
 
             return (
               <div key={`${row.categoryId ?? 'none'}-${row.categoryName}`} className="space-y-1.5">
@@ -88,12 +94,16 @@ function TopCategories({ analysis }: { analysis: CycleLeakAnalysis }) {
                   <div className="flex shrink-0 flex-wrap justify-end gap-x-2 gap-y-0.5 tabular-nums">
                     {row.expense > 0 && <Amount value={row.expense} kind="expense" />}
                     {row.income > 0 && <Amount value={row.income} kind="income" />}
+                    {contribution > 0 && <Amount value={contribution} kind="savings" />}
+                    {withdrawal > 0 && <Amount value={withdrawal} kind="income" label="z oszcz." />}
                   </div>
                 </div>
                 <div className="h-2 overflow-hidden rounded-sm bg-gray-100 dark:bg-gray-800">
                   <div className="flex h-full">
                     {row.expense > 0 && <div className="h-full bg-rose-500/80" style={{ width: `${expensePct}%` }} />}
                     {row.income > 0 && <div className="h-full bg-teal-500/80" style={{ width: `${incomePct}%` }} />}
+                    {contribution > 0 && <div className="h-full bg-amber-500/80" style={{ width: `${savingsContributionPct}%` }} />}
+                    {withdrawal > 0 && <div className="h-full bg-sky-500/80" style={{ width: `${savingsWithdrawalPct}%` }} />}
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -232,12 +242,12 @@ function Empty({ text }: { text: string }) {
   return <p className="rounded-md border border-dashed border-gray-200 px-3 py-6 text-center text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">{text}</p>
 }
 
-type AmountKind = 'income' | 'expense' | 'neutral'
+type AmountKind = 'income' | 'expense' | 'savings' | 'neutral'
 
-function Amount({ value, kind }: { value: number; kind: AmountKind }) {
-  const prefix = kind === 'income' ? '+' : kind === 'expense' ? '-' : ''
+function Amount({ value, kind, label }: { value: number; kind: AmountKind; label?: string }) {
+  const prefix = kind === 'income' ? '+' : kind === 'expense' || kind === 'savings' ? '-' : ''
 
-  return <span className={`whitespace-nowrap font-semibold ${amountToneByKind(kind)}`}>{prefix}{formatPLN(value)}</span>
+  return <span className={`whitespace-nowrap font-semibold ${amountToneByKind(kind)}`}>{label ? `${label} ` : ''}{prefix}{formatPLN(value)}</span>
 }
 
 function amountTone(amount: number) {
@@ -249,9 +259,18 @@ function amountTone(amount: number) {
 function amountToneByKind(kind: AmountKind) {
   if (kind === 'income') return 'text-teal-700 dark:text-teal-300'
   if (kind === 'expense') return 'text-rose-600 dark:text-rose-400'
+  if (kind === 'savings') return 'text-amber-700 dark:text-amber-300'
   return 'text-gray-900 dark:text-gray-100'
 }
 
 function isIncomeLikeCategory(categoryName: string) {
   return categoryName.trim().toLowerCase().startsWith('przych')
+}
+
+function savingsContribution(row: { savingsContribution?: number }) {
+  return row.savingsContribution ?? 0
+}
+
+function savingsWithdrawal(row: { savingsWithdrawal?: number }) {
+  return row.savingsWithdrawal ?? 0
 }

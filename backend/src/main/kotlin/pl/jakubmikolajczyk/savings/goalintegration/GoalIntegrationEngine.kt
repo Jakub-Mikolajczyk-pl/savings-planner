@@ -19,6 +19,8 @@ data class CyclePaceInput(
     val isPartial: Boolean,
     val net: BigDecimal,
     val freeCash: BigDecimal,
+    val savingsContribution: BigDecimal = BigDecimal.ZERO,
+    val savingsWithdrawal: BigDecimal = BigDecimal.ZERO,
 )
 
 data class GoalPaceResult(
@@ -31,10 +33,11 @@ data class GoalPaceResult(
 /*
  * Pure business engine for EPIC 12.
  *
- * INTERVIEW Q: "Why use net for actual goal pace if free_cash exists?"
+ * INTERVIEW Q: "Why use net plus savings movement for actual goal pace?"
  * A: free_cash is the capacity after committed costs, before discretionary
- *    spending. Net is what actually survived the whole cycle. Goal rebuilding
- *    needs the real leftover, while the UI can still show where free_cash leaked.
+ *    spending. Net shows what survived on the operating account, while explicit
+ *    savings contributions already left that account for a good reason. Goal
+ *    rebuilding needs both: leftover cash plus money deliberately moved aside.
  */
 class GoalIntegrationEngine {
     fun calculate(
@@ -44,7 +47,9 @@ class GoalIntegrationEngine {
         val fullCycles = cycles.filter { !it.isPartial }
         val averageNet = average(fullCycles.map { it.net })
         val averageFreeCash = average(fullCycles.map { it.freeCash })
-        val actualCapacity = averageNet.max(BigDecimal.ZERO)
+        val actualCapacity = average(
+            fullCycles.map { cycle -> cycle.net + cycle.savingsContribution - cycle.savingsWithdrawal },
+        ).max(BigDecimal.ZERO)
         val actualPerGoal = allocateActualCapacity(goals, actualCapacity)
 
         return GoalPaceResult(

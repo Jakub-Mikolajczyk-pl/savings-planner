@@ -20,6 +20,8 @@ class GoalIntegrationService(
                     isPartial = cycle.isPartial,
                     net = cycle.net,
                     freeCash = cycle.freeCash,
+                    savingsContribution = cycle.savingsContribution,
+                    savingsWithdrawal = cycle.savingsWithdrawal,
                 )
             },
         )

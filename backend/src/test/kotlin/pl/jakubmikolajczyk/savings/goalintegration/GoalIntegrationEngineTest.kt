@@ -47,6 +47,17 @@ class GoalIntegrationEngineTest {
     }
 
     @Test
+    fun `counts savings movement as actual goal capacity`() {
+        val result = engine.calculate(
+            goals = listOf(goal("IKZE", priority = 1, target = "2000.00")),
+            cycles = listOf(cycle(net = "100.00", freeCash = "1000.00", savingsContribution = "700.00")),
+        )
+
+        assertEquals(BigDecimal("100.00"), result.averageNetPerCycle)
+        assertEquals(BigDecimal("800.00"), result.goals.single().actualPerCycle)
+    }
+
+    @Test
     fun `marks pace as no history before full cycles exist`() {
         val result = engine.calculate(
             goals = listOf(goal("Fundusz", priority = 1, target = "1000.00")),
@@ -72,6 +83,17 @@ class GoalIntegrationEngineTest {
         fixedAllocation = fixed?.let(::BigDecimal),
     )
 
-    private fun cycle(net: String, freeCash: String, partial: Boolean = false) =
-        CyclePaceInput(isPartial = partial, net = BigDecimal(net), freeCash = BigDecimal(freeCash))
+    private fun cycle(
+        net: String,
+        freeCash: String,
+        partial: Boolean = false,
+        savingsContribution: String = "0.00",
+        savingsWithdrawal: String = "0.00",
+    ) = CyclePaceInput(
+        isPartial = partial,
+        net = BigDecimal(net),
+        freeCash = BigDecimal(freeCash),
+        savingsContribution = BigDecimal(savingsContribution),
+        savingsWithdrawal = BigDecimal(savingsWithdrawal),
+    )
 }
