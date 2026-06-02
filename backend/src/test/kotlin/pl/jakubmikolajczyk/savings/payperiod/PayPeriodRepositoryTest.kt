@@ -73,6 +73,24 @@ class PayPeriodRepositoryTest @Autowired constructor(
         assertEquals(false, candidate.alreadyAnchored)
     }
 
+    @Test
+    fun `candidate list prioritizes anchored counterparties before applying limit`() {
+        val account = accounts.save(AccountEntity(name = "Alior", bucket = "accounts"))
+        insertTransaction(account.id, "2026-01-01", "PAYROLL A", "Salary A", "5000.00")
+        insertTransaction(account.id, "2026-02-01", "PAYROLL B", "Salary B", "5000.00")
+        insertTransaction(account.id, "2026-03-01", "ACME LTD", "Invoice 1", "9000.00")
+        insertTransaction(account.id, "2026-04-01", "ACME LTD", "Invoice 2", "9000.00")
+        insertTransaction(account.id, "2026-05-01", "SIDE JOB", "Invoice 3", "8000.00")
+        insertTransaction(account.id, "2026-06-01", "SIDE JOB", "Invoice 4", "8000.00")
+        service.createAnchor(IncomeAnchorCreateDto(account.id, "payroll a"))
+        service.createAnchor(IncomeAnchorCreateDto(account.id, "payroll b"))
+
+        val candidates = service.listCandidates(limit = 2)
+
+        assertEquals(setOf("payroll a", "payroll b"), candidates.map { it.counterparty }.toSet())
+        assertEquals(listOf(true, true), candidates.map { it.alreadyAnchored })
+    }
+
     private fun insertTransaction(
         accountId: UUID,
         bookedAt: String,

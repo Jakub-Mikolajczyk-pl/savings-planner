@@ -94,7 +94,7 @@ class PayPeriodRepository(private val jdbc: NamedParameterJdbcTemplate) {
                     ) as already_anchored
                 from normalized
                 group by normalized.account_id, normalized.account_name, normalized.counterparty
-                order by already_anchored, transaction_count desc, last_booked_at desc
+                order by already_anchored desc, transaction_count desc, last_booked_at desc
                 limit :limit
             """.trimIndent(),
             mapOf("limit" to limit.coerceIn(1, 100)),
