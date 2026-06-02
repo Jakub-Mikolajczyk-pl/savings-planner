@@ -37,8 +37,9 @@ where not exists (
 );
 
 drop view if exists finance.free_cash_per_cycle;
+drop view if exists finance.cycle_category_rollup;
 
-create or replace view finance.cycle_category_rollup as
+create view finance.cycle_category_rollup as
 select
     tx.account_id,
     tx.period_no,
