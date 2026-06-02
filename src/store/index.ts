@@ -104,6 +104,11 @@ interface HydrateOptions {
   includeAccountSnapshots?: boolean
 }
 
+interface CategorizationLoadOptions {
+  onlyUncategorized?: boolean
+  categoryId?: number
+}
+
 interface AppState extends DataState, SyncState {
   whatIfDelta: number
   loanOverpayment: number
@@ -114,7 +119,7 @@ interface AppState extends DataState, SyncState {
   importAccountSnapshotsCsv: (file: File, mapping: CsvImportMapping) => Promise<CsvImportResult>
   importBankStatement: (bank: BankSource, accountId: string, file: File) => Promise<IngestResult>
   loadAccountSnapshots: () => Promise<void>
-  loadCategorization: (onlyUncategorized?: boolean) => Promise<void>
+  loadCategorization: (options?: boolean | CategorizationLoadOptions) => Promise<void>
   loadPayPeriods: () => Promise<void>
   loadLeakAnalysis: (accountId: string, periodNo: number) => Promise<void>
   loadGoalInsights: (accountId?: string) => Promise<void>
@@ -656,14 +661,21 @@ export const useStore = create<AppState>()(
           }
         },
 
-        loadCategorization: async (onlyUncategorized = false) => {
+        loadCategorization: async (options = {}) => {
           if (!IS_API_MODE) return
+          const filters = typeof options === 'boolean'
+            ? { onlyUncategorized: options }
+            : options
           set({ syncError: undefined })
           try {
             const [categories, categoryRules, transactions] = await Promise.all([
               categoriesApi.list(),
               categoryRulesApi.list(),
-              transactionsApi.list({ onlyUncategorized, limit: 200 }),
+              transactionsApi.list({
+                onlyUncategorized: filters.onlyUncategorized,
+                categoryId: filters.categoryId,
+                limit: 200,
+              }),
             ])
             set({ categories, categoryRules, transactions, lastSyncedAt: syncStamp() })
           } catch (error) {

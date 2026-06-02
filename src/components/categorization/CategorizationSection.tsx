@@ -23,8 +23,18 @@ const TYPE_LABELS: Record<RuleMatchType, string> = {
   regex: 'Regex',
 }
 
+type TransactionFilter = 'all' | 'uncategorized' | `category:${number}`
+
 const TRANSACTION_PAGE_SIZE = 50
 const MAX_LLM_QUEUE_BATCHES = 500
+
+const loadOptionsForFilter = (filter: TransactionFilter) => {
+  if (filter === 'uncategorized') return { onlyUncategorized: true }
+  if (!filter.startsWith('category:')) return {}
+
+  const categoryId = Number(filter.replace('category:', ''))
+  return Number.isFinite(categoryId) ? { categoryId } : {}
+}
 
 interface LlmQueueStatus {
   running: boolean
@@ -87,7 +97,7 @@ export function CategorizationSection() {
   const [priority, setPriority] = useState(100)
   const [lastRun, setLastRun] = useState<string | undefined>()
   const [visibleTransactionCount, setVisibleTransactionCount] = useState(TRANSACTION_PAGE_SIZE)
-  const [onlyUncategorized, setOnlyUncategorized] = useState(false)
+  const [transactionFilter, setTransactionFilter] = useState<TransactionFilter>('all')
   const [llmQueueStatus, setLlmQueueStatus] = useState<LlmQueueStatus | undefined>()
 
   const categoryById = useMemo(
@@ -95,10 +105,15 @@ export function CategorizationSection() {
     [categories],
   )
   const selectedRuleCategoryId = ruleCategoryId ?? categories[0]?.id
+  const selectedFilterCategoryId = transactionFilter.startsWith('category:')
+    ? Number(transactionFilter.replace('category:', ''))
+    : undefined
   const uncategorized = transactions.filter(transaction => transaction.categoryId === undefined).length
-  const filteredTransactions = onlyUncategorized
-    ? transactions.filter(transaction => transaction.categoryId === undefined)
-    : transactions
+  const filteredTransactions = transactions.filter(transaction => {
+    if (transactionFilter === 'uncategorized') return transaction.categoryId === undefined
+    if (selectedFilterCategoryId !== undefined) return transaction.categoryId === selectedFilterCategoryId
+    return true
+  })
   const visibleTransactions = filteredTransactions.slice(0, visibleTransactionCount)
   const hiddenTransactionCount = Math.max(0, filteredTransactions.length - visibleTransactions.length)
   const queueProgress = llmQueueStatus?.initialUncategorized
@@ -135,17 +150,17 @@ export function CategorizationSection() {
 
   const runRecategorize = async () => {
     const result = await recategorizeTransactions()
-    await loadCategorization(onlyUncategorized)
+    await loadCategorization(loadOptionsForFilter(transactionFilter))
     setVisibleTransactionCount(TRANSACTION_PAGE_SIZE)
     setLastRun(resultSummary(result) + (result.llmLimitReached ? ', uruchom kolejke' : ''))
   }
 
   const runLlmQueue = async () => {
-    setOnlyUncategorized(true)
+    setTransactionFilter('uncategorized')
     setVisibleTransactionCount(TRANSACTION_PAGE_SIZE)
     setLastRun(undefined)
     setLlmQueueStatus({ ...emptyQueueStatus(), message: 'Szukam transakcji bez kategorii...' })
-    await loadCategorization(true)
+    await loadCategorization({ onlyUncategorized: true })
 
     let afterTransactionId: number | undefined
     let status = emptyQueueStatus()
@@ -181,16 +196,15 @@ export function CategorizationSection() {
       afterTransactionId = result.llmLastTransactionId
     }
 
-    await loadCategorization(true)
+    await loadCategorization({ onlyUncategorized: true })
     setVisibleTransactionCount(TRANSACTION_PAGE_SIZE)
     setLlmQueueStatus({ ...status, running: false, message: 'Kolejka zakonczona.' })
   }
 
-  const toggleOnlyUncategorized = async () => {
-    const next = !onlyUncategorized
-    setOnlyUncategorized(next)
+  const changeTransactionFilter = async (next: TransactionFilter) => {
+    setTransactionFilter(next)
     setVisibleTransactionCount(TRANSACTION_PAGE_SIZE)
-    await loadCategorization(next)
+    await loadCategorization(loadOptionsForFilter(next))
   }
 
   const assignTransactionCategory = (transactionId: number, categoryId: number | undefined, locked = true) => {
@@ -214,18 +228,20 @@ export function CategorizationSection() {
           {lastRun ? ` - ostatnie przeliczenie ${lastRun}` : ''}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={toggleOnlyUncategorized}
-            className={`rounded-md border px-3 py-2 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 ${
-              onlyUncategorized
-                ? 'border-gray-950 bg-gray-950 text-white dark:border-gray-100 dark:bg-gray-100 dark:text-gray-950'
-                : 'border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-800'
-            }`}
-            aria-pressed={onlyUncategorized}
-          >
-            Bez kategorii
-          </button>
+          <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            Filtr
+            <select
+              value={transactionFilter}
+              onChange={event => void changeTransactionFilter(event.target.value as TransactionFilter)}
+              className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-100 dark:focus:ring-gray-700"
+            >
+              <option value="all">Wszystkie</option>
+              <option value="uncategorized">Bez kategorii</option>
+              {categories.map(category => (
+                <option key={category.id} value={`category:${category.id}`}>{category.name}</option>
+              ))}
+            </select>
+          </label>
           <button
             type="button"
             onClick={runRecategorize}

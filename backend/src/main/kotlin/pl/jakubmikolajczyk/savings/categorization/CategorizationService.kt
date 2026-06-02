@@ -61,8 +61,8 @@ class CategorizationService(
         if (repository.deleteRule(id) == 0) throw NotFoundException("Category rule $id not found")
     }
 
-    fun listTransactions(accountId: UUID?, onlyUncategorized: Boolean, limit: Int): List<TransactionDto> =
-        repository.listTransactions(accountId, onlyUncategorized, limit)
+    fun listTransactions(accountId: UUID?, onlyUncategorized: Boolean, categoryId: Long?, limit: Int): List<TransactionDto> =
+        repository.listTransactions(accountId, onlyUncategorized, categoryId, limit)
 
     @Transactional
     fun recategorize(accountId: UUID?, afterTransactionId: Long? = null): RecategorizeResultDto {
