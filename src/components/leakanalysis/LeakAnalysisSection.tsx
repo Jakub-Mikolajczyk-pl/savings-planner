@@ -1,11 +1,12 @@
 import { useEffect, useMemo } from 'react'
 import type { ReactNode } from 'react'
-import { AlertTriangle, Repeat, Scissors, TrendingUp } from 'lucide-react'
+import { AlertTriangle, Lock, Repeat, Scissors, TrendingUp, Unlock } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { IS_API_MODE } from '../../config'
 import { formatPLN } from '../../domain/formatting'
-import type { CycleLeakAnalysis, PayPeriod } from '../../domain/types'
+import type { BankTransaction, Category, CycleLeakAnalysis, PayPeriod } from '../../domain/types'
 import { useStore } from '../../store'
+import { Collapsible } from '../ui/Collapsible'
 
 interface Props {
   selectedPeriod?: PayPeriod
@@ -13,11 +14,31 @@ interface Props {
 
 export function LeakAnalysisSection({ selectedPeriod }: Props) {
   const leakAnalysis = useStore(s => s.leakAnalysis)
+  const cycleTransactions = useStore(s => s.cycleTransactions)
+  const cycleTransactionsPeriod = useStore(s => s.cycleTransactionsPeriod)
+  const categories = useStore(s => s.categories)
   const loadLeakAnalysis = useStore(s => s.loadLeakAnalysis)
+  const loadCycleTransactions = useStore(s => s.loadCycleTransactions)
+  const overrideTransactionCategory = useStore(s => s.overrideTransactionCategory)
 
   useEffect(() => {
-    if (selectedPeriod) void loadLeakAnalysis(selectedPeriod.accountId, selectedPeriod.periodNo)
-  }, [loadLeakAnalysis, selectedPeriod])
+    if (selectedPeriod) {
+      void loadLeakAnalysis(selectedPeriod.accountId, selectedPeriod.periodNo)
+      void loadCycleTransactions(selectedPeriod.accountId, selectedPeriod.periodNo)
+    }
+  }, [loadCycleTransactions, loadLeakAnalysis, selectedPeriod])
+
+  const cycleTransactionsLoaded = selectedPeriod !== undefined &&
+    cycleTransactionsPeriod?.accountId === selectedPeriod.accountId &&
+    cycleTransactionsPeriod.periodNo === selectedPeriod.periodNo
+  const assignTransactionCategory = async (transactionId: number, categoryId: number | undefined, locked = true) => {
+    if (!selectedPeriod) return
+    await overrideTransactionCategory(transactionId, categoryId, locked)
+    await Promise.all([
+      loadLeakAnalysis(selectedPeriod.accountId, selectedPeriod.periodNo),
+      loadCycleTransactions(selectedPeriod.accountId, selectedPeriod.periodNo),
+    ])
+  }
 
   if (!IS_API_MODE) {
     return (
@@ -52,6 +73,12 @@ export function LeakAnalysisSection({ selectedPeriod }: Props) {
         <MicroExpenses analysis={leakAnalysis} />
         <DeltaHighlights analysis={leakAnalysis} />
       </div>
+
+      <CycleTransactionsReview
+        transactions={cycleTransactionsLoaded ? cycleTransactions ?? [] : undefined}
+        categories={categories}
+        onAssignCategory={assignTransactionCategory}
+      />
     </div>
   )
 }
@@ -240,6 +267,87 @@ function ListRow({ label, detail, value, tone = 'expense' }: { label: string; de
 
 function Empty({ text }: { text: string }) {
   return <p className="rounded-md border border-dashed border-gray-200 px-3 py-6 text-center text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">{text}</p>
+}
+
+function CycleTransactionsReview({
+  transactions,
+  categories,
+  onAssignCategory,
+}: {
+  transactions?: BankTransaction[]
+  categories: Category[]
+  onAssignCategory: (transactionId: number, categoryId: number | undefined, locked?: boolean) => Promise<void>
+}) {
+  const categoryById = useMemo(
+    () => new Map(categories.map(category => [category.id, category])),
+    [categories],
+  )
+
+  return (
+    <Collapsible title="Transakcje w cyklu" badge={transactions ? String(transactions.length) : '...'}>
+      {transactions === undefined ? (
+        <p className="text-sm text-gray-500 dark:text-gray-400">Ładuję transakcje cyklu...</p>
+      ) : transactions.length === 0 ? (
+        <Empty text="Brak transakcji w tym cyklu." />
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead className="text-left text-xs text-gray-500 dark:text-gray-400">
+              <tr className="border-b border-gray-200 dark:border-gray-800">
+                <th className="py-2 pr-3 font-medium">Data</th>
+                <th className="py-2 pr-3 font-medium">Opis</th>
+                <th className="py-2 pr-3 text-right font-medium">Kwota</th>
+                <th className="py-2 pr-3 font-medium">Kategoria</th>
+                <th className="py-2 pr-0 font-medium">Blokada</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transactions.map(transaction => {
+                const categoryName = transaction.categoryId
+                  ? categoryById.get(transaction.categoryId)?.name
+                  : undefined
+
+                return (
+                  <tr key={transaction.id} className="border-b border-gray-100 align-top dark:border-gray-900">
+                    <td className="whitespace-nowrap py-2 pr-3 text-gray-500 dark:text-gray-400">{transaction.bookedAt}</td>
+                    <td className="min-w-72 py-2 pr-3">
+                      <p className="font-medium text-gray-900 dark:text-gray-100">{transaction.counterparty ?? transaction.description}</p>
+                      <p className="line-clamp-2 text-xs text-gray-500 dark:text-gray-400">{transaction.description}</p>
+                    </td>
+                    <td className={`whitespace-nowrap py-2 pr-3 text-right tabular-nums ${transaction.amount < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-teal-700 dark:text-teal-300'}`}>
+                      {formatPLN(transaction.amount)}
+                    </td>
+                    <td className="py-2 pr-3">
+                      <select
+                        value={transaction.categoryId ?? ''}
+                        onChange={event => void onAssignCategory(transaction.id, event.target.value ? Number(event.target.value) : undefined, true)}
+                        className="w-full min-w-44 rounded-md border border-gray-200 bg-white px-2 py-1.5 text-sm dark:border-gray-800 dark:bg-gray-950"
+                        aria-label={`Kategoria transakcji ${transaction.description}`}
+                      >
+                        <option value="">Bez kategorii</option>
+                        {categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
+                      </select>
+                      {categoryName && <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{categoryName}</p>}
+                    </td>
+                    <td className="whitespace-nowrap py-2 pr-0">
+                      <button
+                        type="button"
+                        onClick={() => void onAssignCategory(transaction.id, transaction.categoryId, !transaction.categoryLocked)}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 px-2 py-1.5 text-xs text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-800"
+                      >
+                        {transaction.categoryLocked ? <Lock size={14} /> : <Unlock size={14} />}
+                        {transaction.categoryLocked ? 'Ręczna' : 'Reguły'}
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </Collapsible>
+  )
 }
 
 type AmountKind = 'income' | 'expense' | 'savings' | 'neutral'

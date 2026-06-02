@@ -203,15 +203,21 @@ class CategorizationRepository(private val jdbc: NamedParameterJdbcTemplate) {
 
     fun listTransactions(
         accountId: UUID?,
+        periodNo: Int?,
         onlyUncategorized: Boolean,
         categoryId: Long?,
         limit: Int,
     ): List<TransactionDto> {
         val conditions = mutableListOf<String>()
-        val params = MapSqlParameterSource().addValue("limit", limit.coerceIn(1, 500))
+        val params = MapSqlParameterSource().addValue("limit", limit.coerceIn(1, 5000))
+        val source = if (periodNo == null) "finance.transactions" else "finance.tx_with_period"
         if (accountId != null) {
             conditions += "account_id = :accountId"
             params.addValue("accountId", accountId)
+        }
+        if (periodNo != null) {
+            conditions += "period_no = :periodNo"
+            params.addValue("periodNo", periodNo)
         }
         if (onlyUncategorized) conditions += "category_id is null"
         if (categoryId != null) {
@@ -223,7 +229,7 @@ class CategorizationRepository(private val jdbc: NamedParameterJdbcTemplate) {
         return jdbc.query(
             """
                 select id, account_id, booked_at, amount, currency, description, counterparty, source, category_id, category_locked
-                from finance.transactions
+                from $source
                 $where
                 order by booked_at desc, id desc
                 limit :limit

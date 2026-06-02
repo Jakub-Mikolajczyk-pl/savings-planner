@@ -74,7 +74,7 @@ class CategorizationRepositoryTest @Autowired constructor(
         assertEquals(0, second.newlyCategorized)
         assertEquals(
             repository.listCategories().first { it.name == "Zakupy spozywcze" }.id,
-            repository.listTransactions(account.id, onlyUncategorized = false, categoryId = null, limit = 10)
+            repository.listTransactions(account.id, periodNo = null, onlyUncategorized = false, categoryId = null, limit = 10)
                 .first { it.id == transactionId }.categoryId,
         )
     }
@@ -95,7 +95,7 @@ class CategorizationRepositoryTest @Autowired constructor(
         )
         service.recategorize(account.id)
 
-        val transaction = repository.listTransactions(account.id, onlyUncategorized = false, categoryId = null, limit = 10).first()
+        val transaction = repository.listTransactions(account.id, periodNo = null, onlyUncategorized = false, categoryId = null, limit = 10).first()
         assertEquals(otherCategoryId, transaction.categoryId)
         assertEquals(true, transaction.categoryLocked)
     }
@@ -127,12 +127,56 @@ class CategorizationRepositoryTest @Autowired constructor(
 
         val groceries = repository.listTransactions(
             accountId = account.id,
+            periodNo = null,
             onlyUncategorized = false,
             categoryId = groceryCategoryId,
             limit = 10,
         )
 
         assertEquals(listOf(groceryTransactionId), groceries.map { it.id })
+    }
+
+    @Test
+    fun `transactions can be listed by pay period`() {
+        val account = accounts.save(AccountEntity(name = "Alior", bucket = "accounts"))
+        val firstAnchorId = insertTransaction(
+            accountId = account.id,
+            bookedAt = "2026-05-01",
+            description = "Wyplata maj",
+            counterparty = "PAYROLL",
+            amount = "10000.00",
+        )
+        insertTransaction(
+            accountId = account.id,
+            bookedAt = "2026-05-03",
+            description = "Zakupy maj",
+            counterparty = "BIEDRONKA",
+        )
+        val secondAnchorId = insertTransaction(
+            accountId = account.id,
+            bookedAt = "2026-06-01",
+            description = "Wyplata czerwiec",
+            counterparty = "PAYROLL",
+            amount = "10000.00",
+        )
+        val secondExpenseId = insertTransaction(
+            accountId = account.id,
+            bookedAt = "2026-06-02",
+            description = "Zakupy czerwiec",
+            counterparty = "LIDL",
+        )
+        insertPayPeriod(account.id, periodNo = 1, start = "2026-05-01", end = "2026-06-01", anchorTxId = firstAnchorId)
+        insertPayPeriod(account.id, periodNo = 2, start = "2026-06-01", end = null, anchorTxId = secondAnchorId)
+
+        val secondPeriodTransactions = repository.listTransactions(
+            accountId = account.id,
+            periodNo = 2,
+            onlyUncategorized = false,
+            categoryId = null,
+            limit = 10,
+        )
+
+        assertEquals(listOf(secondExpenseId, secondAnchorId), secondPeriodTransactions.map { it.id })
     }
 
     @Test
@@ -152,7 +196,7 @@ class CategorizationRepositoryTest @Autowired constructor(
         assertEquals(1, result.newlyCategorized)
         assertEquals(
             repository.listCategories().first { it.name == "Transfery" }.id,
-            repository.listTransactions(account.id, onlyUncategorized = false, categoryId = null, limit = 10)
+            repository.listTransactions(account.id, periodNo = null, onlyUncategorized = false, categoryId = null, limit = 10)
                 .first { it.id == transactionId }.categoryId,
         )
     }
@@ -175,13 +219,27 @@ class CategorizationRepositoryTest @Autowired constructor(
         assertEquals(1, result.newlyCategorized)
         assertEquals(
             repository.listCategories().first { it.name == "Zakupy spozywcze" }.id,
-            repository.listTransactions(account.id, onlyUncategorized = false, categoryId = null, limit = 10)
+            repository.listTransactions(account.id, periodNo = null, onlyUncategorized = false, categoryId = null, limit = 10)
                 .first { it.id == transactionId }.categoryId,
         )
     }
 
     private fun insertTransaction(
         accountId: java.util.UUID,
+        description: String,
+        counterparty: String?,
+        amount: String = "-12.34",
+    ): Long = insertTransaction(
+        accountId = accountId,
+        bookedAt = "2026-05-31",
+        description = description,
+        counterparty = counterparty,
+        amount = amount,
+    )
+
+    private fun insertTransaction(
+        accountId: java.util.UUID,
+        bookedAt: String,
         description: String,
         counterparty: String?,
         amount: String = "-12.34",
@@ -196,12 +254,34 @@ class CategorizationRepositoryTest @Autowired constructor(
             """.trimIndent(),
             MapSqlParameterSource()
                 .addValue("accountId", accountId)
-                .addValue("bookedAt", Date.valueOf(LocalDate.of(2026, 5, 31)))
+                .addValue("bookedAt", Date.valueOf(LocalDate.parse(bookedAt)))
                 .addValue("amount", BigDecimal(amount))
                 .addValue("description", description)
                 .addValue("counterparty", counterparty)
-                .addValue("fingerprint", "$accountId-$description"),
+                .addValue("fingerprint", "$accountId-$bookedAt-$description"),
         ) { rs, _ -> rs.getLong("id") }.first()
+
+    private fun insertPayPeriod(
+        accountId: java.util.UUID,
+        periodNo: Int,
+        start: String,
+        end: String?,
+        anchorTxId: Long,
+    ) {
+        jdbc.update(
+            """
+                insert into finance.pay_periods (period_no, account_id, period_start, period_end, anchor_tx_id, is_partial)
+                values (:periodNo, :accountId, :periodStart, :periodEnd, :anchorTxId, :isPartial)
+            """.trimIndent(),
+            MapSqlParameterSource()
+                .addValue("periodNo", periodNo)
+                .addValue("accountId", accountId)
+                .addValue("periodStart", Date.valueOf(LocalDate.parse(start)))
+                .addValue("periodEnd", end?.let { Date.valueOf(LocalDate.parse(it)) })
+                .addValue("anchorTxId", anchorTxId)
+                .addValue("isPartial", end == null),
+        )
+    }
 
     companion object {
         @Container

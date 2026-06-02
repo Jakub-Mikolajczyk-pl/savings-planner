@@ -213,9 +213,10 @@ export const categoryRulesApi = {
 }
 
 export const transactionsApi = {
-  list: (options: { accountId?: string; onlyUncategorized?: boolean; categoryId?: number; limit?: number } = {}) => {
+  list: (options: { accountId?: string; periodNo?: number; onlyUncategorized?: boolean; categoryId?: number; limit?: number } = {}) => {
     const params = new URLSearchParams()
     if (options.accountId) params.set('accountId', options.accountId)
+    if (options.periodNo !== undefined) params.set('periodNo', String(options.periodNo))
     if (options.onlyUncategorized) params.set('onlyUncategorized', 'true')
     if (options.categoryId !== undefined) params.set('categoryId', String(options.categoryId))
     if (options.limit) params.set('limit', String(options.limit))
