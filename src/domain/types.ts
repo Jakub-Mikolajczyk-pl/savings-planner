@@ -65,6 +65,7 @@ export interface AccountSnapshot {
 }
 
 export type CategoryKind = 'variable' | 'fixed' | 'recurring'
+export type CashflowTreatment = 'expense' | 'income' | 'internal_transfer' | 'savings'
 export type RuleMatchField = 'description' | 'counterparty'
 export type RuleMatchType = 'contains' | 'regex'
 export type CategoryRuleSource = 'manual' | 'seed' | 'llm'
@@ -73,6 +74,7 @@ export interface Category {
   id: number
   name: string
   kind: CategoryKind
+  cashflowTreatment: CashflowTreatment
   parentId?: number
 }
 
@@ -170,9 +172,12 @@ export interface CycleCategoryRollup {
   categoryId?: number
   categoryName: string
   categoryKind?: CategoryKind
+  cashflowTreatment: CashflowTreatment
   amount: number
   income: number
   expense: number
+  savingsContribution: number
+  savingsWithdrawal: number
   transactionCount: number
 }
 
@@ -236,6 +241,8 @@ export interface FreeCashCycle {
   variableExpense: number
   uncategorizedExpense: number
   totalExpense: number
+  savingsContribution: number
+  savingsWithdrawal: number
   net: number
   freeCash: number
 }

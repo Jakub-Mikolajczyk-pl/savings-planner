@@ -3,7 +3,7 @@ import type { FormEvent } from 'react'
 import { Lock, Plus, RefreshCw, Trash2, Unlock } from 'lucide-react'
 import { IS_API_MODE } from '../../config'
 import { formatPLN } from '../../domain/formatting'
-import type { CategoryKind, RecategorizeResult, RuleMatchField, RuleMatchType } from '../../domain/types'
+import type { CashflowTreatment, CategoryKind, RecategorizeResult, RuleMatchField, RuleMatchType } from '../../domain/types'
 import { useStore } from '../../store'
 import { Collapsible } from '../ui/Collapsible'
 
@@ -11,6 +11,13 @@ const KIND_LABELS: Record<CategoryKind, string> = {
   variable: 'Zmienne',
   fixed: 'Stale',
   recurring: 'Cykliczne',
+}
+
+const CASHFLOW_TREATMENT_LABELS: Record<CashflowTreatment, string> = {
+  expense: 'Koszt',
+  income: 'Przychód',
+  internal_transfer: 'Transfer własny',
+  savings: 'Oszczędności',
 }
 
 const FIELD_LABELS: Record<RuleMatchField, string> = {
@@ -83,6 +90,7 @@ export function CategorizationSection() {
   const transactions = useStore(s => s.transactions)
   const loadCategorization = useStore(s => s.loadCategorization)
   const addCategory = useStore(s => s.addCategory)
+  const updateCategory = useStore(s => s.updateCategory)
   const removeCategory = useStore(s => s.removeCategory)
   const addCategoryRule = useStore(s => s.addCategoryRule)
   const removeCategoryRule = useStore(s => s.removeCategoryRule)
@@ -90,6 +98,7 @@ export function CategorizationSection() {
   const recategorizeTransactions = useStore(s => s.recategorizeTransactions)
   const [categoryName, setCategoryName] = useState('')
   const [categoryKind, setCategoryKind] = useState<CategoryKind>('variable')
+  const [cashflowTreatment, setCashflowTreatment] = useState<CashflowTreatment>('expense')
   const [matchField, setMatchField] = useState<RuleMatchField>('counterparty')
   const [matchType, setMatchType] = useState<RuleMatchType>('contains')
   const [pattern, setPattern] = useState('')
@@ -130,7 +139,7 @@ export function CategorizationSection() {
     event.preventDefault()
     const name = categoryName.trim()
     if (!name) return
-    addCategory({ name, kind: categoryKind })
+    addCategory({ name, kind: categoryKind, cashflowTreatment })
     setCategoryName('')
   }
 
@@ -288,7 +297,7 @@ export function CategorizationSection() {
       )}
 
       <Collapsible title="Kategorie" defaultOpen badge={String(categories.length)}>
-        <form onSubmit={createCategory} className="grid gap-2 sm:grid-cols-[minmax(12rem,1fr)_10rem_auto]">
+        <form onSubmit={createCategory} className="grid gap-2 sm:grid-cols-[minmax(12rem,1fr)_10rem_12rem_auto]">
           <input
             value={categoryName}
             onChange={event => setCategoryName(event.target.value)}
@@ -302,6 +311,13 @@ export function CategorizationSection() {
           >
             {Object.entries(KIND_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
+          <select
+            value={cashflowTreatment}
+            onChange={event => setCashflowTreatment(event.target.value as CashflowTreatment)}
+            className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-800 dark:bg-gray-950 dark:focus:ring-gray-700"
+          >
+            {Object.entries(CASHFLOW_TREATMENT_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </select>
           <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-md bg-gray-950 px-3 py-2 text-sm text-white dark:bg-gray-100 dark:text-gray-950">
             <Plus size={16} />
             Dodaj
@@ -309,22 +325,38 @@ export function CategorizationSection() {
         </form>
 
         <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-          {categories.map(category => (
-            <div key={category.id} className="flex items-center justify-between gap-3 rounded-md border border-gray-200 px-3 py-2 dark:border-gray-800">
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">{category.name}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{KIND_LABELS[category.kind]}</p>
+          {categories.map(category => {
+            const treatment = category.cashflowTreatment ?? 'expense'
+
+            return (
+              <div key={category.id} className="flex items-center justify-between gap-3 rounded-md border border-gray-200 px-3 py-2 dark:border-gray-800">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">{category.name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {KIND_LABELS[category.kind]} · {CASHFLOW_TREATMENT_LABELS[treatment]}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <select
+                    value={treatment}
+                    onChange={event => updateCategory(category.id, { cashflowTreatment: event.target.value as CashflowTreatment })}
+                    className="w-36 rounded-md border border-gray-200 bg-white px-2 py-1.5 text-xs text-gray-700 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-200"
+                    aria-label={`Traktowanie cashflow kategorii ${category.name}`}
+                  >
+                    {Object.entries(CASHFLOW_TREATMENT_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => removeCategory(category.id)}
+                    className="rounded-md p-2 text-gray-400 transition-colors hover:bg-gray-50 hover:text-red-600 dark:hover:bg-gray-800"
+                    aria-label={`Usuń kategorię ${category.name}`}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={() => removeCategory(category.id)}
-                className="rounded-md p-2 text-gray-400 transition-colors hover:bg-gray-50 hover:text-red-600 dark:hover:bg-gray-800"
-                aria-label={`Usun kategorie ${category.name}`}
-              >
-                <Trash2 size={16} />
-              </button>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </Collapsible>
 

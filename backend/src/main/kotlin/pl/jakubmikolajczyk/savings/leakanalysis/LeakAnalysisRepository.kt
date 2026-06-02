@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
 import pl.jakubmikolajczyk.savings.dto.CategoryKind
+import pl.jakubmikolajczyk.savings.dto.CashflowTreatment
 import pl.jakubmikolajczyk.savings.dto.CycleCategoryRollupDto
 import pl.jakubmikolajczyk.savings.dto.MicroExpenseRollupDto
 import pl.jakubmikolajczyk.savings.dto.PayPeriodDto
@@ -36,16 +37,19 @@ class LeakAnalysisRepository(private val jdbc: NamedParameterJdbcTemplate) {
     }
 
     private val rollupMapper = RowMapper { rs: ResultSet, _: Int ->
-        CycleCategoryRollupDto(
-            categoryId = rs.getObject("category_id", java.lang.Long::class.java)?.toLong(),
-            categoryName = rs.getString("category_name"),
-            categoryKind = rs.getString("category_kind")?.let(CategoryKind::valueOf),
-            amount = rs.getBigDecimal("amount"),
-            income = rs.getBigDecimal("income"),
-            expense = rs.getBigDecimal("expense"),
-            transactionCount = rs.getInt("transaction_count"),
-        )
-    }
+            CycleCategoryRollupDto(
+                categoryId = rs.getObject("category_id", java.lang.Long::class.java)?.toLong(),
+                categoryName = rs.getString("category_name"),
+                categoryKind = rs.getString("category_kind")?.let(CategoryKind::valueOf),
+                cashflowTreatment = CashflowTreatment.valueOf(rs.getString("cashflow_treatment")),
+                amount = rs.getBigDecimal("amount"),
+                income = rs.getBigDecimal("income"),
+                expense = rs.getBigDecimal("expense"),
+                savingsContribution = rs.getBigDecimal("savings_contribution"),
+                savingsWithdrawal = rs.getBigDecimal("savings_withdrawal"),
+                transactionCount = rs.getInt("transaction_count"),
+            )
+        }
 
     private val microMapper = RowMapper { rs: ResultSet, _: Int ->
         MicroExpenseRollupDto(
@@ -68,9 +72,17 @@ class LeakAnalysisRepository(private val jdbc: NamedParameterJdbcTemplate) {
                     period.period_end,
                     period.anchor_tx_id,
                     period.is_partial,
-                    coalesce(sum(case when tx.amount > 0 and coalesce(category.name, '') <> 'Transfery' then tx.amount else 0 end), 0) as income,
-                    coalesce(sum(case when tx.amount < 0 and coalesce(category.name, '') <> 'Transfery' then abs(tx.amount) else 0 end), 0) as expense,
-                    coalesce(sum(case when coalesce(category.name, '') = 'Transfery' then 0 else tx.amount end), 0) as net
+                    coalesce(sum(case
+                        when tx.amount > 0
+                         and coalesce(category.cashflow_treatment, 'expense') not in ('internal_transfer', 'savings')
+                        then tx.amount else 0 end), 0) as income,
+                    coalesce(sum(case
+                        when tx.amount < 0
+                         and coalesce(category.cashflow_treatment, 'expense') not in ('internal_transfer', 'savings')
+                        then abs(tx.amount) else 0 end), 0) as expense,
+                    coalesce(sum(case
+                        when coalesce(category.cashflow_treatment, 'expense') = 'internal_transfer' then 0
+                        else tx.amount end), 0) as net
                 from finance.pay_periods period
                 join finance.accounts account on account.id = period.account_id
                 left join finance.tx_with_period tx
@@ -87,10 +99,20 @@ class LeakAnalysisRepository(private val jdbc: NamedParameterJdbcTemplate) {
     fun categoryRollups(accountId: UUID, periodNo: Int): List<CycleCategoryRollupDto> =
         jdbc.query(
             """
-                select category_id, category_name, category_kind, amount, income, expense, transaction_count
+                select
+                    category_id,
+                    category_name,
+                    category_kind,
+                    cashflow_treatment,
+                    amount,
+                    income,
+                    expense,
+                    savings_contribution,
+                    savings_withdrawal,
+                    transaction_count
                 from finance.cycle_category_rollup
                 where account_id = :accountId and period_no = :periodNo
-                order by expense desc, abs(amount) desc, category_name
+                order by expense desc, savings_contribution desc, abs(amount) desc, category_name
             """.trimIndent(),
             params(accountId, periodNo),
             rollupMapper,
@@ -111,6 +133,7 @@ class LeakAnalysisRepository(private val jdbc: NamedParameterJdbcTemplate) {
                   and tx.period_no = :periodNo
                   and tx.amount < 0
                   and abs(tx.amount) < 50
+                  and coalesce(category.cashflow_treatment, 'expense') not in ('internal_transfer', 'savings')
                 group by tx.category_id, category.name, category.kind
                 order by expense desc, transaction_count desc, category_name
             """.trimIndent(),
@@ -135,6 +158,7 @@ class LeakAnalysisRepository(private val jdbc: NamedParameterJdbcTemplate) {
                 where tx.account_id = :accountId
                   and tx.period_no is not null
                   and tx.amount < 0
+                  and coalesce(category.cashflow_treatment, 'expense') not in ('internal_transfer', 'savings')
                 order by tx.booked_at, tx.id
             """.trimIndent(),
             mapOf("accountId" to accountId),

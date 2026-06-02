@@ -263,6 +263,13 @@ enum class CategoryKind {
     recurring,
 }
 
+enum class CashflowTreatment {
+    expense,
+    income,
+    internal_transfer,
+    savings,
+}
+
 enum class RuleMatchField {
     description,
     counterparty,
@@ -277,6 +284,7 @@ data class CategoryDto(
     val id: Long? = null,
     @field:NotBlank val name: String,
     @field:NotNull val kind: CategoryKind,
+    @field:NotNull val cashflowTreatment: CashflowTreatment = CashflowTreatment.expense,
     val parentId: Long? = null,
 )
 
@@ -380,9 +388,12 @@ data class CycleCategoryRollupDto(
     val categoryId: Long? = null,
     @field:NotBlank val categoryName: String,
     val categoryKind: CategoryKind? = null,
+    val cashflowTreatment: CashflowTreatment = CashflowTreatment.expense,
     @field:NotNull val amount: BigDecimal,
     @field:NotNull val income: BigDecimal,
     @field:NotNull val expense: BigDecimal,
+    @field:NotNull val savingsContribution: BigDecimal = BigDecimal.ZERO,
+    @field:NotNull val savingsWithdrawal: BigDecimal = BigDecimal.ZERO,
     @field:Min(0) val transactionCount: Int,
 )
 
@@ -446,6 +457,8 @@ data class FreeCashCycleDto(
     @field:NotNull val variableExpense: BigDecimal,
     @field:NotNull val uncategorizedExpense: BigDecimal,
     @field:NotNull val totalExpense: BigDecimal,
+    @field:NotNull val savingsContribution: BigDecimal = BigDecimal.ZERO,
+    @field:NotNull val savingsWithdrawal: BigDecimal = BigDecimal.ZERO,
     @field:NotNull val net: BigDecimal,
     @field:NotNull val freeCash: BigDecimal,
 )
