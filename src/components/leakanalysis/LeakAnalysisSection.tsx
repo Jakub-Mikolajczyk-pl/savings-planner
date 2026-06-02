@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { AlertTriangle, Lock, Repeat, Scissors, TrendingUp, Unlock } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -6,6 +6,14 @@ import { IS_API_MODE } from '../../config'
 import { formatPLN } from '../../domain/formatting'
 import type { BankTransaction, Category, CycleLeakAnalysis, PayPeriod } from '../../domain/types'
 import { useStore } from '../../store'
+import { SortableTransactionHeader } from '../transactions/SortableTransactionHeader'
+import {
+  DEFAULT_TRANSACTION_SORT,
+  nextTransactionSort,
+  sortTransactions,
+  type TransactionSort,
+  type TransactionSortKey,
+} from '../transactions/transactionSorting'
 import { Collapsible } from '../ui/Collapsible'
 
 interface Props {
@@ -278,31 +286,39 @@ function CycleTransactionsReview({
   categories: Category[]
   onAssignCategory: (transactionId: number, categoryId: number | undefined, locked?: boolean) => Promise<void>
 }) {
+  const [transactionSort, setTransactionSort] = useState<TransactionSort>(DEFAULT_TRANSACTION_SORT)
   const categoryById = useMemo(
     () => new Map(categories.map(category => [category.id, category])),
     [categories],
   )
+  const sortedTransactions = useMemo(
+    () => transactions ? sortTransactions(transactions, categories, transactionSort) : undefined,
+    [categories, transactionSort, transactions],
+  )
+  const sortByTransactionColumn = (key: TransactionSortKey) => {
+    setTransactionSort(current => nextTransactionSort(current, key))
+  }
 
   return (
-    <Collapsible title="Transakcje w cyklu" badge={transactions ? String(transactions.length) : '...'}>
-      {transactions === undefined ? (
+    <Collapsible title="Transakcje w cyklu" badge={sortedTransactions ? String(sortedTransactions.length) : '...'}>
+      {sortedTransactions === undefined ? (
         <p className="text-sm text-gray-500 dark:text-gray-400">Ładuję transakcje cyklu...</p>
-      ) : transactions.length === 0 ? (
+      ) : sortedTransactions.length === 0 ? (
         <Empty text="Brak transakcji w tym cyklu." />
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead className="text-left text-xs text-gray-500 dark:text-gray-400">
               <tr className="border-b border-gray-200 dark:border-gray-800">
-                <th className="py-2 pr-3 font-medium">Data</th>
-                <th className="py-2 pr-3 font-medium">Opis</th>
-                <th className="py-2 pr-3 text-right font-medium">Kwota</th>
-                <th className="py-2 pr-3 font-medium">Kategoria</th>
-                <th className="py-2 pr-0 font-medium">Blokada</th>
+                <SortableTransactionHeader label="Data" sortKey="bookedAt" sort={transactionSort} onSort={sortByTransactionColumn} />
+                <SortableTransactionHeader label="Opis" sortKey="description" sort={transactionSort} onSort={sortByTransactionColumn} />
+                <SortableTransactionHeader label="Kwota" sortKey="amount" sort={transactionSort} onSort={sortByTransactionColumn} align="right" />
+                <SortableTransactionHeader label="Kategoria" sortKey="category" sort={transactionSort} onSort={sortByTransactionColumn} />
+                <SortableTransactionHeader label="Blokada" sortKey="categoryLocked" sort={transactionSort} onSort={sortByTransactionColumn} className="py-2 pr-0" />
               </tr>
             </thead>
             <tbody>
-              {transactions.map(transaction => {
+              {sortedTransactions.map(transaction => {
                 const categoryName = transaction.categoryId
                   ? categoryById.get(transaction.categoryId)?.name
                   : undefined
