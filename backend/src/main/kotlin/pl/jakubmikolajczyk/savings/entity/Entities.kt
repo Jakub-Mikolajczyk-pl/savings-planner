@@ -137,6 +137,13 @@ class SubscriptionEntity(
     var category: String? = null,
     @Column(name = "next_charge")
     var nextCharge: LocalDate? = null,
+    @Column(name = "billing_period")
+    var billingPeriod: String? = null,
+    @Column(name = "billing_amount")
+    var billingAmount: BigDecimal? = null,
+    var shared: Boolean? = null,
+    @Column(name = "share_count")
+    var shareCount: Int? = null,
 )
 
 @Entity

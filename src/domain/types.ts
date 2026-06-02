@@ -21,13 +21,19 @@ export interface LoanProgress {
   projectedPayoffMonth?: string // beyond horizon
 }
 
+export type BillingPeriod = 'monthly' | 'yearly'
+
 export interface Subscription {
   id: string
   name: string
-  monthlyAmount: number
+  monthlyAmount: number // efektywny koszt MIESIĘCZNY usera (po normalizacji okresu i podziale) — źródło cashflow
   active: boolean
   category?: string
   nextCharge?: string // "YYYY-MM-DD", opcjonalne pod alerty
+  billingPeriod?: BillingPeriod // jak naliczane; brak => 'monthly' (legacy)
+  billingAmount?: number // pełna kwota za okres rozliczeniowy, przed podziałem; brak => monthlyAmount (legacy)
+  shared?: boolean // abonament rodzinny / współdzielony — składam się z innymi
+  shareCount?: number // liczba osób się składających (z userem); efektywny = billingAmount/okres / shareCount
 }
 
 export interface UpcomingExpense {

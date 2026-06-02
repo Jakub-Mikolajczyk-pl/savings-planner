@@ -176,6 +176,10 @@ fun SubscriptionEntity.toDto() = SubscriptionDto(
     active = active,
     category = category,
     nextCharge = nextCharge?.toString(),
+    billingPeriod = billingPeriod,
+    billingAmount = billingAmount,
+    shared = shared,
+    shareCount = shareCount,
 )
 
 fun SubscriptionDto.toEntity(existing: SubscriptionEntity? = null) = (existing ?: SubscriptionEntity()).also {
@@ -195,6 +199,10 @@ fun SubscriptionDto.toEntity(existing: SubscriptionEntity? = null) = (existing ?
      *     nextCharge == null ? null : toIsoDate(nextCharge)
      */
     it.nextCharge = nextCharge?.toIsoDate()
+    it.billingPeriod = billingPeriod
+    it.billingAmount = billingAmount
+    it.shared = shared
+    it.shareCount = shareCount
 }
 
 fun UpcomingExpenseEntity.toDto() = UpcomingExpenseDto(
