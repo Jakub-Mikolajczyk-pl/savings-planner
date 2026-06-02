@@ -34,6 +34,10 @@ interface LlmQueueStatus {
   llmAttempted: number
   llmCategorized: number
   llmNoSuggestion: number
+  llmLowConfidence: number
+  llmParseErrors: number
+  llmTransportErrors: number
+  llmCategoryMismatch: number
   initialUncategorized?: number
   remainingUncategorized?: number
   message?: string
@@ -47,12 +51,20 @@ const emptyQueueStatus = (): LlmQueueStatus => ({
   llmAttempted: 0,
   llmCategorized: 0,
   llmNoSuggestion: 0,
+  llmLowConfidence: 0,
+  llmParseErrors: 0,
+  llmTransportErrors: 0,
+  llmCategoryMismatch: 0,
 })
 
 const resultSummary = (result: RecategorizeResult) =>
   `zmieniono ${result.changed ?? 0}, nowe ${result.newlyCategorized ?? 0}, ` +
   `LLM ${result.llmCategorized ?? 0}/${result.llmAttempted ?? 0}` +
   (result.llmNoSuggestion ? `, bez werdyktu ${result.llmNoSuggestion}` : '') +
+  (result.llmLowConfidence ? `, niska pewność ${result.llmLowConfidence}` : '') +
+  (result.llmParseErrors ? `, JSON ${result.llmParseErrors}` : '') +
+  (result.llmTransportErrors ? `, Ollama error ${result.llmTransportErrors}` : '') +
+  (result.llmCategoryMismatch ? `, zła kategoria ${result.llmCategoryMismatch}` : '') +
   (result.remainingUncategorized !== undefined ? `, bez kategorii ${result.remainingUncategorized}` : '')
 
 export function CategorizationSection() {
@@ -151,6 +163,10 @@ export function CategorizationSection() {
         llmAttempted: status.llmAttempted + (result.llmAttempted ?? 0),
         llmCategorized: status.llmCategorized + (result.llmCategorized ?? 0),
         llmNoSuggestion: status.llmNoSuggestion + (result.llmNoSuggestion ?? 0),
+        llmLowConfidence: status.llmLowConfidence + (result.llmLowConfidence ?? 0),
+        llmParseErrors: status.llmParseErrors + (result.llmParseErrors ?? 0),
+        llmTransportErrors: status.llmTransportErrors + (result.llmTransportErrors ?? 0),
+        llmCategoryMismatch: status.llmCategoryMismatch + (result.llmCategoryMismatch ?? 0),
         initialUncategorized,
         remainingUncategorized: result.remainingUncategorized,
         message: result.llmLimitReached ? 'Kolejny batch...' : 'Kolejka zakonczona.',
@@ -248,6 +264,8 @@ export function CategorizationSection() {
           <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
             Batchy {llmQueueStatus.batches} · nowe {llmQueueStatus.newlyCategorized} · zmienione {llmQueueStatus.changed} ·
             {' '}LLM {llmQueueStatus.llmCategorized}/{llmQueueStatus.llmAttempted} · bez werdyktu {llmQueueStatus.llmNoSuggestion}
+            {' '}· niska pewność {llmQueueStatus.llmLowConfidence} · JSON {llmQueueStatus.llmParseErrors}
+            {' '}· Ollama {llmQueueStatus.llmTransportErrors} · zła kategoria {llmQueueStatus.llmCategoryMismatch}
             {llmQueueStatus.remainingUncategorized !== undefined ? ` · bez kategorii ${llmQueueStatus.remainingUncategorized}` : ''}
           </p>
         </div>

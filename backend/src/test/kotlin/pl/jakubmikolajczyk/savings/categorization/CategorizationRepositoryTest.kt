@@ -38,7 +38,14 @@ class CategorizationRepositoryTest @Autowired constructor(
         repository,
         llmCategorySuggester = object : LlmCategorySuggester {
             override fun suggest(input: LlmCategorizationInput, categories: List<pl.jakubmikolajczyk.savings.dto.CategoryDto>) =
-                LlmCategorySuggestion(categoryName = "Zakupy spożywcze", confidence = BigDecimal("0.91"))
+                LlmCategoryDecision(
+                    outcome = LlmCategoryOutcome.categorized,
+                    suggestion = LlmCategorySuggestion(
+                        categoryId = categories.first { it.name == "Zakupy spozywcze" }.id,
+                        categoryName = "Zakupy spozywcze",
+                        confidence = BigDecimal("0.91"),
+                    ),
+                )
         },
     )
 

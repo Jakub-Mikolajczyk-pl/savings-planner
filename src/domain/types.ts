@@ -108,6 +108,10 @@ export interface RecategorizeResult {
   llmAttempted?: number
   llmCategorized?: number
   llmNoSuggestion?: number
+  llmLowConfidence?: number
+  llmParseErrors?: number
+  llmTransportErrors?: number
+  llmCategoryMismatch?: number
   llmLastTransactionId?: number
   remainingUncategorized?: number
   llmLimitReached?: boolean
