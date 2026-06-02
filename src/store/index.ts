@@ -92,6 +92,8 @@ interface SyncState {
   syncError?: string
   lastSyncedAt?: string
   leakAnalysis?: CycleLeakAnalysis
+  cycleTransactions?: BankTransaction[]
+  cycleTransactionsPeriod?: { accountId: string; periodNo: number }
   goalInsights?: GoalInsights
 }
 
@@ -122,6 +124,7 @@ interface AppState extends DataState, SyncState {
   loadCategorization: (options?: boolean | CategorizationLoadOptions) => Promise<void>
   loadPayPeriods: () => Promise<void>
   loadLeakAnalysis: (accountId: string, periodNo: number) => Promise<void>
+  loadCycleTransactions: (accountId: string, periodNo: number) => Promise<void>
   loadGoalInsights: (accountId?: string) => Promise<void>
   clearSyncError: () => void
 
@@ -147,7 +150,7 @@ interface AppState extends DataState, SyncState {
   addCategoryRule: (rule: Omit<CategoryRule, 'id' | 'source'> & { source?: CategoryRule['source'] }) => void
   updateCategoryRule: (id: number, patch: Partial<Omit<CategoryRule, 'id'>>) => void
   removeCategoryRule: (id: number) => void
-  overrideTransactionCategory: (id: number, categoryId: number | undefined, locked?: boolean) => void
+  overrideTransactionCategory: (id: number, categoryId: number | undefined, locked?: boolean) => Promise<void>
   recategorizeTransactions: (accountId?: string, afterTransactionId?: number) => Promise<RecategorizeResult>
   addIncomeAnchor: (accountId: string, counterparty: string) => Promise<void>
   removeIncomeAnchor: (id: number) => Promise<void>
@@ -479,6 +482,8 @@ export const useStore = create<AppState>()(
         syncError: undefined,
         lastSyncedAt: undefined,
         leakAnalysis: undefined,
+        cycleTransactions: undefined,
+        cycleTransactionsPeriod: undefined,
         goalInsights: undefined,
         whatIfDelta: 0,
         loanOverpayment: 0,
@@ -707,6 +712,25 @@ export const useStore = create<AppState>()(
             set({ leakAnalysis, lastSyncedAt: syncStamp() })
           } catch (error) {
             set({ leakAnalysis: undefined, syncError: describeSyncError(error) })
+          }
+        },
+
+        loadCycleTransactions: async (accountId, periodNo) => {
+          if (!IS_API_MODE) return
+          set({ syncError: undefined })
+          try {
+            const cycleTransactions = await transactionsApi.list({ accountId, periodNo, limit: 5000 })
+            set({
+              cycleTransactions,
+              cycleTransactionsPeriod: { accountId, periodNo },
+              lastSyncedAt: syncStamp(),
+            })
+          } catch (error) {
+            set({
+              cycleTransactions: undefined,
+              cycleTransactionsPeriod: undefined,
+              syncError: describeSyncError(error),
+            })
           }
         },
 
@@ -987,14 +1011,23 @@ export const useStore = create<AppState>()(
           runMutation(snapshot, () => categoryRulesApi.remove(id))
         },
 
-        overrideTransactionCategory: (id, categoryId, locked = true) => {
+        overrideTransactionCategory: async (id, categoryId, locked = true) => {
           const snapshot = dataSnapshot(get())
           set(s => ({
             transactions: s.transactions.map(transaction =>
               transaction.id === id ? { ...transaction, categoryId, categoryLocked: locked } : transaction,
             ),
+            cycleTransactions: s.cycleTransactions?.map(transaction =>
+              transaction.id === id ? { ...transaction, categoryId, categoryLocked: locked } : transaction,
+            ),
           }))
-          runMutation(snapshot, () => transactionsApi.overrideCategory(id, categoryId, locked))
+          if (!IS_API_MODE) return
+          try {
+            await transactionsApi.overrideCategory(id, categoryId, locked)
+            markSynced()
+          } catch (error) {
+            rollbackOnFailure(snapshot, error)
+          }
         },
 
         recategorizeTransactions: async (accountId, afterTransactionId) => {
