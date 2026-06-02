@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { FileUp, Upload } from 'lucide-react'
 import { IS_API_MODE } from '../../config'
-import type { BankSource, IngestResult } from '../../domain/types'
+import type { Account, BankSource, IngestResult } from '../../domain/types'
 import { useStore } from '../../store'
 
 const BANK_LABELS: Record<BankSource, string> = {
@@ -10,16 +10,27 @@ const BANK_LABELS: Record<BankSource, string> = {
   VELO_PDF: 'Velo PDF',
 }
 
+const BANK_ACCOUNT_MATCHERS: Record<BankSource, (account: Account) => boolean> = {
+  ALIOR_CSV: account => /\balior\b/i.test(account.name),
+  VELO_PDF: account => /\bvelo\b/i.test(account.name),
+}
+
 export function IngestSection() {
   const accounts = useStore(s => s.accounts)
   const importBankStatement = useStore(s => s.importBankStatement)
   const syncError = useStore(s => s.syncError)
   const [bank, setBank] = useState<BankSource>('ALIOR_CSV')
-  const [accountId, setAccountId] = useState(accounts[0]?.id ?? '')
+  const [accountId, setAccountId] = useState('')
   const [file, setFile] = useState<File | undefined>()
   const [isUploading, setIsUploading] = useState(false)
   const [result, setResult] = useState<IngestResult | undefined>()
-  const selectedAccountId = accountId || accounts[0]?.id || ''
+  const eligibleAccounts = useMemo(
+    () => accounts.filter(BANK_ACCOUNT_MATCHERS[bank]),
+    [accounts, bank],
+  )
+  const selectedAccountId = eligibleAccounts.some(account => account.id === accountId)
+    ? accountId
+    : eligibleAccounts[0]?.id ?? ''
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
@@ -38,7 +49,7 @@ export function IngestSection() {
   if (!IS_API_MODE) {
     return (
       <div className="rounded-md border border-dashed border-gray-200 px-4 py-6 text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
-        Import wyciagu bankowego jest dostepny w trybie API.
+        Import wyciągu bankowego jest dostępny w trybie API.
       </div>
     )
   }
@@ -62,9 +73,14 @@ export function IngestSection() {
           <select
             value={selectedAccountId}
             onChange={event => setAccountId(event.target.value)}
+            disabled={eligibleAccounts.length === 0}
             className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-100"
           >
-            {accounts.map(account => <option key={account.id} value={account.id}>{account.name}</option>)}
+            {eligibleAccounts.length > 0 ? (
+              eligibleAccounts.map(account => <option key={account.id} value={account.id}>{account.name}</option>)
+            ) : (
+              <option value="">Brak konta dla importera {BANK_LABELS[bank]}</option>
+            )}
           </select>
         </label>
 
@@ -90,14 +106,20 @@ export function IngestSection() {
 
       {accounts.length === 0 && (
         <p className="rounded-md border border-dashed border-gray-200 px-3 py-3 text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
-          Najpierw dodaj konto w zakladce Majatek, bo import musi wiedziec, do ktorego rachunku przypisac transakcje.
+          Najpierw dodaj konto w zakładce Majątek, bo import musi wiedzieć, do którego rachunku przypisać transakcje.
+        </p>
+      )}
+
+      {accounts.length > 0 && eligibleAccounts.length === 0 && (
+        <p className="rounded-md border border-dashed border-gray-200 px-3 py-3 text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
+          Ten importer obsługuje tylko konto o nazwie pasującej do banku: Alior dla CSV albo Velo dla PDF.
         </p>
       )}
 
       {result && (
         <p className="text-sm text-gray-600 dark:text-gray-400">
           Zaimportowano <span className="font-medium text-gray-900 dark:text-gray-100">{result.inserted}</span>,
-          pominieto duplikaty <span className="font-medium text-gray-900 dark:text-gray-100">{result.skipped}</span>.
+          pominięto duplikaty <span className="font-medium text-gray-900 dark:text-gray-100">{result.skipped}</span>.
         </p>
       )}
 

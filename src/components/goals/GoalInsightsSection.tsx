@@ -17,19 +17,19 @@ export function GoalInsightsSection() {
   if (!IS_API_MODE) {
     return (
       <div className="rounded-md border border-dashed border-gray-200 px-3 py-4 text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
-        Realne tempo celow jest dostepne w trybie API po imporcie transakcji bankowych.
+        Realne tempo celów jest dostępne w trybie API po imporcie transakcji bankowych.
       </div>
     )
   }
 
   if (!goalInsights) {
-    return <p className="text-sm text-gray-500 dark:text-gray-400">Laduje realne tempo celow...</p>
+    return <p className="text-sm text-gray-500 dark:text-gray-400">Ładuję realne tempo celów...</p>
   }
 
   if (!goalInsights.currentCycle && goalInsights.goals.length === 0) {
     return (
       <div className="rounded-md border border-dashed border-gray-200 px-3 py-4 text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
-        Brak cykli i celow do policzenia. Ustaw kotwice wyplaty oraz dodaj cele.
+        Brak cykli i celów do policzenia. Ustaw kotwice wypłaty oraz dodaj cele.
       </div>
     )
   }
@@ -40,7 +40,7 @@ export function GoalInsightsSection() {
         {goalInsights.currentCycle ? (
           <FreeCashPanel cycle={goalInsights.currentCycle} />
         ) : (
-          <EmptyPanel title="Wolna gotowka" text="Brak cykli budzetowych. Ustaw kotwice wyplaty w Transakcjach." />
+          <EmptyPanel title="Wolna gotówka" text="Brak cykli budżetowych. Ustaw kotwice wypłaty w Transakcjach." />
         )}
 
         <div className="rounded-md border border-gray-200 p-3 dark:border-gray-800">
@@ -49,9 +49,9 @@ export function GoalInsightsSection() {
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Tempo z historii</h3>
           </div>
           <div className="grid gap-2 sm:grid-cols-3 xl:grid-cols-1">
-            <Metric label="Pelne cykle" value={String(goalInsights.cycleCount)} />
-            <Metric label="Srednie netto" value={formatPLN(goalInsights.averageNetPerCycle)} tone={goalInsights.averageNetPerCycle < 0 ? 'negative' : 'positive'} />
-            <Metric label="Srednia wolna gotowka" value={formatPLN(goalInsights.averageFreeCashPerCycle)} tone="positive" />
+            <Metric label="Pełne cykle" value={String(goalInsights.cycleCount)} />
+            <Metric label="Średnie netto" value={formatPLN(goalInsights.averageNetPerCycle)} tone={goalInsights.averageNetPerCycle < 0 ? 'negative' : 'positive'} />
+            <Metric label="Średnia wolna gotówka" value={formatPLN(goalInsights.averageFreeCashPerCycle)} tone="positive" />
           </div>
         </div>
       </div>
@@ -83,9 +83,9 @@ function FreeCashPanel({ cycle }: { cycle: FreeCashCycle }) {
         <div className="flex items-center gap-2">
           <Activity size={16} className="text-gray-500 dark:text-gray-400" />
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Wolna gotowka biezacego cyklu</h3>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Wolna gotówka bieżącego cyklu</h3>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              {cycle.accountName}: {cycle.periodStart} - {cycle.periodEnd ?? 'teraz'}{cycle.isPartial ? ' (czesciowy)' : ''}
+              {cycle.accountName}: {cycle.periodStart} - {cycle.periodEnd ?? 'teraz'}{cycle.isPartial ? ' (częściowy)' : ''}
             </p>
           </div>
         </div>
@@ -94,15 +94,15 @@ function FreeCashPanel({ cycle }: { cycle: FreeCashCycle }) {
         </span>
       </div>
 
-      <div className="h-3 overflow-hidden rounded-sm bg-gray-100 dark:bg-gray-800" aria-label="Podzial przychodu w cyklu">
+      <div className="h-3 overflow-hidden rounded-sm bg-gray-100 dark:bg-gray-800" aria-label="Podział przychodu w cyklu">
         <div className="flex h-full">
           <div className="bg-gray-400/70 dark:bg-gray-500/70" style={{ width: `${committedPct}%` }} />
           <div className="bg-teal-500/80" style={{ width: `${freePct}%` }} />
         </div>
       </div>
       <div className="mt-2 grid gap-2 text-xs text-gray-500 dark:text-gray-400 sm:grid-cols-3">
-        <span>Koszty stale: {formatPLN(cycle.committedExpense)}</span>
-        <span>Wolna gotowka: {formatPLN(cycle.freeCash)}</span>
+        <span>Koszty stałe: {formatPLN(cycle.committedExpense)}</span>
+        <span>Wolna gotówka: {formatPLN(cycle.freeCash)}</span>
         <span>Uznaniowe z wolnej: {formatPLN(cycle.variableExpense + cycle.uncategorizedExpense)} ({Math.round(variableUsedPct)}%)</span>
       </div>
     </div>
@@ -179,7 +179,7 @@ function statusCopy(status: GoalPaceStatus): { label: string; className: string 
     case 'unreachable':
       return { label: 'nieosiagalny', className: 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300' }
     case 'behind_plan':
-      return { label: 'ponizej planu', className: 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300' }
+      return { label: 'poniżej planu', className: 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300' }
     case 'on_track':
       return { label: 'realne tempo', className: 'bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300' }
   }
