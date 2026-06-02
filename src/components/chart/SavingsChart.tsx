@@ -130,12 +130,12 @@ export function SavingsChart() {
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Wolna gotowka</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Wolna gotówka</p>
             <p className="font-semibold tabular-nums text-gray-900 dark:text-gray-100">{formatPLN(goalInsights.averageFreeCashPerCycle)}/cykl</p>
           </div>
           <div>
             <p className="text-xs text-gray-500 dark:text-gray-400">Historia</p>
-            <p className="font-semibold tabular-nums text-gray-900 dark:text-gray-100">{goalInsights.cycleCount} pelnych cykli</p>
+            <p className="font-semibold tabular-nums text-gray-900 dark:text-gray-100">{goalInsights.cycleCount} pełnych cykli</p>
           </div>
         </div>
       )}

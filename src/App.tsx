@@ -378,14 +378,14 @@ function TransactionsPage() {
 
   return (
     <div className="space-y-5">
-      <PageHeader title="Transakcje" description="Cykle od wyplaty do wyplaty, kategorie i reczne przypisania operacji." icon={Tags} accent="assets" />
-      <SectionCard title="Import wyciagu" description="CSV/PDF z banku wpada do transakcji, kategorii i cykli." icon={FileUp} accent="assets">
+      <PageHeader title="Transakcje" description="Cykle od wypłaty do wypłaty, kategorie i ręczne przypisania operacji." icon={Tags} accent="assets" />
+      <SectionCard title="Import wyciągu" description="CSV/PDF z banku wpada do transakcji, kategorii i cykli." icon={FileUp} accent="assets">
         <IngestSection />
       </SectionCard>
-      <SectionCard title="Cykle budzetowe" icon={CalendarClock} accent="assets">
+      <SectionCard title="Cykle budżetowe" icon={CalendarClock} accent="assets">
         <PayPeriodsSection selectedKey={selectedPayPeriodKey} onSelectedKeyChange={setSelectedPayPeriodKey} />
       </SectionCard>
-      <SectionCard title="Analiza wycieku" description="Kategorie, cykliczne obciazenia, mikro-wydatki i wzrosty vs poprzednie cykle." icon={TrendingUp} accent="assets">
+      <SectionCard title="Analiza wycieku" description="Kategorie, cykliczne obciążenia, mikro-wydatki i wzrosty vs poprzednie cykle." icon={TrendingUp} accent="assets">
         <LeakAnalysisSection selectedPeriod={selectedPeriod} />
       </SectionCard>
       <SectionCard title="Kategoryzacja" icon={Tags} accent="assets">

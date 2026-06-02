@@ -52,7 +52,7 @@ export function PayPeriodsSection({ selectedKey: controlledSelectedKey, onSelect
   if (!IS_API_MODE) {
     return (
       <div className="rounded-md border border-dashed border-gray-200 px-4 py-6 text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
-        Cykle od wyplaty do wyplaty sa dostepne w trybie API.
+        Cykle od wypłaty do wypłaty są dostępne w trybie API.
       </div>
     )
   }
@@ -104,14 +104,14 @@ export function PayPeriodsSection({ selectedKey: controlledSelectedKey, onSelect
               ))}
             </select>
             <div className="grid gap-2 sm:grid-cols-3">
-              <Metric label="Wplyw" value={formatPLN(selectedPeriod.income)} tone="positive" />
+              <Metric label="Wpływ" value={formatPLN(selectedPeriod.income)} tone="positive" />
               <Metric label="Wydatek" value={formatPLN(selectedPeriod.expense)} tone="negative" />
               <Metric label="Netto" value={formatPLN(selectedPeriod.net)} tone={selectedPeriod.net < 0 ? 'negative' : 'positive'} />
             </div>
           </div>
         ) : (
           <p className="rounded-md border border-dashed border-gray-200 px-3 py-6 text-center text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
-            Dodaj kotwice przychodu, zeby wyznaczyc cykle.
+            Dodaj kotwice przychodu, żeby wyznaczyć cykle.
           </p>
         )}
       </Collapsible>
@@ -170,7 +170,7 @@ export function PayPeriodsSection({ selectedKey: controlledSelectedKey, onSelect
                 type="button"
                 onClick={() => void removeIncomeAnchor(anchor.id)}
                 className="rounded-md p-2 text-gray-400 transition-colors hover:bg-gray-50 hover:text-red-600 dark:hover:bg-gray-800"
-                aria-label={`Usun kotwice ${anchor.counterparty}`}
+                aria-label={`Usuń kotwicę ${anchor.counterparty}`}
               >
                 <Trash2 size={16} />
               </button>
@@ -198,7 +198,7 @@ function Metric({ label, value, tone = 'neutral' }: { label: string; value: stri
 }
 
 function selectedPeriodLabel(period: { periodStart: string; periodEnd?: string; isPartial: boolean }) {
-  return `${period.periodStart} - ${period.periodEnd ?? 'teraz'}${period.isPartial ? ' (czesciowy)' : ''}`
+  return `${period.periodStart} - ${period.periodEnd ?? 'teraz'}${period.isPartial ? ' (częściowy)' : ''}`
 }
 
 function anchorKey(accountId: string, counterparty: string) {
