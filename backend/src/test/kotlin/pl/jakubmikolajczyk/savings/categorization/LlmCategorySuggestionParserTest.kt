@@ -11,8 +11,9 @@ class LlmCategorySuggestionParserTest {
 
     @Test
     fun `parses ollama json response`() {
-        val suggestion = parser.parse("""{"category":"Zakupy spozywcze","confidence":0.93}""")
+        val suggestion = parser.parse("""{"categoryId":1,"category":"Zakupy spozywcze","confidence":0.93}""")
 
+        assertEquals(1L, suggestion?.categoryId)
         assertEquals("Zakupy spozywcze", suggestion?.categoryName)
         assertEquals(0, BigDecimal("0.93").compareTo(suggestion!!.confidence!!))
     }
@@ -21,12 +22,16 @@ class LlmCategorySuggestionParserTest {
     fun `accepts polish field names returned by a local model`() {
         val suggestion = parser.parse("""{"kategoria":"Jedzenie","pewnosc":"0.82"}""")
 
+        assertEquals(null, suggestion?.categoryId)
         assertEquals("Jedzenie", suggestion?.categoryName)
         assertEquals(0, BigDecimal("0.82").compareTo(suggestion!!.confidence!!))
     }
 
     @Test
-    fun `returns null when category is missing`() {
-        assertNull(parser.parse("""{"category":null,"confidence":0.2}"""))
+    fun `returns suggestion when category is intentionally empty`() {
+        val suggestion = parser.parse("""{"categoryId":null,"category":null,"confidence":0.2}""")
+
+        assertEquals(null, suggestion?.categoryId)
+        assertNull(suggestion?.categoryName)
     }
 }

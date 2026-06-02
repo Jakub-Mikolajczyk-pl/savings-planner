@@ -20,8 +20,8 @@ class OllamaLlmCategorySuggester(
     private val parser = LlmCategorySuggestionParser(objectMapper)
     private val restClient: RestClient by lazy { buildClient() }
 
-    override fun suggest(input: LlmCategorizationInput, categories: List<CategoryDto>): LlmCategorySuggestion? {
-        if (!properties.enabled || categories.isEmpty()) return null
+    override fun suggest(input: LlmCategorizationInput, categories: List<CategoryDto>): LlmCategoryDecision {
+        if (!properties.enabled || categories.isEmpty()) return LlmCategoryDecision(LlmCategoryOutcome.disabled)
 
         return runCatching {
             val response = restClient.post()
@@ -36,11 +36,20 @@ class OllamaLlmCategorySuggester(
                 .retrieve()
                 .body(OllamaGenerateResponse::class.java)
 
-            parser.parse(response?.response.orEmpty())
-                ?.takeIf { suggestion -> (suggestion.confidence ?: BigDecimal.ONE) >= properties.minConfidence }
+            val suggestion = parser.parse(response?.response.orEmpty())
+                ?: return@runCatching LlmCategoryDecision(LlmCategoryOutcome.parse_error)
+
+            when {
+                suggestion.categoryId == null && suggestion.categoryName == null ->
+                    LlmCategoryDecision(LlmCategoryOutcome.no_category, suggestion)
+                (suggestion.confidence ?: BigDecimal.ONE) < properties.minConfidence ->
+                    LlmCategoryDecision(LlmCategoryOutcome.low_confidence, suggestion)
+                else ->
+                    LlmCategoryDecision(LlmCategoryOutcome.categorized, suggestion)
+            }
         }.getOrElse { error ->
             logger.warn("LLM categorization skipped after Ollama error: {}", error.message)
-            null
+            LlmCategoryDecision(LlmCategoryOutcome.transport_error)
         }
     }
 
@@ -59,8 +68,10 @@ class OllamaLlmCategorySuggester(
     private fun prompt(input: LlmCategorizationInput, categories: List<CategoryDto>): String {
         val categoryPayload = categories.map { category ->
             mapOf(
+                "id" to category.id,
                 "name" to category.name,
                 "kind" to category.kind.name,
+                "hint" to categoryHint(category.name),
             )
         }
         val transactionPayload = mapOf(
@@ -72,10 +83,23 @@ class OllamaLlmCategorySuggester(
 
         return """
             Jestes klasyfikatorem transakcji bankowych w prywatnej aplikacji finansowej.
-            Wybierz dokladnie jedna kategorie z listy. Nie wymyslaj nowych kategorii.
-            Jesli nie masz pewnosci, zwroc category null i confidence ponizej ${properties.minConfidence}.
+            Wybierz categoryId z listy kategorii. Nie wymyslaj nowych kategorii.
+            Dla zwyklych wydatkow wybierz najlepsza pasujaca kategorie.
+            Jesli merchant jest nieznany, ale to wyglada jak normalny wydatek, wybierz kategorie Inne.
+            categoryId null zwracaj tylko gdy opis jest zbyt pusty/sprzeczny, zeby podjac decyzje.
             Zwracaj wylacznie poprawny JSON w formacie:
-            {"category":"nazwa kategorii albo null","confidence":0.0}
+            {"categoryId":123,"confidence":0.0}
+
+            Przyklady:
+            - BIEDRONKA, LIDL, ZABKA, KAUFLAND, AUCHAN, CARREFOUR => Zakupy spozywcze
+            - APTEKA, DOZ, GEMINI, lekarz, przychodnia => Zdrowie
+            - ORLEN, BP, SHELL, parking, bilet, AUTOPAY => Transport
+            - NETFLIX, SPOTIFY, GOOGLE, APPLE.COM, subskrypcja => Abonamenty
+            - NETIA, prad, gaz, internet, telefon => Media i internet
+            - ZUS, urzad skarbowy, mikrorachunek => Podatki i ZUS
+            - wynagrodzenie, pensja, salary => Przychody
+            - przelew wlasny, transfer miedzy kontami => Transfery
+            - dziwny merchant, ale normalny zakup/usluga => Inne
 
             Kategorie:
             ${objectMapper.writeValueAsString(categoryPayload)}
@@ -84,12 +108,37 @@ class OllamaLlmCategorySuggester(
             ${objectMapper.writeValueAsString(transactionPayload)}
         """.trimIndent()
     }
+
+    private fun categoryHint(name: String): String =
+        when (name.lowercase()) {
+            "zakupy spozywcze" -> "supermarkety, dyskonty, sklepy spozywcze, convenience stores"
+            "podatki i zus" -> "ZUS, urzad skarbowy, mikrorachunek, podatki"
+            "media i internet" -> "rachunki za internet, prad, gaz, telefon, media domowe"
+            "abonamenty" -> "subskrypcje cyfrowe i stale uslugi online"
+            "transport" -> "paliwo, bilety, parking, autostrady, taksowki, komunikacja"
+            "zdrowie" -> "apteki, lekarze, badania, przychodnie, uslugi medyczne"
+            "przychody" -> "wynagrodzenie, pensja, inne wplywy zarobkowe"
+            "transfery" -> "przelewy wlasne miedzy kontami"
+            "inne" -> "fallback dla normalnych wydatkow bez lepszej kategorii"
+            else -> "wybierz, gdy opis transakcji pasuje do nazwy kategorii"
+        }
 }
 
 class LlmCategorySuggestionParser(private val objectMapper: ObjectMapper) {
     fun parse(rawResponse: String): LlmCategorySuggestion? {
         val json = extractJson(rawResponse) ?: return null
         val node = runCatching { objectMapper.readTree(json) }.getOrNull() ?: return null
+        val categoryId = listOf("categoryId", "category_id", "id")
+            .asSequence()
+            .mapNotNull { field ->
+                val value = node.path(field)
+                when {
+                    value.isIntegralNumber -> value.asLong()
+                    value.isTextual -> value.asText().trim().toLongOrNull()
+                    else -> null
+                }
+            }
+            .firstOrNull()
         val categoryName = listOf("category", "categoryName", "kategoria")
             .asSequence()
             .mapNotNull { field ->
@@ -97,7 +146,6 @@ class LlmCategorySuggestionParser(private val objectMapper: ObjectMapper) {
                 if (value.isTextual) value.asText().trim() else null
             }
             .firstOrNull { it.isNotBlank() && !it.equals("null", ignoreCase = true) }
-            ?: return null
         val confidence = listOf("confidence", "pewnosc", "score")
             .asSequence()
             .mapNotNull { field ->
@@ -110,7 +158,7 @@ class LlmCategorySuggestionParser(private val objectMapper: ObjectMapper) {
             }
             .firstOrNull()
 
-        return LlmCategorySuggestion(categoryName = categoryName, confidence = confidence)
+        return LlmCategorySuggestion(categoryId = categoryId, categoryName = categoryName, confidence = confidence)
     }
 
     private fun extractJson(value: String): String? {

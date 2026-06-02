@@ -112,6 +112,10 @@ class CategorizationService(
         var llmAttempted = 0
         var llmCategorized = 0
         var llmNoSuggestion = 0
+        var llmLowConfidence = 0
+        var llmParseErrors = 0
+        var llmTransportErrors = 0
+        var llmCategoryMismatch = 0
         var llmLastTransactionId: Long? = null
         var llmLimitReached = false
 
@@ -152,7 +156,7 @@ class CategorizationService(
                      */
                     llmAttempted++
                     llmLastTransactionId = tx.id
-                    llmCategoryId(
+                    val resolution = llmCategoryId(
                         input = LlmCategorizationInput(
                             description = tx.description,
                             counterparty = tx.counterparty,
@@ -160,13 +164,22 @@ class CategorizationService(
                             currency = tx.currency,
                         ),
                         categories = categories,
-                    ).also { resolvedCategoryId ->
-                        if (resolvedCategoryId == null) {
-                            llmNoSuggestion++
-                        } else {
-                            llmCategorized++
+                    )
+                    when (resolution.outcome) {
+                        LlmCategoryOutcome.categorized -> {
+                            if (resolution.categoryId == null) {
+                                llmCategoryMismatch++
+                            } else {
+                                llmCategorized++
+                            }
                         }
+                        LlmCategoryOutcome.no_category,
+                        LlmCategoryOutcome.disabled -> llmNoSuggestion++
+                        LlmCategoryOutcome.low_confidence -> llmLowConfidence++
+                        LlmCategoryOutcome.parse_error -> llmParseErrors++
+                        LlmCategoryOutcome.transport_error -> llmTransportErrors++
                     }
+                    resolution.categoryId
                 }
                 else -> {
                     /*
@@ -196,6 +209,10 @@ class CategorizationService(
             llmAttempted = llmAttempted,
             llmCategorized = llmCategorized,
             llmNoSuggestion = llmNoSuggestion,
+            llmLowConfidence = llmLowConfidence,
+            llmParseErrors = llmParseErrors,
+            llmTransportErrors = llmTransportErrors,
+            llmCategoryMismatch = llmCategoryMismatch,
             llmLastTransactionId = llmLastTransactionId,
             remainingUncategorized = repository.countUnlockedUncategorized(accountId),
             llmLimitReached = llmLimitReached,
@@ -231,7 +248,7 @@ class CategorizationService(
                     currency = currency,
                 ),
                 categories = categories,
-            )
+            ).categoryId
             ?: return
 
         repository.setInsertedTransactionCategory(transactionId, categoryId)
@@ -259,13 +276,32 @@ class CategorizationService(
             null
         }
 
-    private fun llmCategoryId(input: LlmCategorizationInput, categories: List<CategoryDto>): Long? {
+    private fun llmCategoryId(input: LlmCategorizationInput, categories: List<CategoryDto>): LlmCategoryResolution {
+        val categoriesById = categories.mapNotNull { category -> category.id?.let { it to category } }.toMap()
         val normalizedCategories = categories.associateBy { normalizeLlmCategoryName(it.name) }
-        val suggestion = llmCategorySuggester.suggest(input, categories) ?: return null
-        return normalizedCategories[normalizeLlmCategoryName(suggestion.categoryName)]?.id
+        val decision = llmCategorySuggester.suggest(input, categories)
+        if (decision.outcome != LlmCategoryOutcome.categorized) {
+            return LlmCategoryResolution(categoryId = null, outcome = decision.outcome)
+        }
+
+        val suggestion = decision.suggestion ?: return LlmCategoryResolution(null, LlmCategoryOutcome.no_category)
+        val categoryId = suggestion.categoryId
+            ?.takeIf { id -> categoriesById.containsKey(id) }
+            ?: suggestion.categoryName
+                ?.let { name -> normalizedCategories[normalizeLlmCategoryName(name)]?.id }
+
+        return LlmCategoryResolution(
+            categoryId = categoryId,
+            outcome = LlmCategoryOutcome.categorized,
+        )
     }
 
     private fun normalizeLlmCategoryName(value: String): String =
         Normalizer.normalize(ruleEngine.normalize(value), Normalizer.Form.NFD)
             .replace(Regex("\\p{M}+"), "")
 }
+
+private data class LlmCategoryResolution(
+    val categoryId: Long?,
+    val outcome: LlmCategoryOutcome,
+)
