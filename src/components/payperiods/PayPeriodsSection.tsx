@@ -28,6 +28,10 @@ export function PayPeriodsSection({ selectedKey: controlledSelectedKey, onSelect
     () => payPeriods.find(period => periodKey(period) === selectedKey) ?? payPeriods[0],
     [payPeriods, selectedKey],
   )
+  const activeAnchorKeys = useMemo(
+    () => new Set(incomeAnchors.map(anchor => anchorKey(anchor.accountId, anchor.counterparty))),
+    [incomeAnchors],
+  )
 
   const selectPeriod = (key: string) => {
     setLocalSelectedKey(key)
@@ -112,7 +116,7 @@ export function PayPeriodsSection({ selectedKey: controlledSelectedKey, onSelect
         )}
       </Collapsible>
 
-      <Collapsible title="Kandydaci kotwic" defaultOpen badge={String(candidates.length)}>
+      <Collapsible title="Kandydaci kotwic" badge={String(candidates.length)}>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead className="text-left text-xs text-gray-500 dark:text-gray-400">
@@ -126,25 +130,29 @@ export function PayPeriodsSection({ selectedKey: controlledSelectedKey, onSelect
               </tr>
             </thead>
             <tbody>
-              {candidates.map(candidate => (
-                <tr key={`${candidate.accountId}-${candidate.counterparty}`} className="border-b border-gray-100 dark:border-gray-900">
-                  <td className="py-2 pr-3">{candidate.accountName}</td>
-                  <td className="py-2 pr-3 font-medium text-gray-900 dark:text-gray-100">{candidate.counterparty}</td>
-                  <td className="py-2 pr-3 text-right tabular-nums">{candidate.transactionCount}</td>
-                  <td className="py-2 pr-3 text-right tabular-nums text-teal-700 dark:text-teal-300">{formatPLN(candidate.totalIncome)}</td>
-                  <td className="py-2 pr-3 text-xs text-gray-500 dark:text-gray-400">{candidate.firstBookedAt} - {candidate.lastBookedAt}</td>
-                  <td className="py-2 pr-0 text-right">
-                    <button
-                      type="button"
-                      disabled={candidate.alreadyAnchored}
-                      onClick={() => void addIncomeAnchor(candidate.accountId, candidate.counterparty)}
-                      className="rounded-md border border-gray-200 px-2 py-1.5 text-xs text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-45 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-800"
-                    >
-                      {candidate.alreadyAnchored ? 'Aktywna' : 'Ustaw'}
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {candidates.map(candidate => {
+                const alreadyAnchored = candidate.alreadyAnchored || activeAnchorKeys.has(anchorKey(candidate.accountId, candidate.counterparty))
+
+                return (
+                  <tr key={`${candidate.accountId}-${candidate.counterparty}`} className="border-b border-gray-100 dark:border-gray-900">
+                    <td className="py-2 pr-3">{candidate.accountName}</td>
+                    <td className="py-2 pr-3 font-medium text-gray-900 dark:text-gray-100">{candidate.counterparty}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums">{candidate.transactionCount}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums text-teal-700 dark:text-teal-300">{formatPLN(candidate.totalIncome)}</td>
+                    <td className="py-2 pr-3 text-xs text-gray-500 dark:text-gray-400">{candidate.firstBookedAt} - {candidate.lastBookedAt}</td>
+                    <td className="py-2 pr-0 text-right">
+                      <button
+                        type="button"
+                        disabled={alreadyAnchored}
+                        onClick={() => void addIncomeAnchor(candidate.accountId, candidate.counterparty)}
+                        className="rounded-md border border-gray-200 px-2 py-1.5 text-xs text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-45 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-800"
+                      >
+                        {alreadyAnchored ? 'Aktywna' : 'Ustaw'}
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
@@ -191,4 +199,8 @@ function Metric({ label, value, tone = 'neutral' }: { label: string; value: stri
 
 function selectedPeriodLabel(period: { periodStart: string; periodEnd?: string; isPartial: boolean }) {
   return `${period.periodStart} - ${period.periodEnd ?? 'teraz'}${period.isPartial ? ' (czesciowy)' : ''}`
+}
+
+function anchorKey(accountId: string, counterparty: string) {
+  return `${accountId}:${counterparty.trim().replace(/\s+/g, ' ').toLowerCase()}`
 }
