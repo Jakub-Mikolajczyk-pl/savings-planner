@@ -5,6 +5,14 @@ import { IS_API_MODE } from '../../config'
 import { formatPLN } from '../../domain/formatting'
 import type { CashflowTreatment, CategoryKind, RecategorizeResult, RuleMatchField, RuleMatchType } from '../../domain/types'
 import { useStore } from '../../store'
+import { SortableTransactionHeader } from '../transactions/SortableTransactionHeader'
+import {
+  DEFAULT_TRANSACTION_SORT,
+  nextTransactionSort,
+  sortTransactions,
+  type TransactionSort,
+  type TransactionSortKey,
+} from '../transactions/transactionSorting'
 import { Collapsible } from '../ui/Collapsible'
 
 const KIND_LABELS: Record<CategoryKind, string> = {
@@ -107,6 +115,7 @@ export function CategorizationSection() {
   const [lastRun, setLastRun] = useState<string | undefined>()
   const [visibleTransactionCount, setVisibleTransactionCount] = useState(TRANSACTION_PAGE_SIZE)
   const [transactionFilter, setTransactionFilter] = useState<TransactionFilter>('all')
+  const [transactionSort, setTransactionSort] = useState<TransactionSort>(DEFAULT_TRANSACTION_SORT)
   const [llmQueueStatus, setLlmQueueStatus] = useState<LlmQueueStatus | undefined>()
 
   const categoryById = useMemo(
@@ -123,8 +132,12 @@ export function CategorizationSection() {
     if (selectedFilterCategoryId !== undefined) return transaction.categoryId === selectedFilterCategoryId
     return true
   })
-  const visibleTransactions = filteredTransactions.slice(0, visibleTransactionCount)
-  const hiddenTransactionCount = Math.max(0, filteredTransactions.length - visibleTransactions.length)
+  const sortedTransactions = useMemo(
+    () => sortTransactions(filteredTransactions, categories, transactionSort),
+    [categories, filteredTransactions, transactionSort],
+  )
+  const visibleTransactions = sortedTransactions.slice(0, visibleTransactionCount)
+  const hiddenTransactionCount = Math.max(0, sortedTransactions.length - visibleTransactions.length)
   const queueProgress = llmQueueStatus?.initialUncategorized
     ? Math.min(
         100,
@@ -218,6 +231,9 @@ export function CategorizationSection() {
 
   const assignTransactionCategory = (transactionId: number, categoryId: number | undefined, locked = true) => {
     overrideTransactionCategory(transactionId, categoryId, locked)
+  }
+  const sortByTransactionColumn = (key: TransactionSortKey) => {
+    setTransactionSort(current => nextTransactionSort(current, key))
   }
 
   if (!IS_API_MODE) {
@@ -418,11 +434,11 @@ export function CategorizationSection() {
           <table className="min-w-full text-sm">
             <thead className="text-left text-xs text-gray-500 dark:text-gray-400">
               <tr className="border-b border-gray-200 dark:border-gray-800">
-                <th className="py-2 pr-3 font-medium">Data</th>
-                <th className="py-2 pr-3 font-medium">Opis</th>
-                <th className="py-2 pr-3 font-medium">Kwota</th>
-                <th className="py-2 pr-3 font-medium">Kategoria</th>
-                <th className="py-2 pr-0 font-medium">Blokada</th>
+                <SortableTransactionHeader label="Data" sortKey="bookedAt" sort={transactionSort} onSort={sortByTransactionColumn} />
+                <SortableTransactionHeader label="Opis" sortKey="description" sort={transactionSort} onSort={sortByTransactionColumn} />
+                <SortableTransactionHeader label="Kwota" sortKey="amount" sort={transactionSort} onSort={sortByTransactionColumn} align="right" />
+                <SortableTransactionHeader label="Kategoria" sortKey="category" sort={transactionSort} onSort={sortByTransactionColumn} />
+                <SortableTransactionHeader label="Blokada" sortKey="categoryLocked" sort={transactionSort} onSort={sortByTransactionColumn} className="py-2 pr-0" />
               </tr>
             </thead>
             <tbody>
