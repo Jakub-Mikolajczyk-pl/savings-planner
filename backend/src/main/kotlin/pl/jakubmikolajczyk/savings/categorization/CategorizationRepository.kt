@@ -189,7 +189,12 @@ class CategorizationRepository(private val jdbc: NamedParameterJdbcTemplate) {
     fun deleteRule(id: Long): Int =
         jdbc.update("delete from finance.category_rules where id = :id", mapOf("id" to id))
 
-    fun listTransactions(accountId: UUID?, onlyUncategorized: Boolean, limit: Int): List<TransactionDto> {
+    fun listTransactions(
+        accountId: UUID?,
+        onlyUncategorized: Boolean,
+        categoryId: Long?,
+        limit: Int,
+    ): List<TransactionDto> {
         val conditions = mutableListOf<String>()
         val params = MapSqlParameterSource().addValue("limit", limit.coerceIn(1, 500))
         if (accountId != null) {
@@ -197,6 +202,10 @@ class CategorizationRepository(private val jdbc: NamedParameterJdbcTemplate) {
             params.addValue("accountId", accountId)
         }
         if (onlyUncategorized) conditions += "category_id is null"
+        if (categoryId != null) {
+            conditions += "category_id = :categoryId"
+            params.addValue("categoryId", categoryId)
+        }
 
         val where = if (conditions.isEmpty()) "" else "where ${conditions.joinToString(" and ")}"
         return jdbc.query(

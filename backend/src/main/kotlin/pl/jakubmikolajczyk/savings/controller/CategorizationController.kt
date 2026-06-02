@@ -47,8 +47,9 @@ class TransactionController(private val service: CategorizationService) {
     fun list(
         @RequestParam(required = false) accountId: UUID?,
         @RequestParam(defaultValue = "false") onlyUncategorized: Boolean,
+        @RequestParam(required = false) categoryId: Long?,
         @RequestParam(defaultValue = "200") limit: Int,
-    ) = service.listTransactions(accountId, onlyUncategorized, limit)
+    ) = service.listTransactions(accountId, onlyUncategorized, categoryId, limit)
 
     @Operation(summary = "Manually override one transaction category")
     @PutMapping("/{id}/category")

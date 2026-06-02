@@ -74,7 +74,8 @@ class CategorizationRepositoryTest @Autowired constructor(
         assertEquals(0, second.newlyCategorized)
         assertEquals(
             repository.listCategories().first { it.name == "Zakupy spozywcze" }.id,
-            repository.listTransactions(account.id, onlyUncategorized = false, limit = 10).first { it.id == transactionId }.categoryId,
+            repository.listTransactions(account.id, onlyUncategorized = false, categoryId = null, limit = 10)
+                .first { it.id == transactionId }.categoryId,
         )
     }
 
@@ -94,9 +95,44 @@ class CategorizationRepositoryTest @Autowired constructor(
         )
         service.recategorize(account.id)
 
-        val transaction = repository.listTransactions(account.id, onlyUncategorized = false, limit = 10).first()
+        val transaction = repository.listTransactions(account.id, onlyUncategorized = false, categoryId = null, limit = 10).first()
         assertEquals(otherCategoryId, transaction.categoryId)
         assertEquals(true, transaction.categoryLocked)
+    }
+
+    @Test
+    fun `transactions can be listed by category`() {
+        val account = accounts.save(AccountEntity(name = "Alior", bucket = "accounts"))
+        val groceryTransactionId = insertTransaction(
+            accountId = account.id,
+            description = "Platnosc karta BIEDRONKA 456",
+            counterparty = "BIEDRONKA",
+        )
+        val otherTransactionId = insertTransaction(
+            accountId = account.id,
+            description = "Dziwna pozycja do sprawdzenia",
+            counterparty = "UNKNOWN",
+        )
+        val groceryCategoryId = repository.listCategories().first { it.name == "Zakupy spozywcze" }.id!!
+        val otherCategoryId = repository.listCategories().first { it.name == "Inne" }.id!!
+
+        service.overrideTransactionCategory(
+            groceryTransactionId,
+            TransactionCategoryOverrideDto(categoryId = groceryCategoryId, locked = true),
+        )
+        service.overrideTransactionCategory(
+            otherTransactionId,
+            TransactionCategoryOverrideDto(categoryId = otherCategoryId, locked = true),
+        )
+
+        val groceries = repository.listTransactions(
+            accountId = account.id,
+            onlyUncategorized = false,
+            categoryId = groceryCategoryId,
+            limit = 10,
+        )
+
+        assertEquals(listOf(groceryTransactionId), groceries.map { it.id })
     }
 
     @Test
@@ -116,7 +152,8 @@ class CategorizationRepositoryTest @Autowired constructor(
         assertEquals(1, result.newlyCategorized)
         assertEquals(
             repository.listCategories().first { it.name == "Transfery" }.id,
-            repository.listTransactions(account.id, onlyUncategorized = false, limit = 10).first { it.id == transactionId }.categoryId,
+            repository.listTransactions(account.id, onlyUncategorized = false, categoryId = null, limit = 10)
+                .first { it.id == transactionId }.categoryId,
         )
     }
 
@@ -138,7 +175,8 @@ class CategorizationRepositoryTest @Autowired constructor(
         assertEquals(1, result.newlyCategorized)
         assertEquals(
             repository.listCategories().first { it.name == "Zakupy spozywcze" }.id,
-            repository.listTransactions(account.id, onlyUncategorized = false, limit = 10).first { it.id == transactionId }.categoryId,
+            repository.listTransactions(account.id, onlyUncategorized = false, categoryId = null, limit = 10)
+                .first { it.id == transactionId }.categoryId,
         )
     }
 
