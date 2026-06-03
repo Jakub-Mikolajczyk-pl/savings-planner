@@ -8,6 +8,7 @@ import {
   Home,
   LayoutDashboard,
   ListChecks,
+  PiggyBank,
   ReceiptText,
   Settings,
   ShieldCheck,
@@ -25,6 +26,7 @@ import { UpcomingExpenseList } from './components/expenses/UpcomingExpenseList'
 import { GoalInsightsSection } from './components/goals/GoalInsightsSection'
 import { GoalList } from './components/goals/GoalList'
 import { Hero } from './components/hero/Hero'
+import { IkzePlanner } from './components/ikze/IkzePlanner'
 import { IngestSection } from './components/ingest/IngestSection'
 import { LeakAnalysisSection } from './components/leakanalysis/LeakAnalysisSection'
 import { LoanList } from './components/loans/LoanList'
@@ -320,6 +322,19 @@ function useAccountSnapshotsOnDemand() {
 }
 
 function PlanPage() {
+  const settings = useStore(s => s.settings)
+  const goals = useStore(s => s.goals)
+  const loans = useStore(s => s.loans)
+  const mortgagePlan = useStore(s => s.mortgagePlan)
+  const subscriptions = useStore(s => s.subscriptions)
+  const upcomingExpenses = useStore(s => s.upcomingExpenses)
+  const overrides = useStore(s => s.overrides)
+  const schedule = useMemo(
+    () => buildSchedule(settings, goals, loans, overrides, 0, 0, mortgagePlan, subscriptions, upcomingExpenses),
+    [settings, goals, loans, overrides, mortgagePlan, subscriptions, upcomingExpenses],
+  )
+  const mortgageSummary = schedule.mortgageSummary
+
   return (
     <div className="space-y-5">
       <PageHeader title="Plan" description="Cashflow, cele, raty i harmonogram miesięczny." icon={BarChart3} accent="plan" />
@@ -328,14 +343,17 @@ function PlanPage() {
         <Hero />
       </SectionCard>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(20rem,0.6fr)]">
-        <SectionCard title="Prognoza celów i długów" icon={TrendingUp} accent="plan">
-          <SavingsChart />
-        </SectionCard>
-        <SectionCard title="Symulacja what-if" icon={ReceiptText} accent="plan">
-          <WhatIfSlider />
-        </SectionCard>
-      </div>
+      <SectionCard title="IKZE roczne" description="Limity, wpłaty i rekomendowana dopłata na pozostałe wypłaty." icon={PiggyBank} accent="plan">
+        <IkzePlanner />
+      </SectionCard>
+
+      <SectionCard title="Prognoza celów i długów" icon={TrendingUp} accent="plan">
+        <SavingsChart />
+      </SectionCard>
+
+      <SectionCard title="Symulacja what-if" icon={ReceiptText} accent="plan">
+        <WhatIfSlider />
+      </SectionCard>
 
       <div className="grid gap-4 xl:grid-cols-2">
         <SectionCard title="Cele" icon={ListChecks} accent="plan">
@@ -348,7 +366,24 @@ function PlanPage() {
         </SectionCard>
       </div>
 
-      <SectionCard title="Kredyt hipoteczny" icon={Home} accent="plan">
+      <SectionCard
+        title="Kredyt hipoteczny"
+        icon={Home}
+        accent="plan"
+        collapsible
+        defaultOpen={false}
+        collapsedSummary={
+          mortgagePlan
+            ? (
+                <div className="flex flex-wrap gap-x-5 gap-y-1">
+                  <span>Saldo: <strong className="tabular-nums">{formatPLN(mortgagePlan.principal)}</strong></span>
+                  <span>Rata: <strong className="tabular-nums">{formatPLN(mortgageSummary?.currentMonthlyPayment ?? 0)}</strong></span>
+                  <span>Spłata: <strong>{mortgageSummary?.payoffMonth ?? 'po horyzoncie'}</strong></span>
+                </div>
+              )
+            : 'Brak zapisanego planu hipotecznego.'
+        }
+      >
         <MortgageSection />
       </SectionCard>
 
@@ -361,7 +396,21 @@ function PlanPage() {
         </SectionCard>
       </div>
 
-      <SectionCard title="Harmonogram miesięczny" description="Nadpisania przychodów, kosztów i alokacji celów." icon={BarChart3} accent="plan">
+      <SectionCard
+        title="Harmonogram miesięczny"
+        description="Nadpisania przychodów, kosztów i alokacji celów."
+        icon={BarChart3}
+        accent="plan"
+        collapsible
+        defaultOpen={false}
+        collapsedSummary={
+          <div className="flex flex-wrap gap-x-5 gap-y-1">
+            <span>Horyzont: <strong>{schedule.rows.length} mies.</strong></span>
+            <span>Cele: <strong>{goals.length}</strong></span>
+            <span>Pierwszy miesiąc: <strong>{schedule.rows[0]?.label ?? 'brak'}</strong></span>
+          </div>
+        }
+      >
         <ScheduleTable />
       </SectionCard>
     </div>

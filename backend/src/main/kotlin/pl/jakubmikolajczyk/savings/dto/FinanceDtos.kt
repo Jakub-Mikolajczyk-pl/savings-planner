@@ -216,6 +216,21 @@ data class MortgagePlanDto(
     val refinanceCost: BigDecimal? = null,
 )
 
+enum class IkzeParticipantRole {
+    employee,
+    entrepreneur,
+}
+
+data class IkzePlanEntryDto(
+    @field:NotBlank val id: String,
+    @field:Min(2000) val year: Int,
+    @field:NotBlank val ownerName: String,
+    @field:NotNull val role: IkzeParticipantRole,
+    @field:NotNull val annualLimit: BigDecimal = BigDecimal.ZERO,
+    @field:NotNull val contributedAmount: BigDecimal = BigDecimal.ZERO,
+    @field:Min(0) val payoutsLeft: Int = 0,
+)
+
 data class SettingsDto(
     @field:NotNull val monthlyIncome: BigDecimal,
     @field:NotNull val monthlyExpenses: BigDecimal,
@@ -226,6 +241,7 @@ data class SettingsDto(
     // Defaulty pozwalają zdeserializować stare ustawienia bez tych pól.
     @field:Min(1) val safetyCushionMonths: Int = 6,
     @field:NotNull val emergencyFundTarget: BigDecimal = BigDecimal("10000"),
+    @field:Valid val ikzePlans: List<IkzePlanEntryDto> = emptyList(),
 )
 
 data class MonthOverrideDto(
