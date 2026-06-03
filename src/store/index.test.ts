@@ -50,4 +50,35 @@ describe('useStore - subscriptions and upcoming expenses', () => {
       { name: 'Laptop', amount: 5000, targetMonth: '2026-05', isPaid: false },
     ])
   })
+
+  it('keeps IKZE plans in export and import', () => {
+    useStore.getState().updateSettings({
+      ikzePlans: [
+        {
+          id: 'ikze-jakub-2026',
+          year: 2026,
+          ownerName: 'Jakub',
+          role: 'entrepreneur',
+          annualLimit: 15000,
+          contributedAmount: 5000,
+          payoutsLeft: 5,
+        },
+      ],
+    })
+
+    const exported = useStore.getState().exportData()
+    useStore.getState().resetAll()
+    useStore.getState().importData(exported)
+
+    expect(useStore.getState().settings.ikzePlans).toMatchObject([
+      {
+        id: 'ikze-jakub-2026',
+        ownerName: 'Jakub',
+        role: 'entrepreneur',
+        annualLimit: 15000,
+        contributedAmount: 5000,
+        payoutsLeft: 5,
+      },
+    ])
+  })
 })

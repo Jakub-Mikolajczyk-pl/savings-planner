@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
-import type { LucideIcon } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
+import { ChevronDown, type LucideIcon } from 'lucide-react'
 
 type Accent = 'assets' | 'plan' | 'settings' | 'overview'
 type Tone = 'neutral' | 'positive' | 'negative' | 'asset' | 'plan'
@@ -18,6 +18,9 @@ interface SectionCardProps {
   icon?: LucideIcon
   accent?: Accent
   action?: ReactNode
+  collapsible?: boolean
+  defaultOpen?: boolean
+  collapsedSummary?: ReactNode
   children: ReactNode
   className?: string
 }
@@ -75,9 +78,15 @@ export function SectionCard({
   icon: Icon,
   accent = 'overview',
   action,
+  collapsible = false,
+  defaultOpen = true,
+  collapsedSummary,
   children,
   className = '',
 }: SectionCardProps) {
+  const [open, setOpen] = useState(defaultOpen)
+  const contentId = `section-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+
   return (
     <section className={`${surface} p-5 ${className}`}>
       <div className="mb-4 flex items-start justify-between gap-3">
@@ -92,9 +101,30 @@ export function SectionCard({
             {description && <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{description}</p>}
           </div>
         </div>
-        {action}
+        <div className="flex items-center gap-2">
+          {action}
+          {collapsible && (
+            <button
+              type="button"
+              onClick={() => setOpen(current => !current)}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+              aria-expanded={open}
+              aria-controls={contentId}
+              aria-label={open ? `Zwiń ${title}` : `Rozwiń ${title}`}
+            >
+              <ChevronDown size={16} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+            </button>
+          )}
+        </div>
       </div>
-      {children}
+      {collapsible && !open && collapsedSummary && (
+        <div className="rounded-md border border-gray-100 px-3 py-2 text-sm text-gray-600 dark:border-gray-800 dark:text-gray-300">
+          {collapsedSummary}
+        </div>
+      )}
+      <div id={contentId} hidden={collapsible && !open}>
+        {children}
+      </div>
     </section>
   )
 }

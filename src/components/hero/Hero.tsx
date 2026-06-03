@@ -38,6 +38,8 @@ export function Hero() {
   const totalDebtPayments = totalLoanPayments + mortgagePayment
   const subscriptionsTotal = firstMonth?.subscriptionsTotal ?? 0
   const oneTimeExpensesTotal = firstMonth?.oneTimeExpensesTotal ?? 0
+  const livingExpenses = firstMonth?.expenses ?? settings.monthlyExpenses
+  const totalMonthlyCosts = livingExpenses + subscriptionsTotal + oneTimeExpensesTotal + totalDebtPayments
   const freeCash = firstMonth?.freeCash ?? settings.monthlyIncome - settings.monthlyExpenses - totalDebtPayments
   const isDeficit = freeCash < 0
 
@@ -84,6 +86,14 @@ export function Hero() {
           <p className="text-xs text-gray-400 dark:text-gray-500 px-1">
             Wydatki życiowe bez abonamentów
           </p>
+          <div className="mt-1 rounded-md border border-gray-200 px-2.5 py-2 dark:border-gray-700">
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Koszty łącznie</span>
+              <span className="text-sm font-semibold tabular-nums text-rose-600 dark:text-rose-400">
+                {formatPLN(totalMonthlyCosts)}/mies.
+              </span>
+            </div>
+          </div>
           {subscriptionsTotal > 0 && (
             <p className="text-xs text-gray-400 dark:text-gray-500 flex justify-between px-1">
               <span>+ abonamenty</span>

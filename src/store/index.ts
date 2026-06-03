@@ -188,6 +188,7 @@ export const defaultSettings: Settings = {
   emergencyFundBuckets: ['safety_cushion'],
   safetyCushionMonths: 6,
   emergencyFundTarget: 10000,
+  ikzePlans: [],
 }
 
 /*

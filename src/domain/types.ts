@@ -348,6 +348,19 @@ export interface Goal {
   currentSaved?: number // already saved before tracking started
 }
 
+export type IkzeParticipantRole = 'employee' | 'entrepreneur'
+export type IkzePlanStatus = 'missing_limit' | 'in_progress' | 'complete' | 'over_limit'
+
+export interface IkzePlanEntry {
+  id: string
+  year: number
+  ownerName: string
+  role: IkzeParticipantRole
+  annualLimit: number
+  contributedAmount: number
+  payoutsLeft: number
+}
+
 export interface Settings {
   monthlyIncome: number
   monthlyExpenses: number
@@ -356,6 +369,7 @@ export interface Settings {
   emergencyFundBuckets: AccountBucket[]
   safetyCushionMonths?: number  // cel poduszki = tyle miesięcy kosztów (domyślnie 6)
   emergencyFundTarget?: number  // cel funduszu awaryjnego — stała kwota (domyślnie 10000)
+  ikzePlans?: IkzePlanEntry[]
 }
 
 export interface MonthOverride {
