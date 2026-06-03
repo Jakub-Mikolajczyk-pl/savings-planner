@@ -541,9 +541,12 @@ function useOverviewModel() {
   const monthlyIncome = firstMonth?.income ?? settings.monthlyIncome
   const livingCosts = firstMonth?.expenses ?? settings.monthlyExpenses
   const subscriptionsCost = firstMonth?.subscriptionsTotal ?? 0
+  const oneTimeCost = firstMonth?.oneTimeExpensesTotal ?? 0
+  const ikzeCost = firstMonth?.ikzeContributionTotal ?? 0
   const debtCost = (firstMonth?.loanPaymentsTotal ?? 0) + (firstMonth?.mortgagePaymentTotal ?? 0)
-  const monthlyCosts = livingCosts + subscriptionsCost + debtCost
-  const nextGoals = schedule.goalProgress.filter(goal => !goal.isComplete).slice(0, 4)
+  const monthlyCosts = livingCosts + subscriptionsCost + oneTimeCost + debtCost + ikzeCost
+  const activeGoalIds = new Set(goals.filter(goal => (goal.currentSaved ?? 0) < goal.targetAmount).map(goal => goal.id))
+  const nextGoals = schedule.goalProgress.filter(goal => activeGoalIds.has(goal.goalId)).slice(0, 4)
   const nextExpenses = upcomingExpenses
     .filter(expense => !expense.isPaid)
     .sort((a, b) => a.targetMonth.localeCompare(b.targetMonth))
@@ -568,7 +571,7 @@ function useOverviewModel() {
     debtValue: formatPLN(debt),
     monthlyIncome: `${formatPLN(monthlyIncome)}/mc`,
     monthlyCosts: `${formatPLN(monthlyCosts)}/mc`,
-    costsDetail: `Życie ${formatPLN(livingCosts)} · Abon. ${formatPLN(subscriptionsCost)} · Raty ${formatPLN(debtCost)}`,
+    costsDetail: `Życie ${formatPLN(livingCosts)} · Abon. ${formatPLN(subscriptionsCost)} · Jedn. ${formatPLN(oneTimeCost)} · Raty ${formatPLN(debtCost)} · IKZE ${formatPLN(ikzeCost)}`,
     cashflowMonthLabel: firstMonth ? formatYearMonth(firstMonth.yearMonth) : 'Pierwszy miesiąc',
     emergencyFund: formatPLN(emergencyFund),
     emergencyFundLabel: bucketLabel,

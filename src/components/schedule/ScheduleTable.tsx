@@ -128,7 +128,7 @@ export function ScheduleTable() {
                     value={row.expenses}
                     onCommit={v => setOverride(row.yearMonth, { expenses: v })}
                   />
-                  {(row.subscriptionsTotal > 0 || row.oneTimeExpensesTotal > 0) && (
+                  {(row.subscriptionsTotal > 0 || row.oneTimeExpensesTotal > 0 || row.ikzeContributionTotal > 0) && (
                     <div className="mt-1 text-[10px] leading-4 text-gray-400 dark:text-gray-500 whitespace-nowrap">
                       <span title="Wydatki życiowe">życiowe {formatPLN(row.expenses)}</span>
                       {row.subscriptionsTotal > 0 && (
@@ -139,6 +139,11 @@ export function ScheduleTable() {
                       {row.oneTimeExpensesTotal > 0 && (
                         <span className="block text-purple-600 dark:text-purple-400">
                           + jedn. {formatPLN(row.oneTimeExpensesTotal)}
+                        </span>
+                      )}
+                      {row.ikzeContributionTotal > 0 && (
+                        <span className="block text-indigo-600 dark:text-indigo-400">
+                          + IKZE {formatPLN(row.ikzeContributionTotal)}
                         </span>
                       )}
                     </div>

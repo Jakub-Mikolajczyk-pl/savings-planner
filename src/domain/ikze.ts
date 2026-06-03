@@ -1,4 +1,4 @@
-import type { IkzePlanEntry, IkzePlanStatus } from './types'
+import type { IkzePlanEntry, IkzePlanStatus, Settings } from './types'
 
 export interface IkzeCalculatedEntry extends IkzePlanEntry {
   remaining: number
@@ -52,6 +52,11 @@ export function summarizeIkzePlans(entries: IkzePlanEntry[]): IkzeFamilySummary 
     remaining: calculated.reduce((sum, entry) => sum + entry.remaining, 0),
     perPayout: calculated.reduce((sum, entry) => sum + entry.perPayout, 0),
   }
+}
+
+export function ikzeMonthlyContributionCost(settings: Pick<Settings, 'ikzePlans' | 'includeIkzeContributionsInCashflow'>): number {
+  if (!settings.includeIkzeContributionsInCashflow) return 0
+  return summarizeIkzePlans(settings.ikzePlans ?? []).perPayout
 }
 
 export function buildDefaultIkzePlans(yearMonth: string): IkzePlanEntry[] {

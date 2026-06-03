@@ -370,6 +370,7 @@ export interface Settings {
   safetyCushionMonths?: number  // cel poduszki = tyle miesięcy kosztów (domyślnie 6)
   emergencyFundTarget?: number  // cel funduszu awaryjnego — stała kwota (domyślnie 10000)
   ikzePlans?: IkzePlanEntry[]
+  includeIkzeContributionsInCashflow?: boolean
 }
 
 export interface MonthOverride {
@@ -391,6 +392,7 @@ export interface MonthRow {
   oneTimeExpensesTotal: number
   loanPaymentsTotal: number
   mortgagePaymentTotal: number
+  ikzeContributionTotal: number
   freeCash: number
   goalAllocations: GoalAllocation[]
   loanEntries: LoanMonthEntry[]

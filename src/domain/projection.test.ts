@@ -117,4 +117,31 @@ describe('projection dashboard model', () => {
     })
     expect(model.debts[1].whatIfPayoffDeltaMonths).toBeGreaterThanOrEqual(0)
   })
+
+  it('keeps goals that complete within the horizon in the decision list', () => {
+    const quickGoal: Goal = {
+      id: 'quick',
+      name: 'Szybki cel',
+      targetAmount: 4000,
+      currentSaved: 0,
+      priority: 1,
+    }
+    const schedule = buildSchedule(settings, [quickGoal], [], {})
+    const model = buildProjectionDashboardModel({
+      schedule,
+      whatIfSchedule: schedule,
+      goals: [quickGoal],
+      loans: [],
+      hasWhatIf: false,
+    })
+
+    expect(schedule.goalProgress[0].isComplete).toBe(true)
+    expect(model.goals).toHaveLength(1)
+    expect(model.goals[0]).toMatchObject({
+      id: 'goal:quick',
+      current: 0,
+      remaining: 4000,
+      eta: '2026-01',
+    })
+  })
 })

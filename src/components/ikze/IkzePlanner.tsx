@@ -81,6 +81,23 @@ export function IkzePlanner() {
         <SummaryCell label="Na wypłatę" value={formatPLN(summary.perPayout)} />
       </div>
 
+      <label className="flex items-start gap-3 rounded-md border border-gray-200 px-3 py-2 dark:border-gray-800">
+        <input
+          type="checkbox"
+          checked={settings.includeIkzeContributionsInCashflow ?? false}
+          onChange={event => updateSettings({ includeIkzeContributionsInCashflow: event.target.checked })}
+          className="mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+        />
+        <span>
+          <span className="block text-sm font-medium text-gray-900 dark:text-gray-100">
+            Odejmuj rekomendowane wpłaty IKZE od wolnych środków
+          </span>
+          <span className="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">
+            Po włączeniu kwota „Na wypłatę” jest traktowana jak miesięczny koszt planu.
+          </span>
+        </span>
+      </label>
+
       <div className="grid gap-3 lg:grid-cols-2">
         {calculated.map(plan => (
           <div key={plan.id} className="rounded-md border border-gray-200 p-3 dark:border-gray-800">

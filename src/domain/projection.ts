@@ -66,9 +66,8 @@ export function buildProjectionDashboardModel({
   const insightByGoalId = new Map(goalInsights?.goals.map(goal => [goal.goalId, goal]))
   const goalItems = goals
     .map(goal => {
-      const progress = schedule.goalProgress.find(item => item.goalId === goal.id)
       const insight = insightByGoalId.get(goal.id)
-      const current = progress?.currentBalance ?? goal.currentSaved ?? 0
+      const current = goal.currentSaved ?? 0
       const eta = goalEta(schedule, goal.id)
       const whatIfEta = goalEta(whatIfSchedule, goal.id)
 

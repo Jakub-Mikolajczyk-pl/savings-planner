@@ -14,6 +14,7 @@ import type {
   UpcomingExpense,
 } from './types'
 import { addMonths, formatYearMonth, monthDiff, dateToYearMonth } from './formatting'
+import { ikzeMonthlyContributionCost } from './ikze'
 import { buildMortgageSchedule } from './mortgage'
 
 interface GoalState {
@@ -158,6 +159,7 @@ export function buildSchedule(
   const subscriptionsTotal = subscriptions
     .filter(subscription => subscription.active)
     .reduce((sum, subscription) => sum + subscription.monthlyAmount, 0)
+  const ikzeContributionTotal = ikzeMonthlyContributionCost(settings)
 
   for (let i = 0; i < settings.horizonMonths; i++) {
     const yearMonth = addMonths(settings.startMonth, i)
@@ -167,7 +169,7 @@ export function buildSchedule(
     const oneTimeExpensesTotal = upcomingExpenses
       .filter(expense => !expense.isPaid && expense.targetMonth === yearMonth)
       .reduce((sum, expense) => sum + expense.amount, 0)
-    const expensesTotal = expenses + subscriptionsTotal + oneTimeExpensesTotal
+    const expensesTotal = expenses + subscriptionsTotal + oneTimeExpensesTotal + ikzeContributionTotal
     const income = baseIncome + whatIfDelta
     const grossFreeCash = baseIncome + Math.min(0, whatIfDelta) - expensesTotal
 
@@ -218,6 +220,7 @@ export function buildSchedule(
       oneTimeExpensesTotal,
       loanPaymentsTotal: totalLoanPayment,
       mortgagePaymentTotal,
+      ikzeContributionTotal,
       freeCash,
       goalAllocations,
       loanEntries,

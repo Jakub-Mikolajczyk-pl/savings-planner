@@ -189,6 +189,7 @@ export const defaultSettings: Settings = {
   safetyCushionMonths: 6,
   emergencyFundTarget: 10000,
   ikzePlans: [],
+  includeIkzeContributionsInCashflow: false,
 }
 
 /*
