@@ -3,6 +3,7 @@ import {
   Area,
   CartesianGrid,
   ComposedChart,
+  Legend,
   Line,
   ReferenceLine,
   ResponsiveContainer,
@@ -100,9 +101,9 @@ export function SavingsChart() {
     <div className="space-y-4">
       {goalInsights && goalInsights.cycleCount > 0 && (
         <div className="grid gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm dark:border-gray-800 sm:grid-cols-3">
-          <Metric label="Realne tempo" value={`${formatPLN(goalInsights.averageNetPerCycle)}/cykl`} tone={goalInsights.averageNetPerCycle < 0 ? 'negative' : 'positive'} />
-          <Metric label="Wolna gotówka" value={`${formatPLN(goalInsights.averageFreeCashPerCycle)}/cykl`} />
-          <Metric label="Historia" value={`${goalInsights.cycleCount} pełnych cykli`} />
+          <Metric label="Tempo z historii" value={`${formatPLN(goalInsights.averageNetPerCycle)}/cykl`} tone={goalInsights.averageNetPerCycle < 0 ? 'negative' : 'positive'} />
+          <Metric label="Wolne po kosztach" value={`${formatPLN(goalInsights.averageFreeCashPerCycle)}/cykl`} />
+          <Metric label="Cykle historii" value={`${goalInsights.cycleCount} pełnych cykli`} />
         </div>
       )}
 
@@ -124,6 +125,10 @@ export function SavingsChart() {
               formatter={(value: unknown, name: unknown) => [formatPLN(value), tooltipName(String(name), goals, loans)]}
               contentStyle={{ fontSize: 12, border: '1px solid #e5e7eb', borderRadius: 8 }}
               labelFormatter={label => String(label ?? '')}
+            />
+            <Legend
+              formatter={(value: string) => tooltipName(value, goals, loans)}
+              wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
             />
 
             {visibleGoals.map((item, index) => {
@@ -212,6 +217,12 @@ export function SavingsChart() {
                 stroke={DEBT_COLORS[index % DEBT_COLORS.length]}
                 strokeDasharray="4 3"
                 strokeOpacity={0.6}
+                label={{
+                  value: `Spłata: ${shortLabel(item.name)}`,
+                  fontSize: 10,
+                  fill: DEBT_COLORS[index % DEBT_COLORS.length],
+                  position: index % 2 === 0 ? 'insideTopLeft' : 'insideTopRight',
+                }}
               />
             ) : null)}
 
@@ -271,6 +282,10 @@ function tooltipName(key: string, goals: Goal[], loans: Loan[]) {
   return key
 }
 
+function shortLabel(label: string) {
+  return label.length > 16 ? `${label.slice(0, 16)}…` : label
+}
+
 function ProjectionToolbar({
   perspective,
   layers,
@@ -308,8 +323,8 @@ function ProjectionToolbar({
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <LayerButton active={layers.whatIf && hasWhatIf} disabled={!hasWhatIf} label="What-if" onClick={() => onLayerToggle('whatIf')} />
-        <LayerButton active={layers.deadlines} label="Deadline" onClick={() => onLayerToggle('deadlines')} />
+        <LayerButton active={layers.whatIf && hasWhatIf} disabled={!hasWhatIf} label="Scenariusz" onClick={() => onLayerToggle('whatIf')} />
+        <LayerButton active={layers.deadlines} label="Terminy" onClick={() => onLayerToggle('deadlines')} />
         <LayerButton active={layers.expenses} label="Wydatki" onClick={() => onLayerToggle('expenses')} />
       </div>
     </div>

@@ -3,6 +3,7 @@ import {
   buildDefaultIkzePlans,
   summarizeIkzePlans,
   calculateIkzeEntry,
+  ikzeMonthlyContributionCost,
   payoutsLeftToYearEnd,
 } from './ikze'
 import type { IkzePlanEntry } from './types'
@@ -97,5 +98,15 @@ describe('IKZE planner', () => {
       { id: 'ikze-jakub-2026', ownerName: 'Jakub', role: 'entrepreneur', year: 2026, annualLimit: 0, contributedAmount: 0, payoutsLeft: 7 },
       { id: 'ikze-zona-2026', ownerName: 'Zona', role: 'employee', year: 2026, annualLimit: 0, contributedAmount: 0, payoutsLeft: 7 },
     ])
+  })
+
+  it('returns combined recommended IKZE monthly contribution only when enabled in settings', () => {
+    const entries: IkzePlanEntry[] = [
+      { id: 'jakub', year: 2026, ownerName: 'Jakub', role: 'entrepreneur', annualLimit: 1200, contributedAmount: 0, payoutsLeft: 3 },
+      { id: 'zona', year: 2026, ownerName: 'Zona', role: 'employee', annualLimit: 600, contributedAmount: 0, payoutsLeft: 6 },
+    ]
+
+    expect(ikzeMonthlyContributionCost({ ikzePlans: entries, includeIkzeContributionsInCashflow: false })).toBe(0)
+    expect(ikzeMonthlyContributionCost({ ikzePlans: entries, includeIkzeContributionsInCashflow: true })).toBe(500)
   })
 })

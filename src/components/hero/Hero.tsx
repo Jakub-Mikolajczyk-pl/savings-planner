@@ -38,8 +38,9 @@ export function Hero() {
   const totalDebtPayments = totalLoanPayments + mortgagePayment
   const subscriptionsTotal = firstMonth?.subscriptionsTotal ?? 0
   const oneTimeExpensesTotal = firstMonth?.oneTimeExpensesTotal ?? 0
+  const ikzeContributionTotal = firstMonth?.ikzeContributionTotal ?? 0
   const livingExpenses = firstMonth?.expenses ?? settings.monthlyExpenses
-  const totalMonthlyCosts = livingExpenses + subscriptionsTotal + oneTimeExpensesTotal + totalDebtPayments
+  const totalMonthlyCosts = livingExpenses + subscriptionsTotal + oneTimeExpensesTotal + totalDebtPayments + ikzeContributionTotal
   const freeCash = firstMonth?.freeCash ?? settings.monthlyIncome - settings.monthlyExpenses - totalDebtPayments
   const isDeficit = freeCash < 0
 
@@ -118,6 +119,14 @@ export function Hero() {
               </span>
             </p>
           )}
+          {ikzeContributionTotal > 0 && (
+            <p className="text-xs text-gray-400 dark:text-gray-500 flex justify-between px-1">
+              <span>+ rekomendowane wpłaty IKZE</span>
+              <span className="tabular-nums text-indigo-600 dark:text-indigo-400">
+                +{formatPLN(ikzeContributionTotal)}/mies.
+              </span>
+            </p>
+          )}
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
@@ -130,9 +139,9 @@ export function Hero() {
           }`}>
             {formatPLN(freeCash)}/mies.
           </div>
-          {(subscriptionsTotal > 0 || oneTimeExpensesTotal > 0 || totalDebtPayments > 0) && (
+          {(subscriptionsTotal > 0 || oneTimeExpensesTotal > 0 || totalDebtPayments > 0 || ikzeContributionTotal > 0) && (
             <p className="text-xs text-gray-400 dark:text-gray-500 px-1 text-right">
-              po bazie ({formatPLN(settings.monthlyExpenses)}), abonamentach ({formatPLN(subscriptionsTotal)}), jednorazowych ({formatPLN(oneTimeExpensesTotal)}) i ratach ({formatPLN(totalDebtPayments)})
+              po bazie ({formatPLN(settings.monthlyExpenses)}), abonamentach ({formatPLN(subscriptionsTotal)}), jednorazowych ({formatPLN(oneTimeExpensesTotal)}), ratach ({formatPLN(totalDebtPayments)}) i IKZE ({formatPLN(ikzeContributionTotal)})
             </p>
           )}
         </div>

@@ -106,4 +106,22 @@ describe('buildSchedule — basic allocation', () => {
     const m1g2 = rows[0].goalAllocations.find(a => a.goalId === 'g2')!
     expect(m1g2.allocated).toBe(3000)
   })
+
+  it('can treat recommended IKZE contributions as a monthly cost', () => {
+    const goals: Goal[] = [makeGoal({ id: 'g1', name: 'Poduszka', targetAmount: 10000, priority: 1 })]
+    const settingsWithIkze: Settings = {
+      ...baseSettings,
+      ikzePlans: [
+        { id: 'jakub', year: 2026, ownerName: 'Jakub', role: 'entrepreneur', annualLimit: 1200, contributedAmount: 0, payoutsLeft: 3 },
+        { id: 'zona', year: 2026, ownerName: 'Zona', role: 'employee', annualLimit: 600, contributedAmount: 0, payoutsLeft: 6 },
+      ],
+      includeIkzeContributionsInCashflow: true,
+    }
+
+    const { rows } = buildSchedule(settingsWithIkze, goals, noLoans, {})
+
+    expect(rows[0].ikzeContributionTotal).toBe(500)
+    expect(rows[0].freeCash).toBe(3500)
+    expect(rows[0].goalAllocations[0].allocated).toBe(3500)
+  })
 })

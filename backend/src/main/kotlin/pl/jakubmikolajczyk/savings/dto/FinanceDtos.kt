@@ -242,6 +242,7 @@ data class SettingsDto(
     @field:Min(1) val safetyCushionMonths: Int = 6,
     @field:NotNull val emergencyFundTarget: BigDecimal = BigDecimal("10000"),
     @field:Valid val ikzePlans: List<IkzePlanEntryDto> = emptyList(),
+    val includeIkzeContributionsInCashflow: Boolean = false,
 )
 
 data class MonthOverrideDto(
