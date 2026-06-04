@@ -3,6 +3,7 @@ import {
   BarChart3,
   CalendarClock,
   CircleDollarSign,
+  CreditCard,
   Database,
   FileUp,
   Home,
@@ -21,6 +22,7 @@ import { AssetsPie } from './components/accounts/AssetsPie'
 import { NetWorthChart } from './components/accounts/NetWorthChart'
 import { SavingsChart } from './components/chart/SavingsChart'
 import { CategorizationSection } from './components/categorization/CategorizationSection'
+import { CreditCardSection } from './components/creditcard/CreditCardSection'
 import { WhatIfSlider } from './components/chart/WhatIfSlider'
 import { UpcomingExpenseList } from './components/expenses/UpcomingExpenseList'
 import { GoalInsightsSection } from './components/goals/GoalInsightsSection'
@@ -388,13 +390,22 @@ function PlanPage() {
       </SectionCard>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <SectionCard title="Abonamenty" icon={Database} accent="plan">
-          <SubscriptionList />
+        <SectionCard
+          title="Karta kredytowa"
+          description="Wykorzystany limit i ile zejdzie z konta przy najbliższej spłacie."
+          icon={CreditCard}
+          accent="plan"
+        >
+          <CreditCardSection />
         </SectionCard>
         <SectionCard title="Nadchodzące wydatki" icon={CalendarClock} accent="plan">
           <UpcomingExpenseList />
         </SectionCard>
       </div>
+
+      <SectionCard title="Abonamenty" icon={Database} accent="plan">
+        <SubscriptionList />
+      </SectionCard>
 
       <SectionCard
         title="Harmonogram miesięczny"
