@@ -34,6 +34,7 @@ import { IngestSection } from './components/ingest/IngestSection'
 import { LeakAnalysisSection } from './components/leakanalysis/LeakAnalysisSection'
 import { LoanList } from './components/loans/LoanList'
 import { MortgageSection } from './components/mortgage/MortgageSection'
+import { SecurityBufferFocus } from './components/plan/SecurityBufferFocus'
 import { PayPeriodsSection } from './components/payperiods/PayPeriodsSection'
 import { ScheduleTable } from './components/schedule/ScheduleTable'
 import { SubscriptionList } from './components/subscriptions/SubscriptionList'
@@ -81,7 +82,7 @@ function tabFromHash() {
 }
 
 function tabNeedsAccountSnapshots(tab: AppTab) {
-  return tab === 'overview' || tab === 'assets'
+  return tab === 'overview' || tab === 'assets' || tab === 'plan'
 }
 
 export default function App() {
@@ -325,6 +326,7 @@ function useAccountSnapshotsOnDemand() {
 }
 
 function PlanPage() {
+  useAccountSnapshotsOnDemand()
   const settings = useStore(s => s.settings)
   const goals = useStore(s => s.goals)
   const loans = useStore(s => s.loans)
@@ -344,6 +346,10 @@ function PlanPage() {
 
       <SectionCard title="Miesięczny cashflow" description="Bazowe przychody, koszty życia i wolne środki po ratach." icon={CircleDollarSign} accent="plan">
         <Hero />
+      </SectionCard>
+
+      <SectionCard title="Priorytet bezpieczeństwa" description="Systemowe cele odbudowy poduszki i funduszu awaryjnego." icon={ShieldCheck} accent="plan">
+        <SecurityBufferFocus schedule={schedule} />
       </SectionCard>
 
       <SectionCard title="Prognoza następnego cyklu" description="Abonamenty, jednorazowe koszty, raty i najbliższa spłata karty." icon={CalendarClock} accent="plan">

@@ -3,6 +3,7 @@ import { CalendarPlus, Eye, EyeOff, FileUp, Lock, Pencil, Plus, Trash2, Unlock }
 import { ACCOUNT_BUCKETS, allSnapshotMonths, balanceAsOf, BUCKET_LABELS } from '../../domain/accounts'
 import { addMonths, currentYearMonth, formatPLN } from '../../domain/formatting'
 import { buildSchedule } from '../../domain/allocation'
+import { committedMonthlyCostBasis } from '../../domain/securityBuffers'
 import { useStore } from '../../store'
 import type { Account, AccountBucket, AccountSnapshot } from '../../domain/types'
 import { AccountForm } from './AccountForm'
@@ -34,10 +35,8 @@ export function AccountsSection() {
 
   // Cele KPI: poduszka = N miesięcy realnych kosztów (jak na Przeglądzie), fundusz = stała kwota.
   const { safetyCushionTarget, emergencyFundTarget, safetyCushionMonths } = useMemo(() => {
-    const first = buildSchedule(settings, goals, loans, overrides, 0, 0, mortgagePlan, subscriptions, upcomingExpenses).rows[0]
-    const monthlyCosts = first
-      ? first.expenses + first.subscriptionsTotal + first.loanPaymentsTotal + first.mortgagePaymentTotal
-      : settings.monthlyExpenses
+    const schedule = buildSchedule(settings, goals, loans, overrides, 0, 0, mortgagePlan, subscriptions, upcomingExpenses)
+    const monthlyCosts = committedMonthlyCostBasis(settings, schedule)
     const months = settings.safetyCushionMonths ?? 6
     return {
       safetyCushionMonths: months,
