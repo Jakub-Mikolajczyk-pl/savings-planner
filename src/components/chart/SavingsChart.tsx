@@ -15,6 +15,7 @@ import { CalendarClock, ListChecks, ReceiptText, type LucideIcon } from 'lucide-
 import { useStore } from '../../store'
 import { buildSchedule } from '../../domain/allocation'
 import { formatPLN, formatYearMonth } from '../../domain/formatting'
+import { buildSecurityBuffers } from '../../domain/securityBuffers'
 import {
   buildProjectionDashboardModel,
   type ProjectionDebtItem,
@@ -39,6 +40,8 @@ export function SavingsChart() {
   const settings = useStore(s => s.settings)
   const goals = useStore(s => s.goals)
   const loans = useStore(s => s.loans)
+  const accounts = useStore(s => s.accounts)
+  const snapshots = useStore(s => s.accountSnapshots)
   const mortgagePlan = useStore(s => s.mortgagePlan)
   const subscriptions = useStore(s => s.subscriptions)
   const upcomingExpenses = useStore(s => s.upcomingExpenses)
@@ -74,8 +77,19 @@ export function SavingsChart() {
     [settings, goals, loans, overrides, whatIfDelta, loanOverpayment, mortgagePlan, subscriptions, upcomingExpenses],
   )
   const model = useMemo(
-    () => buildProjectionDashboardModel({ schedule, whatIfSchedule, goals, loans, goalInsights, hasWhatIf }),
-    [schedule, whatIfSchedule, goals, loans, goalInsights, hasWhatIf],
+    () => {
+      const security = buildSecurityBuffers(settings, accounts, snapshots, schedule)
+      return buildProjectionDashboardModel({
+        schedule,
+        whatIfSchedule,
+        goals,
+        loans,
+        goalInsights,
+        securityBuffers: security.buffers,
+        hasWhatIf,
+      })
+    },
+    [settings, accounts, snapshots, schedule, whatIfSchedule, goals, loans, goalInsights, hasWhatIf],
   )
 
   const knownIds = useMemo(() => new Set([...model.goals.map(goal => goal.id), ...model.debts.map(debt => debt.id)]), [model.goals, model.debts])
@@ -88,12 +102,12 @@ export function SavingsChart() {
     .filter(expense => !expense.isPaid && visibleMonths.has(expense.targetMonth))
     .sort((a, b) => a.targetMonth.localeCompare(b.targetMonth))
   const data = useMemo(
-    () => buildChartPoints(schedule, whatIfSchedule, goals, loans),
-    [schedule, whatIfSchedule, goals, loans],
+    () => buildChartPoints(schedule, whatIfSchedule, goals, loans, model.goals),
+    [schedule, whatIfSchedule, goals, loans, model.goals],
   )
   const tickInterval = Math.max(1, Math.floor(data.length / 10))
 
-  if (goals.length === 0 && loans.length === 0 && upcomingMarkers.length === 0) {
+  if (model.goals.length === 0 && loans.length === 0 && upcomingMarkers.length === 0) {
     return <p className="py-8 text-center text-sm text-gray-400">Dodaj cele lub kredyty, żeby zobaczyć prognozę.</p>
   }
 
@@ -122,12 +136,12 @@ export function SavingsChart() {
             <XAxis dataKey="label" tick={{ fontSize: 11 }} interval={tickInterval - 1} className="fill-gray-500" />
             <YAxis tickFormatter={v => `${Math.round(Number(v) / 1000)}k`} tick={{ fontSize: 11 }} width={42} className="fill-gray-500" />
             <Tooltip
-              formatter={(value: unknown, name: unknown) => [formatPLN(value), tooltipName(String(name), goals, loans)]}
+              formatter={(value: unknown, name: unknown) => [formatPLN(value), tooltipName(String(name), goals, loans, model.goals)]}
               contentStyle={{ fontSize: 12, border: '1px solid #e5e7eb', borderRadius: 8 }}
               labelFormatter={label => String(label ?? '')}
             />
             <Legend
-              formatter={(value: string) => tooltipName(value, goals, loans)}
+              formatter={(value: string) => tooltipName(value, goals, loans, model.goals)}
               wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
             />
 
@@ -247,7 +261,13 @@ export function SavingsChart() {
   )
 }
 
-function buildChartPoints(schedule: ReturnType<typeof buildSchedule>, whatIfSchedule: ReturnType<typeof buildSchedule>, goals: Goal[], loans: Loan[]): ChartPoint[] {
+function buildChartPoints(
+  schedule: ReturnType<typeof buildSchedule>,
+  whatIfSchedule: ReturnType<typeof buildSchedule>,
+  goals: Goal[],
+  loans: Loan[],
+  projectionGoals: ProjectionGoalItem[],
+): ChartPoint[] {
   return schedule.rows.map((row, index) => {
     const point: ChartPoint = { label: row.label, yearMonth: row.yearMonth }
     goals.forEach(goal => {
@@ -258,6 +278,12 @@ function buildChartPoints(schedule: ReturnType<typeof buildSchedule>, whatIfSche
       point[`debt_${loan.id}`] = row.loanEntries.find(entry => entry.loanId === loan.id)?.balanceAfter ?? 0
       point[`wi_debt_${loan.id}`] = whatIfSchedule.rows[index]?.loanEntries.find(entry => entry.loanId === loan.id)?.balanceAfter ?? 0
     })
+    projectionGoals
+      .filter(goal => goal.kind === 'security')
+      .forEach(goal => {
+        point[`goal_${goal.goalId}`] = goal.series?.[index] ?? goal.current
+        point[`wi_goal_${goal.goalId}`] = goal.whatIfSeries?.[index] ?? goal.current
+      })
     return point
   })
 }
@@ -274,9 +300,15 @@ function visibleDebtItems(debts: ProjectionDebtItem[], perspective: ProjectionPe
   return debts
 }
 
-function tooltipName(key: string, goals: Goal[], loans: Loan[]) {
-  if (key.startsWith('wi_goal_')) return `${goals.find(goal => goal.id === key.replace('wi_goal_', ''))?.name ?? key} (scenariusz)`
-  if (key.startsWith('goal_')) return goals.find(goal => goal.id === key.replace('goal_', ''))?.name ?? key
+function tooltipName(key: string, goals: Goal[], loans: Loan[], projectionGoals: ProjectionGoalItem[]) {
+  if (key.startsWith('wi_goal_')) {
+    const id = key.replace('wi_goal_', '')
+    return `${projectionGoals.find(goal => goal.goalId === id)?.name ?? goals.find(goal => goal.id === id)?.name ?? key} (scenariusz)`
+  }
+  if (key.startsWith('goal_')) {
+    const id = key.replace('goal_', '')
+    return projectionGoals.find(goal => goal.goalId === id)?.name ?? goals.find(goal => goal.id === id)?.name ?? key
+  }
   if (key.startsWith('wi_debt_')) return `${loans.find(loan => loan.id === key.replace('wi_debt_', ''))?.name ?? key} (nadpłata)`
   if (key.startsWith('debt_')) return loans.find(loan => loan.id === key.replace('debt_', ''))?.name ?? key
   return key
@@ -355,17 +387,29 @@ function ProjectionGoalList({ goals, selectedId, onSelect }: { goals: Projection
       {goals.length === 0 ? (
         <EmptyState text="Brak aktywnych celów." />
       ) : goals.slice(0, 6).map(goal => (
-        <ProjectionRow key={goal.id} active={goal.id === selectedId} onClick={() => onSelect(goal.id)}>
+        <ProjectionRow key={goal.id} active={goal.id === selectedId} priority={goal.kind === 'security'} onClick={() => onSelect(goal.id)}>
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">{goal.name}</p>
+            <div className="flex min-w-0 items-center gap-2">
+              <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">{goal.name}</p>
+              {goal.kind === 'security' && (
+                <span className="shrink-0 rounded-sm bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+                  Priorytet 1
+                </span>
+              )}
+            </div>
             <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
               {formatPLN(goal.current)} / {formatPLN(goal.target)} · brakuje {formatPLN(goal.remaining)}
             </p>
+            {goal.kind === 'security' && goal.focusCopy && (
+              <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">{goal.focusCopy}</p>
+            )}
           </div>
           <div className="text-right text-xs">
             <p className="font-semibold tabular-nums text-gray-900 dark:text-gray-100">{goal.eta ? formatYearMonth(goal.eta) : 'brak ETA'}</p>
-            <p className={goal.status === 'behind_plan' || goal.status === 'unreachable' ? 'text-orange-600 dark:text-orange-400' : 'text-gray-500 dark:text-gray-400'}>
-              {goal.actualPerCycle !== undefined ? `${formatPLN(goal.actualPerCycle)}/cykl` : 'brak historii'}
+            <p className={goal.kind === 'security' || goal.status === 'behind_plan' || goal.status === 'unreachable' ? 'text-orange-600 dark:text-orange-400' : 'text-gray-500 dark:text-gray-400'}>
+              {goal.kind === 'security'
+                ? goal.plannedPerCycle ? `${formatPLN(goal.plannedPerCycle)}/mies. wolne` : 'brak wolnych środków'
+                : goal.actualPerCycle !== undefined ? `${formatPLN(goal.actualPerCycle)}/cykl` : 'brak historii'}
             </p>
             {goal.whatIfEtaDeltaMonths !== undefined && goal.whatIfEtaDeltaMonths !== 0 && (
               <p className="text-emerald-600 dark:text-emerald-400">what-if {goal.whatIfEtaDeltaMonths > 0 ? '+' : ''}{goal.whatIfEtaDeltaMonths} mies.</p>
@@ -413,13 +457,19 @@ function ProjectionListShell({ title, icon: Icon, children }: { title: string; i
   )
 }
 
-function ProjectionRow({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
+function ProjectionRow({ active, priority = false, onClick, children }: { active: boolean; priority?: boolean; onClick: () => void; children: ReactNode }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={`grid w-full grid-cols-[minmax(0,1fr)_auto] gap-3 px-3 py-2.5 text-left transition-colors ${
-        active ? 'bg-gray-50 dark:bg-gray-800/70' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
+        priority
+          ? active
+            ? 'bg-amber-50 dark:bg-amber-950/30'
+            : 'bg-amber-50/50 hover:bg-amber-50 dark:bg-amber-950/20 dark:hover:bg-amber-950/30'
+          : active
+            ? 'bg-gray-50 dark:bg-gray-800/70'
+            : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
       }`}
     >
       {children}

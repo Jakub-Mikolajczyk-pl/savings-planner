@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { buildSchedule } from './allocation'
 import { buildProjectionDashboardModel } from './projection'
+import type { SecurityBuffer } from './securityBuffers'
 import type { Goal, GoalInsights, Loan, Settings } from './types'
 
 const settings: Settings = {
@@ -139,9 +140,49 @@ describe('projection dashboard model', () => {
     expect(model.goals).toHaveLength(1)
     expect(model.goals[0]).toMatchObject({
       id: 'goal:quick',
+      kind: 'manual',
       current: 0,
       remaining: 4000,
       eta: '2026-01',
     })
+  })
+
+  it('puts missing security buffers before manual goals as priority 1 system goals', () => {
+    const schedule = buildSchedule(settings, goals, [], {})
+    const securityBuffers: SecurityBuffer[] = [
+      {
+        id: 'safety_cushion',
+        goalId: 'security:safety_cushion',
+        title: 'Poduszka bezpieczeństwa',
+        current: 6000,
+        target: 12000,
+        missing: 6000,
+        progressPct: 50,
+        status: 'missing',
+        priority: 1,
+        detail: 'cel 6 mies.',
+        focusCopy: 'Najpierw bezpieczeństwo rodziny.',
+      },
+    ]
+
+    const model = buildProjectionDashboardModel({
+      schedule,
+      whatIfSchedule: schedule,
+      goals,
+      loans: [],
+      securityBuffers,
+      hasWhatIf: false,
+    })
+
+    expect(model.defaultPerspective).toBe('goals')
+    expect(model.defaultSelectedId).toBe('goal:security:safety_cushion')
+    expect(model.goals[0]).toMatchObject({
+      id: 'goal:security:safety_cushion',
+      kind: 'security',
+      priority: 1,
+      remaining: 6000,
+      eta: '2026-02',
+    })
+    expect(model.goals[0].series).toEqual([10000, 12000, 12000, 12000, 12000, 12000, 12000, 12000, 12000, 12000, 12000, 12000])
   })
 })

@@ -1,4 +1,5 @@
 import type { Goal, GoalInsights, Loan, Schedule } from './types'
+import type { SecurityBuffer } from './securityBuffers'
 import { monthDiff } from './formatting'
 
 export type ProjectionPerspective = 'goals' | 'debts' | 'all'
@@ -7,6 +8,7 @@ export interface ProjectionGoalItem {
   id: string
   goalId: string
   name: string
+  kind: 'manual' | 'security'
   current: number
   target: number
   remaining: number
@@ -15,6 +17,11 @@ export interface ProjectionGoalItem {
   plannedPerCycle?: number
   actualPerCycle?: number
   whatIfEtaDeltaMonths?: number
+  priority?: number
+  detail?: string
+  focusCopy?: string
+  series?: number[]
+  whatIfSeries?: number[]
 }
 
 export interface ProjectionDebtItem {
@@ -40,6 +47,7 @@ interface ProjectionDashboardInput {
   goals: Goal[]
   loans: Loan[]
   goalInsights?: GoalInsights
+  securityBuffers?: SecurityBuffer[]
   hasWhatIf: boolean
 }
 
@@ -61,9 +69,37 @@ export function buildProjectionDashboardModel({
   goals,
   loans,
   goalInsights,
+  securityBuffers = [],
   hasWhatIf,
 }: ProjectionDashboardInput): ProjectionDashboardModel {
   const insightByGoalId = new Map(goalInsights?.goals.map(goal => [goal.goalId, goal]))
+  const securityGoalItems = securityBuffers
+    .filter(buffer => buffer.status === 'missing')
+    .map(buffer => {
+      const series = buildSecuritySeries(buffer.current, buffer.target, schedule)
+      const whatIfSeries = buildSecuritySeries(buffer.current, buffer.target, whatIfSchedule)
+      const eta = seriesEta(series, schedule, buffer.target)
+      const whatIfEta = seriesEta(whatIfSeries, whatIfSchedule, buffer.target)
+
+      return {
+        id: `goal:${buffer.goalId}`,
+        goalId: buffer.goalId,
+        name: buffer.title,
+        kind: 'security' as const,
+        current: buffer.current,
+        target: buffer.target,
+        remaining: buffer.missing,
+        eta,
+        status: 'security_priority',
+        plannedPerCycle: firstPositiveFreeCash(schedule),
+        whatIfEtaDeltaMonths: hasWhatIf ? etaDelta(eta, whatIfEta) : undefined,
+        priority: buffer.priority,
+        detail: buffer.detail,
+        focusCopy: buffer.focusCopy,
+        series,
+        whatIfSeries,
+      }
+    })
   const goalItems = goals
     .map(goal => {
       const insight = insightByGoalId.get(goal.id)
@@ -75,6 +111,7 @@ export function buildProjectionDashboardModel({
         id: `goal:${goal.id}`,
         goalId: goal.id,
         name: goal.name,
+        kind: 'manual' as const,
         current,
         target: goal.targetAmount,
         remaining: Math.max(goal.targetAmount - current, 0),
@@ -92,6 +129,7 @@ export function buildProjectionDashboardModel({
         || (a.eta ?? '9999-99').localeCompare(b.eta ?? '9999-99')
         || a.remaining - b.remaining
     })
+  const allGoalItems = [...securityGoalItems, ...goalItems]
 
   const debtItems = loans
     .map(loan => {
@@ -110,16 +148,37 @@ export function buildProjectionDashboardModel({
     .filter(debt => debt.balance > 0)
     .sort((a, b) => (a.eta ?? '9999-99').localeCompare(b.eta ?? '9999-99') || b.monthlyPayment - a.monthlyPayment)
 
-  const atRiskGoal = goalItems.find(goal => goal.status === 'unreachable' || goal.status === 'behind_plan')
+  const atRiskGoal = allGoalItems.find(goal => goal.kind === 'security')
+    ?? allGoalItems.find(goal => goal.status === 'unreachable' || goal.status === 'behind_plan')
   const latestDebt = [...debtItems].sort((a, b) =>
     (b.eta ?? '0000-00').localeCompare(a.eta ?? '0000-00') || b.monthlyPayment - a.monthlyPayment
   )[0]
-  const defaultPerspective: ProjectionPerspective = goalItems.length > 0 ? 'goals' : debtItems.length > 0 ? 'debts' : 'all'
+  const defaultPerspective: ProjectionPerspective = allGoalItems.length > 0 ? 'goals' : debtItems.length > 0 ? 'debts' : 'all'
 
   return {
-    goals: goalItems,
+    goals: allGoalItems,
     debts: debtItems,
     defaultPerspective,
-    defaultSelectedId: defaultPerspective === 'goals' ? (atRiskGoal ?? goalItems[0])?.id : latestDebt?.id,
+    defaultSelectedId: defaultPerspective === 'goals' ? (atRiskGoal ?? allGoalItems[0])?.id : latestDebt?.id,
   }
+}
+
+function buildSecuritySeries(current: number, target: number, schedule: Schedule): number[] {
+  let balance = current
+  return schedule.rows.map(row => {
+    if (balance < target) {
+      balance = Math.min(target, balance + Math.max(0, row.freeCash))
+    }
+    return balance
+  })
+}
+
+function seriesEta(series: number[], schedule: Schedule, target: number) {
+  const index = series.findIndex(value => value >= target)
+  if (index >= 0) return schedule.rows[index]?.yearMonth
+  return undefined
+}
+
+function firstPositiveFreeCash(schedule: Schedule) {
+  return schedule.rows.find(row => row.freeCash > 0)?.freeCash
 }
