@@ -376,7 +376,7 @@ export function CategorizationSection() {
         </div>
       </Collapsible>
 
-      <Collapsible title="Reguly" defaultOpen badge={String(categoryRules.length)}>
+      <Collapsible title="Reguly" badge={String(categoryRules.length)}>
         <form onSubmit={createRule} className="grid gap-2 lg:grid-cols-[9rem_8rem_minmax(12rem,1fr)_12rem_7rem_auto]">
           <select value={matchField} onChange={event => setMatchField(event.target.value as RuleMatchField)} className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-800 dark:bg-gray-950">
             {Object.entries(FIELD_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}

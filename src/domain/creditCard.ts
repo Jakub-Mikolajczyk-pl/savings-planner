@@ -20,8 +20,9 @@ const clamp = (value: number, min: number, max: number): number =>
  * - dostępny limit przycinamy do [0, limit] (user mógł wpisać brzydką wartość),
  * - wykorzystane = limit - dostępne (dla transactora = przyszła spłata).
  *
- * Świadomie NIE wpinamy tego w projekcję cashflow: spłata karty siedzi już w
- * baseline wydatków jako proxy, więc dodanie tego drugi raz dublowałoby koszt.
+ * Świadomie NIE wpinamy tego w bazowy harmonogram celów: spłata karty może siedzieć
+ * już w baseline wydatków jako proxy. Osobna prognoza najbliższego cyklu pokazuje ją
+ * jako widoczną kwotę do zapłaty.
  */
 export function creditCardStatus(card: CreditCard): CreditCardStatus {
   const limit = Math.max(0, card.limit || 0)

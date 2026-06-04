@@ -25,6 +25,7 @@ import { CategorizationSection } from './components/categorization/Categorizatio
 import { CreditCardSection } from './components/creditcard/CreditCardSection'
 import { WhatIfSlider } from './components/chart/WhatIfSlider'
 import { UpcomingExpenseList } from './components/expenses/UpcomingExpenseList'
+import { NextCycleForecast } from './components/forecast/NextCycleForecast'
 import { GoalInsightsSection } from './components/goals/GoalInsightsSection'
 import { GoalList } from './components/goals/GoalList'
 import { Hero } from './components/hero/Hero'
@@ -343,6 +344,10 @@ function PlanPage() {
 
       <SectionCard title="Miesięczny cashflow" description="Bazowe przychody, koszty życia i wolne środki po ratach." icon={CircleDollarSign} accent="plan">
         <Hero />
+      </SectionCard>
+
+      <SectionCard title="Prognoza następnego cyklu" description="Abonamenty, jednorazowe koszty, raty i najbliższa spłata karty." icon={CalendarClock} accent="plan">
+        <NextCycleForecast />
       </SectionCard>
 
       <SectionCard title="IKZE roczne" description="Limity, wpłaty i rekomendowana dopłata na pozostałe wypłaty." icon={PiggyBank} accent="plan">
