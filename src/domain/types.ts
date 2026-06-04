@@ -46,9 +46,8 @@ export interface UpcomingExpense {
 
 // Karta kredytowa — tracker informacyjny (wariant 1).
 // Brak wyciągów: user wpisuje "ile zostało z limitu na dany moment".
-// Spłata zostaje w cashflow jako proxy wydatku, więc TEGO NIE liczymy do projekcji
-// (inaczej double-count). Ten obiekt służy tylko do podglądu wykorzystania i tego,
-// ile zejdzie z konta przy najbliższej spłacie.
+// Spłaty nie mieszamy z bazowym harmonogramem celów, żeby nie dublować wydatków.
+// Używamy jej za to w osobnej prognozie najbliższego cyklu jako kwoty do zapłaty.
 export interface CreditCard {
   name: string
   limit: number          // przyznany limit, np. 10000
