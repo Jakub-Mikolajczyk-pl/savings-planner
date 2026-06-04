@@ -44,6 +44,18 @@ export interface UpcomingExpense {
   isPaid: boolean
 }
 
+// Karta kredytowa — tracker informacyjny (wariant 1).
+// Brak wyciągów: user wpisuje "ile zostało z limitu na dany moment".
+// Spłata zostaje w cashflow jako proxy wydatku, więc TEGO NIE liczymy do projekcji
+// (inaczej double-count). Ten obiekt służy tylko do podglądu wykorzystania i tego,
+// ile zejdzie z konta przy najbliższej spłacie.
+export interface CreditCard {
+  name: string
+  limit: number          // przyznany limit, np. 10000
+  availableLimit: number // pozostały limit "na dziś" — to user wpisuje w okienko
+  repaymentDayOfMonth?: number // 1..28, opcjonalnie — dzień spłaty
+}
+
 // Assets: konta i ich stany w czasie (snapshoty)
 export type AccountBucket =
   | 'accounts'
@@ -371,6 +383,7 @@ export interface Settings {
   emergencyFundTarget?: number  // cel funduszu awaryjnego — stała kwota (domyślnie 10000)
   ikzePlans?: IkzePlanEntry[]
   includeIkzeContributionsInCashflow?: boolean
+  creditCard?: CreditCard // tracker karty kredytowej; brak => karta nieskonfigurowana
 }
 
 export interface MonthOverride {

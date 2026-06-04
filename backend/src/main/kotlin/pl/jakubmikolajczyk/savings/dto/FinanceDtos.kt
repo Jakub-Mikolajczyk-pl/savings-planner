@@ -1,6 +1,7 @@
 package pl.jakubmikolajczyk.savings.dto
 
 import jakarta.validation.Valid
+import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
@@ -243,6 +244,15 @@ data class SettingsDto(
     @field:NotNull val emergencyFundTarget: BigDecimal = BigDecimal("10000"),
     @field:Valid val ikzePlans: List<IkzePlanEntryDto> = emptyList(),
     val includeIkzeContributionsInCashflow: Boolean = false,
+    // Tracker karty kredytowej; null => karta nieskonfigurowana. JSONB blob, brak migracji.
+    @field:Valid val creditCard: CreditCardDto? = null,
+)
+
+data class CreditCardDto(
+    @field:NotBlank val name: String = "Karta kredytowa",
+    @field:NotNull val limit: BigDecimal = BigDecimal.ZERO,
+    @field:NotNull val availableLimit: BigDecimal = BigDecimal.ZERO,
+    @field:Min(1) @field:Max(28) val repaymentDayOfMonth: Int? = null,
 )
 
 data class MonthOverrideDto(
