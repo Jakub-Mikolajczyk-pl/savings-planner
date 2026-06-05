@@ -1,0 +1,782 @@
+{
+  "settings": {
+    "monthlyIncome": 13200,
+    "monthlyExpenses": 6800,
+    "startMonth": "2026-06",
+    "horizonMonths": 36,
+    "emergencyFundBuckets": [
+      "safety_cushion"
+    ],
+    "safetyCushionMonths": 6,
+    "emergencyFundTarget": 10000,
+    "includeIkzeContributionsInCashflow": false,
+    "ikzePlans": [
+      {
+        "id": "ikze-a-2026",
+        "year": 2026,
+        "ownerName": "Anna",
+        "role": "employee",
+        "annualLimit": 10407.6,
+        "contributedAmount": 4200,
+        "payoutsLeft": 6
+      },
+      {
+        "id": "ikze-m-2026",
+        "year": 2026,
+        "ownerName": "Marek",
+        "role": "entrepreneur",
+        "annualLimit": 15611.4,
+        "contributedAmount": 6000,
+        "payoutsLeft": 6
+      }
+    ],
+    "creditCard": {
+      "name": "Karta kredytowa",
+      "limit": 12000,
+      "availableLimit": 8600,
+      "repaymentDayOfMonth": 18
+    }
+  },
+  "goals": [
+    {
+      "id": "goal-gift",
+      "name": "Prezent ślubny (siostra)",
+      "targetAmount": 4000,
+      "currentSaved": 1200,
+      "deadline": "2026-09-01",
+      "priority": 1
+    },
+    {
+      "id": "goal-vacation",
+      "name": "Wakacje Grecja 2026",
+      "targetAmount": 14000,
+      "currentSaved": 8600,
+      "deadline": "2026-07-15",
+      "priority": 2
+    },
+    {
+      "id": "goal-reno",
+      "name": "Remont kuchni",
+      "targetAmount": 50000,
+      "currentSaved": 35000,
+      "deadline": "2027-03-01",
+      "priority": 3,
+      "fixedAllocation": 1500
+    },
+    {
+      "id": "goal-etf",
+      "name": "Dopłata do ETF",
+      "targetAmount": 200000,
+      "currentSaved": 142000,
+      "priority": 4
+    }
+  ],
+  "loans": [
+    {
+      "id": "loan-car",
+      "name": "Kredyt samochodowy",
+      "remainingBalance": 22000,
+      "monthlyPayment": 950
+    }
+  ],
+  "accounts": [
+    {
+      "id": "acc-personal",
+      "name": "Konto osobiste",
+      "bucket": "accounts",
+      "currency": "PLN",
+      "openedAt": "2025-09"
+    },
+    {
+      "id": "acc-joint",
+      "name": "Konto wspólne",
+      "bucket": "accounts",
+      "currency": "PLN",
+      "openedAt": "2025-09"
+    },
+    {
+      "id": "acc-cushion",
+      "name": "Konto oszczędnościowe",
+      "bucket": "safety_cushion",
+      "currency": "PLN",
+      "openedAt": "2025-09"
+    },
+    {
+      "id": "acc-emergency",
+      "name": "Fundusz awaryjny",
+      "bucket": "emergency_fund",
+      "currency": "PLN",
+      "openedAt": "2025-09"
+    },
+    {
+      "id": "acc-ikze-a",
+      "name": "IKZE Anna",
+      "bucket": "retirement",
+      "currency": "PLN",
+      "openedAt": "2025-09"
+    },
+    {
+      "id": "acc-ikze-m",
+      "name": "IKZE Marek",
+      "bucket": "retirement",
+      "currency": "PLN",
+      "openedAt": "2025-09"
+    },
+    {
+      "id": "acc-reno",
+      "name": "Remont mieszkania",
+      "bucket": "renovation",
+      "currency": "PLN",
+      "openedAt": "2025-09"
+    },
+    {
+      "id": "acc-etf",
+      "name": "ETF / rachunek makl.",
+      "bucket": "investments",
+      "currency": "PLN",
+      "openedAt": "2025-09"
+    },
+    {
+      "id": "acc-vacation",
+      "name": "Wakacje",
+      "bucket": "vacation",
+      "currency": "PLN",
+      "openedAt": "2025-09"
+    }
+  ],
+  "accountSnapshots": [
+    {
+      "accountId": "acc-personal",
+      "yearMonth": "2025-09",
+      "balance": 9800
+    },
+    {
+      "accountId": "acc-personal",
+      "yearMonth": "2025-10",
+      "balance": 10981
+    },
+    {
+      "accountId": "acc-personal",
+      "yearMonth": "2025-11",
+      "balance": 10148
+    },
+    {
+      "accountId": "acc-personal",
+      "yearMonth": "2025-12",
+      "balance": 9833
+    },
+    {
+      "accountId": "acc-personal",
+      "yearMonth": "2026-01",
+      "balance": 11400
+    },
+    {
+      "accountId": "acc-personal",
+      "yearMonth": "2026-02",
+      "balance": 11963
+    },
+    {
+      "accountId": "acc-personal",
+      "yearMonth": "2026-03",
+      "balance": 10903
+    },
+    {
+      "accountId": "acc-personal",
+      "yearMonth": "2026-04",
+      "balance": 11266
+    },
+    {
+      "accountId": "acc-personal",
+      "yearMonth": "2026-05",
+      "balance": 12884
+    },
+    {
+      "accountId": "acc-personal",
+      "yearMonth": "2026-06",
+      "balance": 12757
+    },
+    {
+      "accountId": "acc-joint",
+      "yearMonth": "2025-09",
+      "balance": 14200
+    },
+    {
+      "accountId": "acc-joint",
+      "yearMonth": "2025-10",
+      "balance": 15416
+    },
+    {
+      "accountId": "acc-joint",
+      "yearMonth": "2025-11",
+      "balance": 15066
+    },
+    {
+      "accountId": "acc-joint",
+      "yearMonth": "2025-12",
+      "balance": 15119
+    },
+    {
+      "accountId": "acc-joint",
+      "yearMonth": "2026-01",
+      "balance": 16635
+    },
+    {
+      "accountId": "acc-joint",
+      "yearMonth": "2026-02",
+      "balance": 17370
+    },
+    {
+      "accountId": "acc-joint",
+      "yearMonth": "2026-03",
+      "balance": 16843
+    },
+    {
+      "accountId": "acc-joint",
+      "yearMonth": "2026-04",
+      "balance": 17423
+    },
+    {
+      "accountId": "acc-joint",
+      "yearMonth": "2026-05",
+      "balance": 18979
+    },
+    {
+      "accountId": "acc-joint",
+      "yearMonth": "2026-06",
+      "balance": 19178
+    },
+    {
+      "accountId": "acc-cushion",
+      "yearMonth": "2025-09",
+      "balance": 78000
+    },
+    {
+      "accountId": "acc-cushion",
+      "yearMonth": "2025-10",
+      "balance": 80000
+    },
+    {
+      "accountId": "acc-cushion",
+      "yearMonth": "2025-11",
+      "balance": 82000
+    },
+    {
+      "accountId": "acc-cushion",
+      "yearMonth": "2025-12",
+      "balance": 84000
+    },
+    {
+      "accountId": "acc-cushion",
+      "yearMonth": "2026-01",
+      "balance": 86000
+    },
+    {
+      "accountId": "acc-cushion",
+      "yearMonth": "2026-02",
+      "balance": 88000
+    },
+    {
+      "accountId": "acc-cushion",
+      "yearMonth": "2026-03",
+      "balance": 90000
+    },
+    {
+      "accountId": "acc-cushion",
+      "yearMonth": "2026-04",
+      "balance": 92000
+    },
+    {
+      "accountId": "acc-cushion",
+      "yearMonth": "2026-05",
+      "balance": 94000
+    },
+    {
+      "accountId": "acc-cushion",
+      "yearMonth": "2026-06",
+      "balance": 96000
+    },
+    {
+      "accountId": "acc-emergency",
+      "yearMonth": "2025-09",
+      "balance": 10000
+    },
+    {
+      "accountId": "acc-emergency",
+      "yearMonth": "2025-10",
+      "balance": 10000
+    },
+    {
+      "accountId": "acc-emergency",
+      "yearMonth": "2025-11",
+      "balance": 10000
+    },
+    {
+      "accountId": "acc-emergency",
+      "yearMonth": "2025-12",
+      "balance": 10000
+    },
+    {
+      "accountId": "acc-emergency",
+      "yearMonth": "2026-01",
+      "balance": 10000
+    },
+    {
+      "accountId": "acc-emergency",
+      "yearMonth": "2026-02",
+      "balance": 10000
+    },
+    {
+      "accountId": "acc-emergency",
+      "yearMonth": "2026-03",
+      "balance": 10000
+    },
+    {
+      "accountId": "acc-emergency",
+      "yearMonth": "2026-04",
+      "balance": 10000
+    },
+    {
+      "accountId": "acc-emergency",
+      "yearMonth": "2026-05",
+      "balance": 10000
+    },
+    {
+      "accountId": "acc-emergency",
+      "yearMonth": "2026-06",
+      "balance": 10000
+    },
+    {
+      "accountId": "acc-ikze-a",
+      "yearMonth": "2025-09",
+      "balance": 24300
+    },
+    {
+      "accountId": "acc-ikze-a",
+      "yearMonth": "2025-10",
+      "balance": 24767
+    },
+    {
+      "accountId": "acc-ikze-a",
+      "yearMonth": "2025-11",
+      "balance": 25233
+    },
+    {
+      "accountId": "acc-ikze-a",
+      "yearMonth": "2025-12",
+      "balance": 25700
+    },
+    {
+      "accountId": "acc-ikze-a",
+      "yearMonth": "2026-01",
+      "balance": 26167
+    },
+    {
+      "accountId": "acc-ikze-a",
+      "yearMonth": "2026-02",
+      "balance": 26633
+    },
+    {
+      "accountId": "acc-ikze-a",
+      "yearMonth": "2026-03",
+      "balance": 27100
+    },
+    {
+      "accountId": "acc-ikze-a",
+      "yearMonth": "2026-04",
+      "balance": 27567
+    },
+    {
+      "accountId": "acc-ikze-a",
+      "yearMonth": "2026-05",
+      "balance": 28033
+    },
+    {
+      "accountId": "acc-ikze-a",
+      "yearMonth": "2026-06",
+      "balance": 28500
+    },
+    {
+      "accountId": "acc-ikze-m",
+      "yearMonth": "2025-09",
+      "balance": 18100
+    },
+    {
+      "accountId": "acc-ikze-m",
+      "yearMonth": "2025-10",
+      "balance": 18767
+    },
+    {
+      "accountId": "acc-ikze-m",
+      "yearMonth": "2025-11",
+      "balance": 19433
+    },
+    {
+      "accountId": "acc-ikze-m",
+      "yearMonth": "2025-12",
+      "balance": 20100
+    },
+    {
+      "accountId": "acc-ikze-m",
+      "yearMonth": "2026-01",
+      "balance": 20767
+    },
+    {
+      "accountId": "acc-ikze-m",
+      "yearMonth": "2026-02",
+      "balance": 21433
+    },
+    {
+      "accountId": "acc-ikze-m",
+      "yearMonth": "2026-03",
+      "balance": 22100
+    },
+    {
+      "accountId": "acc-ikze-m",
+      "yearMonth": "2026-04",
+      "balance": 22767
+    },
+    {
+      "accountId": "acc-ikze-m",
+      "yearMonth": "2026-05",
+      "balance": 23433
+    },
+    {
+      "accountId": "acc-ikze-m",
+      "yearMonth": "2026-06",
+      "balance": 24100
+    },
+    {
+      "accountId": "acc-reno",
+      "yearMonth": "2025-09",
+      "balance": 22000
+    },
+    {
+      "accountId": "acc-reno",
+      "yearMonth": "2025-10",
+      "balance": 23444
+    },
+    {
+      "accountId": "acc-reno",
+      "yearMonth": "2025-11",
+      "balance": 24889
+    },
+    {
+      "accountId": "acc-reno",
+      "yearMonth": "2025-12",
+      "balance": 26333
+    },
+    {
+      "accountId": "acc-reno",
+      "yearMonth": "2026-01",
+      "balance": 27778
+    },
+    {
+      "accountId": "acc-reno",
+      "yearMonth": "2026-02",
+      "balance": 29222
+    },
+    {
+      "accountId": "acc-reno",
+      "yearMonth": "2026-03",
+      "balance": 30667
+    },
+    {
+      "accountId": "acc-reno",
+      "yearMonth": "2026-04",
+      "balance": 32111
+    },
+    {
+      "accountId": "acc-reno",
+      "yearMonth": "2026-05",
+      "balance": 33556
+    },
+    {
+      "accountId": "acc-reno",
+      "yearMonth": "2026-06",
+      "balance": 35000
+    },
+    {
+      "accountId": "acc-etf",
+      "yearMonth": "2025-09",
+      "balance": 118000
+    },
+    {
+      "accountId": "acc-etf",
+      "yearMonth": "2025-10",
+      "balance": 124832
+    },
+    {
+      "accountId": "acc-etf",
+      "yearMonth": "2025-11",
+      "balance": 122260
+    },
+    {
+      "accountId": "acc-etf",
+      "yearMonth": "2025-12",
+      "balance": 122112
+    },
+    {
+      "accountId": "acc-etf",
+      "yearMonth": "2026-01",
+      "balance": 130742
+    },
+    {
+      "accountId": "acc-etf",
+      "yearMonth": "2026-02",
+      "balance": 134687
+    },
+    {
+      "accountId": "acc-etf",
+      "yearMonth": "2026-03",
+      "balance": 131061
+    },
+    {
+      "accountId": "acc-etf",
+      "yearMonth": "2026-04",
+      "balance": 134070
+    },
+    {
+      "accountId": "acc-etf",
+      "yearMonth": "2026-05",
+      "balance": 142942
+    },
+    {
+      "accountId": "acc-etf",
+      "yearMonth": "2026-06",
+      "balance": 143666
+    },
+    {
+      "accountId": "acc-vacation",
+      "yearMonth": "2025-09",
+      "balance": 3200
+    },
+    {
+      "accountId": "acc-vacation",
+      "yearMonth": "2025-10",
+      "balance": 3800
+    },
+    {
+      "accountId": "acc-vacation",
+      "yearMonth": "2025-11",
+      "balance": 4400
+    },
+    {
+      "accountId": "acc-vacation",
+      "yearMonth": "2025-12",
+      "balance": 5000
+    },
+    {
+      "accountId": "acc-vacation",
+      "yearMonth": "2026-01",
+      "balance": 5600
+    },
+    {
+      "accountId": "acc-vacation",
+      "yearMonth": "2026-02",
+      "balance": 6200
+    },
+    {
+      "accountId": "acc-vacation",
+      "yearMonth": "2026-03",
+      "balance": 6800
+    },
+    {
+      "accountId": "acc-vacation",
+      "yearMonth": "2026-04",
+      "balance": 7400
+    },
+    {
+      "accountId": "acc-vacation",
+      "yearMonth": "2026-05",
+      "balance": 8000
+    },
+    {
+      "accountId": "acc-vacation",
+      "yearMonth": "2026-06",
+      "balance": 8600
+    }
+  ],
+  "categories": [
+    {
+      "id": 1,
+      "name": "Wynagrodzenie",
+      "kind": "recurring",
+      "cashflowTreatment": "income"
+    },
+    {
+      "id": 2,
+      "name": "Czynsz",
+      "kind": "fixed",
+      "cashflowTreatment": "expense"
+    },
+    {
+      "id": 3,
+      "name": "Spożywcze",
+      "kind": "variable",
+      "cashflowTreatment": "expense"
+    },
+    {
+      "id": 4,
+      "name": "Paliwo",
+      "kind": "variable",
+      "cashflowTreatment": "expense"
+    },
+    {
+      "id": 5,
+      "name": "Restauracje",
+      "kind": "variable",
+      "cashflowTreatment": "expense"
+    },
+    {
+      "id": 6,
+      "name": "Subskrypcje",
+      "kind": "recurring",
+      "cashflowTreatment": "expense"
+    },
+    {
+      "id": 7,
+      "name": "Oszczędności",
+      "kind": "recurring",
+      "cashflowTreatment": "savings"
+    },
+    {
+      "id": 8,
+      "name": "Transfery",
+      "kind": "recurring",
+      "cashflowTreatment": "internal_transfer"
+    }
+  ],
+  "categoryRules": [
+    {
+      "id": 1,
+      "matchField": "counterparty",
+      "matchType": "contains",
+      "pattern": "PRACODAWCA",
+      "categoryId": 1,
+      "priority": 100,
+      "source": "seed"
+    },
+    {
+      "id": 2,
+      "matchField": "description",
+      "matchType": "contains",
+      "pattern": "BIEDRONKA",
+      "categoryId": 3,
+      "priority": 90,
+      "source": "seed"
+    },
+    {
+      "id": 3,
+      "matchField": "description",
+      "matchType": "contains",
+      "pattern": "ORLEN",
+      "categoryId": 4,
+      "priority": 90,
+      "source": "seed"
+    }
+  ],
+  "transactions": [],
+  "incomeAnchors": [],
+  "incomeAnchorCandidates": [],
+  "payPeriods": [],
+  "payPeriodSettings": {
+    "minCycleDays": 14
+  },
+  "mortgagePlan": {
+    "id": "mortgage-1",
+    "name": "Mieszkanie",
+    "principal": 298000,
+    "annualInterestRate": 7.1,
+    "originalTermMonths": 300,
+    "termMonths": 276,
+    "monthlyOverpayment": 500,
+    "overpaymentMode": "shortenTerm",
+    "oneTimeOverpayments": [
+      {
+        "id": "otp-1",
+        "yearMonth": "2026-12",
+        "amount": 10000
+      }
+    ],
+    "refinanceAnnualInterestRate": 6.2,
+    "refinanceCost": 1500
+  },
+  "subscriptions": [
+    {
+      "id": "sub-netflix",
+      "name": "Netflix",
+      "monthlyAmount": 43,
+      "active": true,
+      "category": "Rozrywka",
+      "billingPeriod": "monthly"
+    },
+    {
+      "id": "sub-spotify",
+      "name": "Spotify Family",
+      "monthlyAmount": 8.5,
+      "active": true,
+      "category": "Rozrywka",
+      "billingPeriod": "monthly",
+      "shared": true,
+      "shareCount": 4,
+      "billingAmount": 34
+    },
+    {
+      "id": "sub-gym",
+      "name": "Siłownia",
+      "monthlyAmount": 129,
+      "active": true,
+      "category": "Zdrowie",
+      "billingPeriod": "monthly"
+    },
+    {
+      "id": "sub-icloud",
+      "name": "iCloud 200GB",
+      "monthlyAmount": 13.99,
+      "active": true,
+      "category": "Chmura",
+      "billingPeriod": "monthly"
+    },
+    {
+      "id": "sub-domain",
+      "name": "Domena + hosting",
+      "monthlyAmount": 16.5,
+      "active": true,
+      "category": "Inne",
+      "billingPeriod": "yearly",
+      "billingAmount": 198
+    },
+    {
+      "id": "sub-hbo",
+      "name": "HBO Max",
+      "monthlyAmount": 29.99,
+      "active": false,
+      "category": "Rozrywka",
+      "billingPeriod": "monthly"
+    }
+  ],
+  "upcomingExpenses": [
+    {
+      "id": "exp-oc",
+      "name": "OC samochodu",
+      "amount": 1450,
+      "targetMonth": "2026-08",
+      "isPaid": false
+    },
+    {
+      "id": "exp-przeg",
+      "name": "Przegląd techniczny",
+      "amount": 200,
+      "targetMonth": "2026-07",
+      "isPaid": false
+    },
+    {
+      "id": "exp-podatek",
+      "name": "Podatek od nieruchomości",
+      "amount": 380,
+      "targetMonth": "2026-09",
+      "isPaid": false
+    }
+  ],
+  "overrides": {}
+}
