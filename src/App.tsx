@@ -34,6 +34,7 @@ import { IngestSection } from './components/ingest/IngestSection'
 import { LeakAnalysisSection } from './components/leakanalysis/LeakAnalysisSection'
 import { LoanList } from './components/loans/LoanList'
 import { MortgageSection } from './components/mortgage/MortgageSection'
+import { NextBestActionPanel } from './components/plan/NextBestActionPanel'
 import { SecurityBufferFocus } from './components/plan/SecurityBufferFocus'
 import { PayPeriodsSection } from './components/payperiods/PayPeriodsSection'
 import { ScheduleTable } from './components/schedule/ScheduleTable'
@@ -346,6 +347,10 @@ function PlanPage() {
 
       <SectionCard title="Miesięczny cashflow" description="Bazowe przychody, koszty życia i wolne środki po ratach." icon={CircleDollarSign} accent="plan">
         <Hero />
+      </SectionCard>
+
+      <SectionCard title="Następny najlepszy ruch" description="Jedna lokalna rekomendacja na podstawie cashflow, buforów, IKZE i celów." icon={ListChecks} accent="plan">
+        <NextBestActionPanel schedule={schedule} />
       </SectionCard>
 
       <SectionCard title="Priorytet bezpieczeństwa" description="Systemowe cele odbudowy poduszki i funduszu awaryjnego." icon={ShieldCheck} accent="plan">
