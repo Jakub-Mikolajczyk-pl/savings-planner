@@ -48,7 +48,9 @@ The planning core:
 - Plus a credit-card tracker, subscriptions, upcoming one-off expenses and an editable monthly schedule.
 
 ### 🏷️ Transakcje (Transactions) · backend mode
-Pay-period budgeting (paycheck-to-paycheck cycles), category rules, leak analysis (recurring charges, micro-expenses, cycle-over-cycle increases) and CSV/PDF bank-statement import. These run against the Spring Boot backend.
+Pay-period budgeting (paycheck-to-paycheck cycles), leak analysis (recurring charges, micro-expenses, cycle-over-cycle increases) and CSV/PDF bank-statement import. These run against the Spring Boot backend.
+
+Transactions are categorized **deterministically by rules first**; an optional **local LLM** is then run only on whatever the rules miss. Each LLM verdict is materialized as a new rule, so the model is invoked less and less over time. Precedence is explicit: user override → rules → LLM — and because the model is local, transaction data never leaves your machine.
 
 ### ⚙️ Ustawienia (Settings)
 Plan horizon, JSON import/export, and backend status.
