@@ -176,6 +176,20 @@ docs/              # demo-data.json, screenshots
 
 ---
 
+## Versioning
+
+This project follows [Semantic Versioning](https://semver.org/) (`MAJOR.MINOR.PATCH`):
+
+- **MAJOR** — breaking changes to the data model, JSON import/export format, or backend API.
+- **MINOR** — new features, backward-compatible.
+- **PATCH** — bug fixes and internal changes.
+
+The version in [`package.json`](package.json) is the source of truth and is mirrored in the backend build. Every release is recorded in [`CHANGELOG.md`](CHANGELOG.md) and tagged `vMAJOR.MINOR.PATCH` on both mirrors (GitHub and the self-hosted Forgejo). The two mirrors keep independent commit hashes by design; the tag name and tree content are what match.
+
+To cut a release: bump `package.json` (and `backend/build.gradle.kts`), add a `CHANGELOG.md` entry, commit, then `git tag vX.Y.Z` and push the tag to both remotes.
+
+---
+
 ## License
 
 MIT
