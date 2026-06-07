@@ -222,7 +222,7 @@ Funkcje (sygnatury orientacyjne):
 
 > Format: **ID · tytuł · zależy · zakres · DoD · seed**. Każdy task = jeden commit/PR.
 
-### T1 · Parser `.eml` + adaptery + normalizacja nazw
+### T1 · Parser `.eml` + adaptery + normalizacja nazw ✅ DONE 2026-06-07
 **zależy:** — · **zakres:** `src/domain/basket/{eml.ts, vendorDetect.ts, friscoAdapter.ts, liskAdapter.ts,
 nameNormalize.ts}` wg §3; typy `ParsedOrder/ParsedLine` + `StoreId` w `types.ts`. Fixtures: skopiuj 4 maile
 do `src/domain/basket/__fixtures__/` (zanonimizuj adres dostawy, e-mail, numer zamówienia — zostaw strukturę).
@@ -233,11 +233,12 @@ do `src/domain/basket/__fixtures__/` (zanonimizuj adres dostawy, e-mail, numer z
 równy `normalizedName`. `npm test` zielony. **seed:** „Zaimplementuj parser .eml i adaptery Frisco/Lisek wg
 §3 handovera EPIC-14; oprzyj testy na 4 fixture'ach w __fixtures__."
 
-### T2 · Silnik indeksu `inflationBasket.ts`
+### T2 · Silnik indeksu `inflationBasket.ts` ✅ DONE 2026-06-07
 **zależy:** T1 · **zakres:** §5 (ingest+dedupe, normalizacja zł/kg, Laspeyres, trend, topMovers,
 shrinkflacja, cpiYoY). **DoD:** testy: ręcznie policzony Laspeyres na 2-produktowym przykładzie; dedupe po
 orderRef nie dubluje; carry-forward działa; shrinkflacja wykryta na sztucznym przypadku (1l→0,9l, ta sama
 cena → +11%). **seed:** „Zaimplementuj deterministyczny silnik koszyka wg §5; bez LLM i Intl; pełne testy."
+**Pliki:** `src/domain/basket/inflationBasket.ts` + `inflationBasket.test.ts` (37 testów, 74 łącznie z T1).
 
 ### T3 · Typy domeny + slice Zustand + persist + export/import
 **zależy:** T1 · **zakres:** `BasketItem/PriceObservation/BasketConfig` + `defaultBasketConfig` w `types.ts`;
