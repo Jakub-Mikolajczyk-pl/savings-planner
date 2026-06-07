@@ -1,0 +1,180 @@
+// @vitest-environment jsdom
+import { describe, it, expect, beforeEach } from 'vitest'
+import { useStore } from './index'
+import { defaultBasketConfig } from '../domain/types'
+import { parseOrderEmail } from '../domain/basket/parseOrderEmail'
+import frisco2026 from '../domain/basket/__fixtures__/frisco-2026.eml?raw'
+import frisco2021 from '../domain/basket/__fixtures__/frisco-2021.eml?raw'
+
+function resetBasket() {
+  useStore.setState({
+    basketItems: [],
+    priceObservations: [],
+    basketConfig: defaultBasketConfig,
+  })
+}
+
+function makeFile(content: string, name: string): File {
+  return new File([content], name, { type: 'message/rfc822' })
+}
+
+describe('diagnostics', () => {
+  it('parseOrderEmail działa w tym środowisku (jsdom)', () => {
+    const r = parseOrderEmail(frisco2026)
+    expect(r.ok).toBe(true)
+  })
+
+  it('FileReader.readAsText zwraca tę samą treść co ?raw import', async () => {
+    const f = makeFile(frisco2026, 'test.eml')
+    const content = await new Promise<string>((resolve, reject) => {
+      const r = new FileReader()
+      r.onload = () => resolve(r.result as string)
+      r.onerror = () => reject(r.error)
+      r.readAsText(f, 'utf-8')
+    })
+    expect(content).toBe(frisco2026)
+  })
+})
+
+describe('basket store slice', () => {
+  beforeEach(resetBasket)
+
+  // ─── importBasketEmails ───────────────────────────────────────────────────
+
+  it('ingest 2 zamówień → tworzy produkty i obserwacje', async () => {
+    const summary = await useStore.getState().importBasketEmails([
+      makeFile(frisco2026, 'frisco-2026.eml'),
+      makeFile(frisco2021, 'frisco-2021.eml'),
+    ])
+    const { basketItems, priceObservations } = useStore.getState()
+
+    expect(summary.filesOk).toBe(2)
+    expect(summary.ordersParsed).toBe(2)
+    expect(basketItems.length).toBeGreaterThan(0)
+    expect(priceObservations.length).toBeGreaterThan(0)
+    expect(summary.observationsDuplicate).toBe(0)
+    expect(summary.itemsNew).toBeGreaterThan(0)
+  })
+
+  it('ten sam plik dwa razy → 0 nowych obserwacji (dedupe po orderRef)', async () => {
+    await useStore.getState().importBasketEmails([makeFile(frisco2026, 'frisco-2026.eml')])
+    const firstCount = useStore.getState().priceObservations.length
+
+    const summary = await useStore.getState().importBasketEmails([makeFile(frisco2026, 'frisco-2026.eml')])
+
+    expect(useStore.getState().priceObservations.length).toBe(firstCount)
+    expect(summary.observationsAdded).toBe(0)
+    expect(summary.observationsDuplicate).toBeGreaterThan(0)
+  })
+
+  it('nieznany nadawca → filesError, 0 plików ok', async () => {
+    const summary = await useStore.getState().importBasketEmails([
+      makeFile('From: nobody@nowhere.pl\r\n\r\nHello', 'spam.eml'),
+    ])
+    expect(summary.filesOk).toBe(0)
+    expect(summary.filesError).toHaveLength(1)
+  })
+
+  // ─── setItemTracked ───────────────────────────────────────────────────────
+
+  it('setItemTracked(true) ustawia trackedManual i tracked', async () => {
+    await useStore.getState().importBasketEmails([makeFile(frisco2026, 'frisco-2026.eml')])
+    const item = useStore.getState().basketItems[0]
+
+    useStore.getState().setItemTracked(item.id, true)
+
+    const updated = useStore.getState().basketItems.find(i => i.id === item.id)!
+    expect(updated.trackedManual).toBe(true)
+    expect(updated.tracked).toBe(true)
+  })
+
+  it('setItemTracked(null) usuwa trackedManual, przywraca auto', async () => {
+    await useStore.getState().importBasketEmails([makeFile(frisco2026, 'frisco-2026.eml')])
+    const item = useStore.getState().basketItems[0]
+    useStore.getState().setItemTracked(item.id, true)
+
+    useStore.getState().setItemTracked(item.id, null)
+
+    const updated = useStore.getState().basketItems.find(i => i.id === item.id)!
+    expect(updated.trackedManual).toBeUndefined()
+    // auto: tracked zależy od count vs trackingThreshold
+    const count = useStore.getState().priceObservations.filter(o => o.itemId === item.id).length
+    expect(updated.tracked).toBe(count >= defaultBasketConfig.trackingThreshold)
+  })
+
+  // ─── mergeBasketItems ─────────────────────────────────────────────────────
+
+  it('merge: obserwacje z sourceId przenosi na targetId, source znika', async () => {
+    await useStore.getState().importBasketEmails([makeFile(frisco2026, 'frisco-2026.eml')])
+    const items = useStore.getState().basketItems
+    if (items.length < 2) return
+
+    const [target, source] = items
+    const sourceObsBefore = useStore.getState().priceObservations.filter(o => o.itemId === source.id)
+
+    useStore.getState().mergeBasketItems(target.id, source.id)
+
+    const { basketItems, priceObservations } = useStore.getState()
+    expect(basketItems.find(i => i.id === source.id)).toBeUndefined()
+    const movedObs = priceObservations.filter(o => o.itemId === target.id)
+    expect(movedObs.length).toBeGreaterThanOrEqual(sourceObsBefore.length)
+    const merged = basketItems.find(i => i.id === target.id)!
+    expect(merged.aliases).toContain(source.normalizedName)
+  })
+
+  it('merge na nieistniejących id nie zmienia stanu', async () => {
+    await useStore.getState().importBasketEmails([makeFile(frisco2026, 'frisco-2026.eml')])
+    const countBefore = useStore.getState().basketItems.length
+
+    useStore.getState().mergeBasketItems('ghost-a', 'ghost-b')
+
+    expect(useStore.getState().basketItems.length).toBe(countBefore)
+  })
+
+  // ─── removeBasketItem ─────────────────────────────────────────────────────
+
+  it('removeBasketItem usuwa item i jego obserwacje', async () => {
+    await useStore.getState().importBasketEmails([makeFile(frisco2026, 'frisco-2026.eml')])
+    const item = useStore.getState().basketItems[0]
+
+    useStore.getState().removeBasketItem(item.id)
+
+    expect(useStore.getState().basketItems.find(i => i.id === item.id)).toBeUndefined()
+    expect(useStore.getState().priceObservations.filter(o => o.itemId === item.id)).toHaveLength(0)
+  })
+
+  // ─── setBasketConfig ──────────────────────────────────────────────────────
+
+  it('zmiana trackingThreshold rekomputuje tracked', async () => {
+    // Z jednym plikiem produkty mają ~1 obserwację → domyślnie untracked (threshold=3)
+    await useStore.getState().importBasketEmails([makeFile(frisco2026, 'frisco-2026.eml')])
+    const before = useStore.getState().basketItems.filter(i => i.tracked).length
+
+    // Obniż próg do 1 → wszystkie produkty z ≥1 obserwacją powinny być tracked
+    useStore.getState().setBasketConfig({ trackingThreshold: 1 })
+    const after = useStore.getState().basketItems.filter(i => i.tracked).length
+
+    expect(after).toBeGreaterThan(before)
+    expect(useStore.getState().basketConfig.trackingThreshold).toBe(1)
+  })
+
+  // ─── export → import round-trip ───────────────────────────────────────────
+
+  it('exportData → importData zachowuje koszyk', async () => {
+    await useStore.getState().importBasketEmails([
+      makeFile(frisco2026, 'frisco-2026.eml'),
+      makeFile(frisco2021, 'frisco-2021.eml'),
+    ])
+    const itemsBefore = useStore.getState().basketItems
+    const obsBefore = useStore.getState().priceObservations
+
+    const json = useStore.getState().exportData()
+    resetBasket()
+    useStore.getState().importData(json)
+
+    const { basketItems, priceObservations, basketConfig } = useStore.getState()
+    expect(basketItems).toHaveLength(itemsBefore.length)
+    expect(priceObservations).toHaveLength(obsBefore.length)
+    expect(basketConfig).toEqual(defaultBasketConfig)
+  })
+})

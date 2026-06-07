@@ -28,20 +28,26 @@ import { buildSchedule } from '../domain/allocation'
 import { earliestSnapshotMonth } from '../domain/accounts'
 import { currentYearMonth } from '../domain/formatting'
 import { createId } from '../domain/id'
+import { ingestOrders } from '../domain/basket/inflationBasket'
+import { parseOrderEmail } from '../domain/basket/parseOrderEmail'
 import type {
   Account,
   AccountSnapshot,
   BankSource,
   BankTransaction,
+  BasketConfig,
+  BasketItem,
   Category,
   CategoryRule,
   CycleLeakAnalysis,
   Goal,
   GoalInsights,
+  ImportSummary,
   IncomeAnchor,
   IncomeAnchorCandidate,
   IngestResult,
   Loan,
+  PriceObservation,
   Settings,
   Overrides,
   PayPeriod,
@@ -53,6 +59,7 @@ import type {
   Subscription,
   UpcomingExpense,
 } from '../domain/types'
+import { defaultBasketConfig } from '../domain/types'
 
 interface DataState {
   /*
@@ -79,6 +86,9 @@ interface DataState {
   subscriptions: Subscription[]
   upcomingExpenses: UpcomingExpense[]
   overrides: Overrides
+  basketItems: BasketItem[]
+  priceObservations: PriceObservation[]
+  basketConfig: BasketConfig
 }
 
 interface SyncState {
@@ -174,6 +184,11 @@ interface AppState extends DataState, SyncState {
   exportData: () => string
   importData: (json: string) => void
   resetAll: () => void
+  importBasketEmails: (files: File[]) => Promise<ImportSummary>
+  setBasketConfig: (patch: Partial<BasketConfig>) => void
+  setItemTracked: (id: string, tracked: boolean | null) => void
+  mergeBasketItems: (targetId: string, sourceId: string) => void
+  removeBasketItem: (id: string) => void
 
   // Derived (computed on every call)
   getSchedule: () => Schedule
@@ -216,6 +231,9 @@ const emptyDataState = (): DataState => ({
   subscriptions: [],
   upcomingExpenses: [],
   overrides: {},
+  basketItems: [],
+  priceObservations: [],
+  basketConfig: defaultBasketConfig,
 })
 
 /*
@@ -240,6 +258,9 @@ const dataSnapshot = (state: AppState): DataState => ({
   subscriptions: state.subscriptions,
   upcomingExpenses: state.upcomingExpenses,
   overrides: state.overrides,
+  basketItems: state.basketItems,
+  priceObservations: state.priceObservations,
+  basketConfig: state.basketConfig,
 })
 
 const syncStamp = () => new Date().toISOString()
@@ -340,6 +361,9 @@ const readPersistedLocalState = (): DataState | undefined => {
       subscriptions: state.subscriptions ?? [],
       upcomingExpenses: state.upcomingExpenses ?? [],
       overrides: state.overrides ?? {},
+      basketItems: state.basketItems ?? [],
+      priceObservations: state.priceObservations ?? [],
+      basketConfig: { ...defaultBasketConfig, ...(state.basketConfig ?? {}) },
     }
   } catch {
     return undefined
@@ -436,6 +460,9 @@ async function loadBackendState(options: HydrateOptions = {}): Promise<DataState
     subscriptions,
     upcomingExpenses,
     overrides,
+    basketItems: [],
+    priceObservations: [],
+    basketConfig: defaultBasketConfig,
   }
 }
 
@@ -1236,6 +1263,131 @@ export const useStore = create<AppState>()(
         setWhatIfDelta: (delta) => set({ whatIfDelta: delta }),
         setLoanOverpayment: (amount) => set({ loanOverpayment: amount }),
 
+        importBasketEmails: async (files) => {
+          const summary: ImportSummary = {
+            filesTotal: files.length,
+            filesOk: 0,
+            filesError: [],
+            ordersParsed: 0,
+            itemsNew: 0,
+            observationsAdded: 0,
+            observationsDuplicate: 0,
+          }
+
+          const readFileText = (file: File): Promise<string> =>
+            new Promise((resolve, reject) => {
+              const reader = new FileReader()
+              reader.onload = () => resolve(reader.result as string)
+              reader.onerror = () => reject(reader.error)
+              reader.readAsText(file, 'utf-8')
+            })
+
+          const reads = await Promise.all(
+            files.map(async (file) => {
+              try {
+                const content = await readFileText(file)
+                return { ok: true as const, content, name: file.name }
+              } catch {
+                return { ok: false as const, name: file.name, reason: 'Błąd odczytu pliku' }
+              }
+            }),
+          )
+
+          const orders = reads.map(r => {
+            if (!r.ok) {
+              summary.filesError.push({ name: r.name, reason: r.reason })
+              return null
+            }
+            const order = parseOrderEmail(r.content)
+            if (order.ok) {
+              summary.filesOk++
+            } else {
+              summary.filesError.push({ name: r.name, reason: order.reason })
+            }
+            return order
+          }).filter(o => o !== null)
+
+          const state = get()
+          const { items, observations, stats } = ingestOrders(
+            orders,
+            { items: state.basketItems, observations: state.priceObservations },
+            state.basketConfig.trackingThreshold,
+          )
+          set({ basketItems: items, priceObservations: observations })
+
+          summary.ordersParsed = stats.ordersParsed
+          summary.itemsNew = stats.itemsNew
+          summary.observationsAdded = stats.observationsAdded
+          summary.observationsDuplicate = stats.observationsDuplicate
+          return summary
+        },
+
+        setBasketConfig: (patch) => {
+          set(s => {
+            const basketConfig = { ...s.basketConfig, ...patch }
+            const countPerItem = new Map<string, number>()
+            for (const obs of s.priceObservations) {
+              countPerItem.set(obs.itemId, (countPerItem.get(obs.itemId) ?? 0) + 1)
+            }
+            const basketItems = s.basketItems.map(item => ({
+              ...item,
+              tracked: item.trackedManual ?? (countPerItem.get(item.id) ?? 0) >= basketConfig.trackingThreshold,
+            }))
+            return { basketConfig, basketItems }
+          })
+        },
+
+        setItemTracked: (id, tracked) => {
+          set(s => {
+            const count = s.priceObservations.filter(o => o.itemId === id).length
+            const autoTracked = count >= s.basketConfig.trackingThreshold
+            return {
+              basketItems: s.basketItems.map(item => {
+                if (item.id !== id) return item
+                if (tracked === null) {
+                  return { ...item, trackedManual: undefined, tracked: autoTracked }
+                }
+                return { ...item, trackedManual: tracked, tracked }
+              }),
+            }
+          })
+        },
+
+        mergeBasketItems: (targetId, sourceId) => {
+          set(s => {
+            const target = s.basketItems.find(i => i.id === targetId)
+            const source = s.basketItems.find(i => i.id === sourceId)
+            if (!target || !source) return {}
+
+            const allAliases = [...target.aliases, source.normalizedName, ...source.aliases]
+            const uniqueAliases = allAliases.filter((a, idx, arr) => arr.indexOf(a) === idx)
+
+            const updatedObs = s.priceObservations.map(o =>
+              o.itemId === sourceId ? { ...o, itemId: targetId } : o,
+            )
+            const targetCount = updatedObs.filter(o => o.itemId === targetId).length
+            const updatedTarget: BasketItem = {
+              ...target,
+              aliases: uniqueAliases,
+              tracked: target.trackedManual ?? targetCount >= s.basketConfig.trackingThreshold,
+            }
+
+            return {
+              basketItems: s.basketItems
+                .filter(i => i.id !== sourceId)
+                .map(i => (i.id === targetId ? updatedTarget : i)),
+              priceObservations: updatedObs,
+            }
+          })
+        },
+
+        removeBasketItem: (id) => {
+          set(s => ({
+            basketItems: s.basketItems.filter(i => i.id !== id),
+            priceObservations: s.priceObservations.filter(o => o.itemId !== id),
+          }))
+        },
+
         exportData: () => JSON.stringify(dataSnapshot(get()), null, 2),
 
         importData: (json) => {
@@ -1263,6 +1415,9 @@ export const useStore = create<AppState>()(
             subscriptions: data.subscriptions ?? [],
             upcomingExpenses: data.upcomingExpenses ?? [],
             overrides: data.overrides ?? {},
+            basketItems: data.basketItems ?? [],
+            priceObservations: data.priceObservations ?? [],
+            basketConfig: { ...defaultBasketConfig, ...(data.basketConfig ?? {}) },
           }
           set(imported)
 
@@ -1349,6 +1504,9 @@ export const useStore = create<AppState>()(
         subscriptions: s.subscriptions,
         upcomingExpenses: s.upcomingExpenses,
         overrides: s.overrides,
+        basketItems: s.basketItems,
+        priceObservations: s.priceObservations,
+        basketConfig: s.basketConfig,
       }),
     },
   ),

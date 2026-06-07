@@ -499,3 +499,13 @@ export interface ParsedLine {
 export type ParsedOrder =
   | { ok: true; store: StoreId; orderRef: string; date: string; lines: ParsedLine[] }
   | { ok: false; reason: 'unknown_vendor' | 'unknown_template' | 'no_items' | 'parse_error'; detail?: string }
+
+export interface ImportSummary {
+  filesTotal: number
+  filesOk: number
+  filesError: { name: string; reason: string }[]
+  ordersParsed: number
+  itemsNew: number
+  observationsAdded: number
+  observationsDuplicate: number
+}
