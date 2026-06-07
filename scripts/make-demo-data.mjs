@@ -122,6 +122,82 @@ const upcomingExpenses = [
   { id: 'exp-podatek', name: 'Podatek od nieruchomości', amount: 380, targetMonth: '2026-09', isPaid: false },
 ]
 
+// --- inflation basket (EPIC 14) --------------------------------------------
+const basketItems = [
+  { id: 'bitem-serek',  normalizedName: 'piątnica serek wiejski bez laktozy', displayName: 'PIĄTNICA Serek wiejski bez laktozy 200g', brand: 'PIĄTNICA', unit: 'g',  packageSize: 200, kind: 'food',     tracked: true,  aliases: [] },
+  { id: 'bitem-mleko',  normalizedName: 'mleko łaciate uht 3 2',              displayName: 'Mleko Łaciate UHT 3,2% 1L',               brand: 'ŁACIATE',  unit: 'l',  packageSize: 1,   kind: 'food',     tracked: true,  aliases: [] },
+  { id: 'bitem-maslo',  normalizedName: 'masło extra',                        displayName: 'Masło Extra 200g',                                            unit: 'g',  packageSize: 200, kind: 'food',     tracked: true,  aliases: [] },
+  { id: 'bitem-kawa',   normalizedName: 'san marco kawa mielona',             displayName: 'SAN MARCO Kawa mielona 250g',             brand: 'SAN MARCO', unit: 'g', packageSize: 250, kind: 'food',     tracked: true,  aliases: [] },
+  { id: 'bitem-felix',  normalizedName: 'felix karma z łososiem dla kota',    displayName: 'Felix Karma z łososiem dla kota 400g',    brand: 'FELIX',    unit: 'g',  packageSize: 400, kind: 'pet',      tracked: true,  aliases: [] },
+]
+
+// unitPrice per szt/opak.; normalizedUnitPrice = zł/kg or zł/l
+// g→kg: unitPrice/(packageSize/1000)  |  l→l: unitPrice/packageSize
+function nup(unitPrice, unit, packageSize) {
+  if (unit === 'g')  return Math.round((unitPrice / (packageSize / 1000)) * 100) / 100
+  if (unit === 'kg') return Math.round((unitPrice / packageSize) * 100) / 100
+  if (unit === 'ml') return Math.round((unitPrice / (packageSize / 1000)) * 100) / 100
+  if (unit === 'l')  return Math.round((unitPrice / packageSize) * 100) / 100
+  return undefined
+}
+
+let _bobs = 0
+function bobs(itemId, date, store, unitPrice, qty, orderRef) {
+  const { unit, packageSize } = basketItems.find(i => i.id === itemId)
+  return {
+    id: `bobs-${String(++_bobs).padStart(3, '0')}`,
+    itemId, date, store, unitPrice,
+    normalizedUnitPrice: nup(unitPrice, unit, packageSize),
+    quantity: qty, isWeightItem: false, orderRef, source: 'email',
+  }
+}
+
+const priceObservations = [
+  // Serek wiejski 200g — frisco — +49% 2021→2026
+  bobs('bitem-serek', '2021-05-15', 'frisco', 3.49, 2, 'DEMO-F001'),
+  bobs('bitem-serek', '2022-11-08', 'frisco', 3.89, 2, 'DEMO-F004'),
+  bobs('bitem-serek', '2023-08-22', 'frisco', 4.19, 2, 'DEMO-F006'),
+  bobs('bitem-serek', '2025-01-10', 'frisco', 4.89, 2, 'DEMO-F008'),
+  bobs('bitem-serek', '2026-06-01', 'frisco', 5.19, 2, 'DEMO-F010'),
+  // Mleko UHT 1l — frisco — +52% 2021→2026
+  bobs('bitem-mleko', '2021-05-15', 'frisco', 2.89, 4, 'DEMO-F001'),
+  bobs('bitem-mleko', '2022-11-08', 'frisco', 3.89, 4, 'DEMO-F004'),
+  bobs('bitem-mleko', '2023-08-22', 'frisco', 4.19, 4, 'DEMO-F006'),
+  bobs('bitem-mleko', '2025-01-10', 'frisco', 4.29, 4, 'DEMO-F008'),
+  bobs('bitem-mleko', '2026-06-01', 'frisco', 4.39, 4, 'DEMO-F010'),
+  // Masło Extra 200g — frisco — +109% 2022→2026
+  bobs('bitem-maslo', '2022-02-14', 'frisco', 5.49, 2, 'DEMO-F002'),
+  bobs('bitem-maslo', '2023-04-03', 'frisco', 8.29, 2, 'DEMO-F005'),
+  bobs('bitem-maslo', '2025-01-10', 'frisco', 9.49, 2, 'DEMO-F008'),
+  bobs('bitem-maslo', '2026-06-01', 'frisco', 11.49, 2, 'DEMO-F010'),
+  // Kawa mielona 250g — frisco — +50% 2022→2026
+  bobs('bitem-kawa', '2022-02-14', 'frisco', 14.99, 1, 'DEMO-F002'),
+  bobs('bitem-kawa', '2023-04-03', 'frisco', 19.99, 1, 'DEMO-F005'),
+  bobs('bitem-kawa', '2025-01-10', 'frisco', 20.49, 1, 'DEMO-F008'),
+  bobs('bitem-kawa', '2026-06-01', 'frisco', 22.49, 1, 'DEMO-F010'),
+  // Felix karma 400g — lisek — +50% 2022→2026
+  bobs('bitem-felix', '2022-04-20', 'lisek', 3.99, 4, 'DEMO-L002'),
+  bobs('bitem-felix', '2024-02-09', 'lisek', 4.99, 4, 'DEMO-L007'),
+  bobs('bitem-felix', '2025-03-18', 'lisek', 5.49, 4, 'DEMO-L009'),
+  bobs('bitem-felix', '2026-06-01', 'lisek', 5.99, 4, 'DEMO-L011'),
+]
+
+const basketConfig = {
+  basePeriod: '2021-05',
+  method: 'laspeyres',
+  trackingThreshold: 3,
+  excludeWeightItems: true,
+  officialCpi: [
+    { month: '2022-12', valuePct: 16.6 },
+    { month: '2023-06', valuePct: 11.5 },
+    { month: '2023-12', valuePct: 6.2 },
+    { month: '2024-06', valuePct: 2.5 },
+    { month: '2025-01', valuePct: 5.3 },
+    { month: '2025-12', valuePct: 4.8 },
+    { month: '2026-04', valuePct: 4.1 },
+  ],
+}
+
 // --- categories (minimal, for the Transactions tab) ------------------------
 const categories = [
   { id: 1, name: 'Wynagrodzenie',   kind: 'recurring', cashflowTreatment: 'income' },
@@ -157,6 +233,9 @@ const out = {
   subscriptions,
   upcomingExpenses,
   overrides: {},
+  basketItems,
+  priceObservations,
+  basketConfig,
 }
 
 mkdirSync(join(root, 'docs'), { recursive: true })
@@ -164,3 +243,4 @@ const target = join(root, 'docs', 'demo-data.json')
 writeFileSync(target, JSON.stringify(out, null, 2) + '\n', 'utf8')
 console.log(`Wrote ${target}`)
 console.log(`  accounts: ${accounts.length}, snapshots: ${accountSnapshots.length}, goals: ${goals.length}`)
+console.log(`  basket: ${basketItems.length} items, ${priceObservations.length} observations`)

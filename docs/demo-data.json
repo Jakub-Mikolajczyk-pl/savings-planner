@@ -778,5 +778,363 @@
       "isPaid": false
     }
   ],
-  "overrides": {}
+  "overrides": {},
+  "basketItems": [
+    {
+      "id": "bitem-serek",
+      "normalizedName": "piątnica serek wiejski bez laktozy",
+      "displayName": "PIĄTNICA Serek wiejski bez laktozy 200g",
+      "brand": "PIĄTNICA",
+      "unit": "g",
+      "packageSize": 200,
+      "kind": "food",
+      "tracked": true,
+      "aliases": []
+    },
+    {
+      "id": "bitem-mleko",
+      "normalizedName": "mleko łaciate uht 3 2",
+      "displayName": "Mleko Łaciate UHT 3,2% 1L",
+      "brand": "ŁACIATE",
+      "unit": "l",
+      "packageSize": 1,
+      "kind": "food",
+      "tracked": true,
+      "aliases": []
+    },
+    {
+      "id": "bitem-maslo",
+      "normalizedName": "masło extra",
+      "displayName": "Masło Extra 200g",
+      "unit": "g",
+      "packageSize": 200,
+      "kind": "food",
+      "tracked": true,
+      "aliases": []
+    },
+    {
+      "id": "bitem-kawa",
+      "normalizedName": "san marco kawa mielona",
+      "displayName": "SAN MARCO Kawa mielona 250g",
+      "brand": "SAN MARCO",
+      "unit": "g",
+      "packageSize": 250,
+      "kind": "food",
+      "tracked": true,
+      "aliases": []
+    },
+    {
+      "id": "bitem-felix",
+      "normalizedName": "felix karma z łososiem dla kota",
+      "displayName": "Felix Karma z łososiem dla kota 400g",
+      "brand": "FELIX",
+      "unit": "g",
+      "packageSize": 400,
+      "kind": "pet",
+      "tracked": true,
+      "aliases": []
+    }
+  ],
+  "priceObservations": [
+    {
+      "id": "bobs-001",
+      "itemId": "bitem-serek",
+      "date": "2021-05-15",
+      "store": "frisco",
+      "unitPrice": 3.49,
+      "normalizedUnitPrice": 17.45,
+      "quantity": 2,
+      "isWeightItem": false,
+      "orderRef": "DEMO-F001",
+      "source": "email"
+    },
+    {
+      "id": "bobs-002",
+      "itemId": "bitem-serek",
+      "date": "2022-11-08",
+      "store": "frisco",
+      "unitPrice": 3.89,
+      "normalizedUnitPrice": 19.45,
+      "quantity": 2,
+      "isWeightItem": false,
+      "orderRef": "DEMO-F004",
+      "source": "email"
+    },
+    {
+      "id": "bobs-003",
+      "itemId": "bitem-serek",
+      "date": "2023-08-22",
+      "store": "frisco",
+      "unitPrice": 4.19,
+      "normalizedUnitPrice": 20.95,
+      "quantity": 2,
+      "isWeightItem": false,
+      "orderRef": "DEMO-F006",
+      "source": "email"
+    },
+    {
+      "id": "bobs-004",
+      "itemId": "bitem-serek",
+      "date": "2025-01-10",
+      "store": "frisco",
+      "unitPrice": 4.89,
+      "normalizedUnitPrice": 24.45,
+      "quantity": 2,
+      "isWeightItem": false,
+      "orderRef": "DEMO-F008",
+      "source": "email"
+    },
+    {
+      "id": "bobs-005",
+      "itemId": "bitem-serek",
+      "date": "2026-06-01",
+      "store": "frisco",
+      "unitPrice": 5.19,
+      "normalizedUnitPrice": 25.95,
+      "quantity": 2,
+      "isWeightItem": false,
+      "orderRef": "DEMO-F010",
+      "source": "email"
+    },
+    {
+      "id": "bobs-006",
+      "itemId": "bitem-mleko",
+      "date": "2021-05-15",
+      "store": "frisco",
+      "unitPrice": 2.89,
+      "normalizedUnitPrice": 2.89,
+      "quantity": 4,
+      "isWeightItem": false,
+      "orderRef": "DEMO-F001",
+      "source": "email"
+    },
+    {
+      "id": "bobs-007",
+      "itemId": "bitem-mleko",
+      "date": "2022-11-08",
+      "store": "frisco",
+      "unitPrice": 3.89,
+      "normalizedUnitPrice": 3.89,
+      "quantity": 4,
+      "isWeightItem": false,
+      "orderRef": "DEMO-F004",
+      "source": "email"
+    },
+    {
+      "id": "bobs-008",
+      "itemId": "bitem-mleko",
+      "date": "2023-08-22",
+      "store": "frisco",
+      "unitPrice": 4.19,
+      "normalizedUnitPrice": 4.19,
+      "quantity": 4,
+      "isWeightItem": false,
+      "orderRef": "DEMO-F006",
+      "source": "email"
+    },
+    {
+      "id": "bobs-009",
+      "itemId": "bitem-mleko",
+      "date": "2025-01-10",
+      "store": "frisco",
+      "unitPrice": 4.29,
+      "normalizedUnitPrice": 4.29,
+      "quantity": 4,
+      "isWeightItem": false,
+      "orderRef": "DEMO-F008",
+      "source": "email"
+    },
+    {
+      "id": "bobs-010",
+      "itemId": "bitem-mleko",
+      "date": "2026-06-01",
+      "store": "frisco",
+      "unitPrice": 4.39,
+      "normalizedUnitPrice": 4.39,
+      "quantity": 4,
+      "isWeightItem": false,
+      "orderRef": "DEMO-F010",
+      "source": "email"
+    },
+    {
+      "id": "bobs-011",
+      "itemId": "bitem-maslo",
+      "date": "2022-02-14",
+      "store": "frisco",
+      "unitPrice": 5.49,
+      "normalizedUnitPrice": 27.45,
+      "quantity": 2,
+      "isWeightItem": false,
+      "orderRef": "DEMO-F002",
+      "source": "email"
+    },
+    {
+      "id": "bobs-012",
+      "itemId": "bitem-maslo",
+      "date": "2023-04-03",
+      "store": "frisco",
+      "unitPrice": 8.29,
+      "normalizedUnitPrice": 41.45,
+      "quantity": 2,
+      "isWeightItem": false,
+      "orderRef": "DEMO-F005",
+      "source": "email"
+    },
+    {
+      "id": "bobs-013",
+      "itemId": "bitem-maslo",
+      "date": "2025-01-10",
+      "store": "frisco",
+      "unitPrice": 9.49,
+      "normalizedUnitPrice": 47.45,
+      "quantity": 2,
+      "isWeightItem": false,
+      "orderRef": "DEMO-F008",
+      "source": "email"
+    },
+    {
+      "id": "bobs-014",
+      "itemId": "bitem-maslo",
+      "date": "2026-06-01",
+      "store": "frisco",
+      "unitPrice": 11.49,
+      "normalizedUnitPrice": 57.45,
+      "quantity": 2,
+      "isWeightItem": false,
+      "orderRef": "DEMO-F010",
+      "source": "email"
+    },
+    {
+      "id": "bobs-015",
+      "itemId": "bitem-kawa",
+      "date": "2022-02-14",
+      "store": "frisco",
+      "unitPrice": 14.99,
+      "normalizedUnitPrice": 59.96,
+      "quantity": 1,
+      "isWeightItem": false,
+      "orderRef": "DEMO-F002",
+      "source": "email"
+    },
+    {
+      "id": "bobs-016",
+      "itemId": "bitem-kawa",
+      "date": "2023-04-03",
+      "store": "frisco",
+      "unitPrice": 19.99,
+      "normalizedUnitPrice": 79.96,
+      "quantity": 1,
+      "isWeightItem": false,
+      "orderRef": "DEMO-F005",
+      "source": "email"
+    },
+    {
+      "id": "bobs-017",
+      "itemId": "bitem-kawa",
+      "date": "2025-01-10",
+      "store": "frisco",
+      "unitPrice": 20.49,
+      "normalizedUnitPrice": 81.96,
+      "quantity": 1,
+      "isWeightItem": false,
+      "orderRef": "DEMO-F008",
+      "source": "email"
+    },
+    {
+      "id": "bobs-018",
+      "itemId": "bitem-kawa",
+      "date": "2026-06-01",
+      "store": "frisco",
+      "unitPrice": 22.49,
+      "normalizedUnitPrice": 89.96,
+      "quantity": 1,
+      "isWeightItem": false,
+      "orderRef": "DEMO-F010",
+      "source": "email"
+    },
+    {
+      "id": "bobs-019",
+      "itemId": "bitem-felix",
+      "date": "2022-04-20",
+      "store": "lisek",
+      "unitPrice": 3.99,
+      "normalizedUnitPrice": 9.98,
+      "quantity": 4,
+      "isWeightItem": false,
+      "orderRef": "DEMO-L002",
+      "source": "email"
+    },
+    {
+      "id": "bobs-020",
+      "itemId": "bitem-felix",
+      "date": "2024-02-09",
+      "store": "lisek",
+      "unitPrice": 4.99,
+      "normalizedUnitPrice": 12.48,
+      "quantity": 4,
+      "isWeightItem": false,
+      "orderRef": "DEMO-L007",
+      "source": "email"
+    },
+    {
+      "id": "bobs-021",
+      "itemId": "bitem-felix",
+      "date": "2025-03-18",
+      "store": "lisek",
+      "unitPrice": 5.49,
+      "normalizedUnitPrice": 13.73,
+      "quantity": 4,
+      "isWeightItem": false,
+      "orderRef": "DEMO-L009",
+      "source": "email"
+    },
+    {
+      "id": "bobs-022",
+      "itemId": "bitem-felix",
+      "date": "2026-06-01",
+      "store": "lisek",
+      "unitPrice": 5.99,
+      "normalizedUnitPrice": 14.98,
+      "quantity": 4,
+      "isWeightItem": false,
+      "orderRef": "DEMO-L011",
+      "source": "email"
+    }
+  ],
+  "basketConfig": {
+    "basePeriod": "2021-05",
+    "method": "laspeyres",
+    "trackingThreshold": 3,
+    "excludeWeightItems": true,
+    "officialCpi": [
+      {
+        "month": "2022-12",
+        "valuePct": 16.6
+      },
+      {
+        "month": "2023-06",
+        "valuePct": 11.5
+      },
+      {
+        "month": "2023-12",
+        "valuePct": 6.2
+      },
+      {
+        "month": "2024-06",
+        "valuePct": 2.5
+      },
+      {
+        "month": "2025-01",
+        "valuePct": 5.3
+      },
+      {
+        "month": "2025-12",
+        "valuePct": 4.8
+      },
+      {
+        "month": "2026-04",
+        "valuePct": 4.1
+      }
+    ]
+  }
 }

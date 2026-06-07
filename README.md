@@ -52,6 +52,17 @@ Pay-period budgeting (paycheck-to-paycheck cycles), leak analysis (recurring cha
 
 Transactions are categorized **deterministically by rules first**; an optional **local LLM** is then run only on whatever the rules miss. Each LLM verdict is materialized as a new rule, so the model is invoked less and less over time. Precedence is explicit: user override → rules → LLM — and because the model is local, transaction data never leaves your machine.
 
+### 🧺 Koszyk inflacyjny (Inflation basket)
+Your personal CPI — built entirely from grocery order-confirmation emails (Frisco & Lisek), running 100% in the browser with no backend required.
+
+- **Email import** — drop `.eml` order-confirmation files (bulk) into the import dialog; the parser extracts every line item (product, unit price, quantity, date) directly in the browser.
+- **Name-based identity** — products are matched by normalised name (lowercased, size stripped), so the same item across years and stores merges automatically. Manual merge/edit UI handles edge cases.
+- **Laspeyres index** — fixed-basket CPI computed from your actual purchase history; `spend_weighted` variant available. Carry-forward fills gaps when a product wasn't bought that month.
+- **Top movers** — cards showing which items contributed most to your personal inflation.
+- **Shrinkflation detection** — alerts when the same product shrank in size while keeping a similar shelf price.
+- **GUS overlay** — enter official CPI numbers manually to compare your basket against the national index on the same chart.
+- **Local-only** — all data stays in your browser (Zustand + localStorage + JSON export/import). No server needed.
+
 ### ⚙️ Ustawienia (Settings)
 Plan horizon, JSON import/export, and backend status.
 
@@ -63,7 +74,7 @@ The repo ships a synthetic dataset at [`docs/demo-data.json`](docs/demo-data.jso
 
 1. `npm run dev` and open the app.
 2. Go to **Ustawienia → Import**, paste/upload `docs/demo-data.json`.
-3. Browse Przegląd / Majątek / Plan with everything filled in.
+3. Browse Przegląd / Majątek / Plan / Koszyk with everything filled in.
 
 Regenerate the dataset any time with `node scripts/make-demo-data.mjs`.
 
@@ -159,6 +170,7 @@ In local mode data never leaves the device. In API mode the backend is the sourc
 ```
 src/
   domain/          # pure logic: allocation, mortgage, next-best-action, formatting, types
+    basket/          # .eml parsers (Frisco/Lisek), name normalizer, inflation engine
   store/           # Zustand store (local + API modes, persistence)
   api/             # typed backend client
   components/
@@ -169,6 +181,7 @@ src/
     goals/ loans/    # goal & debt CRUD
     chart/           # forecast chart + what-if slider
     creditcard/ subscriptions/ expenses/
+    basket/          # BasketPage, ImportEmailsDialog
     transactions/ payperiods/ categorization/ leakanalysis/ ingest/  # backend-mode
     ui/              # shared layout & inputs
 backend/           # Kotlin + Spring Boot API (optional)

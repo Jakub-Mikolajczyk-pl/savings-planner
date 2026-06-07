@@ -6,7 +6,11 @@
 > `EPIC-8-bank-ingest.md`. Konwencja jak w pozostałych EPIC-ach: dydaktyczny Kotlin w backendzie,
 > single-tenant, deterministyczny rdzeń + opcjonalny lokalny LLM tylko jako dodatek.
 >
-> Status: **PLAN — do akceptacji.** Nic jeszcze nie zaimplementowane. Zawiera otwarte decyzje (sekcja 9).
+> Status: **✅ MVP WDROŻONE (local-only, T1–T7, 2026-06-07).**
+> Zakres: parser .eml (Frisco + Lisek), silnik Laspeyres, slice Zustand + persist, dialog importu,
+> ekran Koszyk z wykresem CPI / top movers / shrinkflacją, nakładka GUS, merge/edycja pozycji.
+> Backend (14.6–14.10) pozostaje poza zakresem bieżącej iteracji.
+> Szczegóły implementacyjne: `EPIC-14-koszyk-inflacyjny-handover.md`.
 
 ---
 
