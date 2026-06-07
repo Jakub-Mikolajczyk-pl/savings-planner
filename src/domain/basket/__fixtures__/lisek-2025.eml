@@ -1,0 +1,945 @@
+Return-Path: <bounces+22471213-1db2-test=example.com@em2273.lisek.app>
+Delivered-To: <test@example.com>
+X-WP-SR: 6OsXROLnHvzhUUum+3FJzPJnYrU8vE1F9gu4ibOvX8VoeW87RlMfYqWRb0g8tg==
+Received: (wp-smtpd mx.tlen.pl 14518 invoked from network); 5 Oct 2025 20:10:16 +0200
+Received: from wrqvrhbh.outbound-mail.sendgrid.net ([149.72.80.176])
+          (envelope-sender <bounces+22471213-1db2-test=example.com@em2273.lisek.app>)
+          by mx.tlen.pl (WP-SMTPD) with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP
+          for <test@example.com>; 5 Oct 2025 20:10:16 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=lisek.app;
+	h=content-type:date:from:mime-version:subject:to:cc:content-type:date:
+	from:subject:to;
+	s=s1; bh=+7Bj/AZ2O+hHefvBDCbpLFHVNg8oZtq6jez0gXLyK14=;
+	b=grbQOcOGt0Z8GF9OqcPxncoqcc3LeVcCbI1eE3aVAjYfzezkDftPOjSSS+SDekcFh02r
+	pr5qgtpi4Ks9kP4WYMQ7D+BDqxYiMTl+qsi8eNQ4b80AbDCpXD/ntwphT6dcvEKKyyI+Jn
+	XkpxjisUs4mdHTEkz59whY+2QGO1MllM7Fnpf+Wos4S1dpi49n3m40YcR7sYLvrekpdANX
+	GqXdRcnh7B2dLlp8+3GP+Gnq5j3Ii8f/SUhyRTsVNfxVINgnXTMPtkb0r2RiUpQyISJEfl
+	XwaBn0T2Wqq3UJpw+MjInzPKLLEaI/Ww1Piw5zNm8fFJ5fKK9CnhLgr+Zx9Vpdtg==
+Received: by recvd-687ffb65f8-5zjrb with SMTP id recvd-687ffb65f8-5zjrb-1-68E2B486-12
+	2025-10-05 18:10:14.255270285 +0000 UTC m=+10632999.480169263
+Received: from MjI0NzEyMTM (unknown)
+	by geopod-ismtpd-5 (SG) with HTTP
+	id 2fGHkYxJQpOB1HiMLTMzcA
+	Sun, 05 Oct 2025 18:10:14.196 +0000 (UTC)
+Content-Type: multipart/alternative; boundary=83a811d5d7593cf2c5a184e325fe3514ff2c7a7279475bd8d8bb8ec36b0a
+Date: Sun, 05 Oct 2025 18:10:14 +0000 (UTC)
+From: Lisek <kontakt@lisek.app>
+Mime-Version: 1.0
+Message-ID: <2fGHkYxJQpOB1HiMLTMzcA@geopod-ismtpd-5>
+Subject: =?UTF-8?B?WmFtw7N3aWVuaWU=?= dostarczone
+X-SG-EID: 
+ =?us-ascii?Q?u001=2EjZB4e3nwhNpxmIlFR+PANle3S2tI5QODTNOZ0HYMF7=2F2XxpHhKYWXJSxB?=
+ =?us-ascii?Q?29y2MafmxqevnsjwFwajt1jWLZo2g4MItypVxr9?=
+ =?us-ascii?Q?eO+7KILxtHrtnV5IKbLKy2k=2FH7mDUnEB=2FJl9Ni2?=
+ =?us-ascii?Q?BilMwXEKikXbz1J41g7skPmz1xJuGXkS3gAHkyX?=
+ =?us-ascii?Q?fq8g+NjYH+obNa8Fimp+RUPydUc2PTqRjlx5uZp?=
+ =?us-ascii?Q?yDe7TkIjhGYpSDuNfWXqUg=3D?=
+X-SG-ID: 
+ =?us-ascii?Q?u001=2ESdBcvi+Evd=2FbQef8eZF3BpTL9BgbK5wfSJMJGMsmprDsPyUTnMagHRCjb?=
+ =?us-ascii?Q?=2F65GublKHnhMcjrQ1GLV3ha5oBVubtb7YOaAyLl?=
+ =?us-ascii?Q?dJeL+yYod6eycjYD1+FMRE=2Ffvux4rmZrnFP+1YG?=
+ =?us-ascii?Q?s338GEBE9Xkfzb9dDSxowcad+Ak9hrJTr7fhruE?=
+ =?us-ascii?Q?lYfDO6enURaVG11J+pfN7HsIQbhvKmQy0JYI0T1?=
+ =?us-ascii?Q?GI0Ab70RaWgVu=2FZIs3m0JgCoP8+OSFJvJYD9HPS?= =?us-ascii?Q?YtEz?=
+To: Test User <test@example.com>
+X-Entity-ID: u001.lsCW0yApNK4evDckiMNM3w==
+X-WP-DKIM-Status: good (id: lisek.app)                                                                        
+X-WP-MailID: fda0c0941cb9b33096d744d05f85e033
+X-WP-AV: skaner antywirusowy Poczty o2
+X-WP-SPAM: NO (UW) 1U00010 [ITOU]                          
+
+--83a811d5d7593cf2c5a184e325fe3514ff2c7a7279475bd8d8bb8ec36b0a
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Mime-Version: 1.0
+
+*Numer zam=C3=B3wienia: LISEK-2025-FIX*
+*Data: 05.10.2025 19:13:15*
+
+*Dzi=C4=99kujemy za Twoje zam=C3=B3wienie!*
+
+I dzi=C4=99kujemy za Twoje zaufanie! Je=C5=9Bli czytasz tego maila, to znac=
+zy, =C5=BCe zakupy ju=C5=BC u ciebie s=C4=85. Mo=C5=BCesz cieszy=C4=87 si=
+=C4=99 zaoszcz=C4=99dzonym czasem, bo o zakupy dba Lisek.
+
+*Adres dostawy:*
+
+ul. Testowa 1, Warszawa
+
+*Podsumowanie zam=C3=B3wienia:*
+
+             =20
+
+  szt.=20
+
+            =20
+
+*Warto=C5=9B=C4=87 zam=C3=B3wienia - Spo=C5=BCywczo-Przemys=C5=82owe* *106,=
+74 z=C5=82* *Warto=C5=9B=C4=87 zam=C3=B3wienia - Piwo/Wino/Mocne* ** *Warto=
+=C5=9B=C4=87 zam=C3=B3wienia - ciep=C5=82e produkty* ** *Op=C5=82ata za wyr=
+oby tytoniowe* ** *Zni=C5=BCka* *-10,00 z=C5=82* *Dostawa* *4,99 z=C5=82* *=
+Dostawa Priorytetowa* ** *Koszt opakowania* *3,96 z=C5=82* ** **
+
+*Metoda p=C5=82atno=C5=9Bci: Google Pay*
+
+*Zap=C5=82acono*
+
+*109,68 z=C5=82*
+
+*W za=C5=82=C4=85czniku znajduj=C4=99 si=C4=99 dow=C3=B3d zakupu za napoje =
+alkoholowe, wyroby tytoniowe b=C4=85d=C5=BA ciep=C5=82e produkty.*
+
+*Masz pytania?*
+
+Skontaktuj si=C4=99 ( https://u22471213.ct.sendgrid.net/ls/click?upn=3Du001=
+.puF9s7VNU8wxma8LxdKH1Zn-2FNVGC0pE7Y3jIHOJ3tDY5IZ39iJam1Xw-2BjDDVgUlS-2FxwU=
+7xfiD0oM1ZXtRfHP0iZTaK3pLtzkspGXCR9u72ykvCd8DlEwmH4uOPpN8M9gWTZSjrHphQFqAsW=
+elG-2FZTQ-3D-3D2bIj_W05PRWUUHvTOOaq5rkQLGBT7K9GsU3Yk-2FyAQP-2F9MfeLN-2BO1hV=
+qpS9wcwgG7PFV-2BUquQ7g4MJ6Gy2Albz1618990ItP0l1ho-2FtvY9EQ9UjEp8-2BkKlyZTp3c=
+2C-2Bh9ClJVHWwF3gUYbddZUXczLeMMd9U-2FsBG7WVAAk9UDA4CI4T-2FGlIbp1mKEHElQlEYH=
+8fz-2FfgT1sHp6bE7k0lyvEKOyUD-2FkEPw0tpwCI62BzkyF747Gr2gqNigZshspAviLOL6ESdg=
+qdRKTlRHyE5ymLQrFcabbLk1ys2ecBlYUTFmCZ6kEjft62g0eFbkTXFrn1D-2F92Mjnxlu-2BcY=
+Tj-2BgaHT-2Fnb8GNdW5sGLkw82Iqw4aFiIdSNZcbYCwCiysBypDZ1ikssdgi1Yv8I0T-2BpIcN=
+C0JYIjqw-3D-3D )
+
+Lub zadzwo=C5=84 do Centrum Obs=C5=82ugi Klienta, kt=C3=B3re dzia=C5=82a po=
+d numerem +48 22 627 93 67 ( tel:+48226279367 ).
+
+Dbaj=C4=85c o =C5=9Brodowisko, ale r=C3=B3wnie=C5=BC o Pa=C5=84stwa komfort=
+ nasza firma przesy=C5=82a potwierdzenie zakup=C3=B3w drog=C4=85 elektronic=
+zn=C4=85. Dokument, kt=C3=B3ry otrzymali Pa=C5=84stwo od nas jest r=C3=B3wn=
+owa=C5=BCny z papierowym paragonem. Podstaw=C4=85 prawn=C4=85 naszych dzia=
+=C5=82a=C5=84 jest Rozporz=C4=85dzenie Ministra Finans=C3=B3w w sprawie zwo=
+lnie=C5=84 z obowi=C4=85zku prowadzenia ewidencji przy zastosowaniu kas rej=
+estruj=C4=85cych (Dz. U. 2020, poz. 2317).
+
+Numer BDO: 000570200
+--83a811d5d7593cf2c5a184e325fe3514ff2c7a7279475bd8d8bb8ec36b0a
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset=utf-8
+Mime-Version: 1.0
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org=
+/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html data-editor-version=3D"2" class=3D"sg-campaigns" xmlns=3D"http://www.=
+w3.org/1999/xhtml">
+    <head>
+      <meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Dutf=
+-8">
+      <meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scal=
+e=3D1, minimum-scale=3D1, maximum-scale=3D1">
+      <!--[if !mso]><!-->
+      <meta http-equiv=3D"X-UA-Compatible" content=3D"IE=3DEdge">
+      <!--<![endif]-->
+      <!--[if (gte mso 9)|(IE)]>
+      <xml>
+        <o:OfficeDocumentSettings>
+          <o:AllowPNG/>
+          <o:PixelsPerInch>96</o:PixelsPerInch>
+        </o:OfficeDocumentSettings>
+      </xml>
+      <![endif]-->
+      <!--[if (gte mso 9)|(IE)]>
+  <style type=3D"text/css">
+    body {width: 600px;margin: 0 auto;}
+    table {border-collapse: collapse;}
+    table, td {mso-table-lspace: 0pt;mso-table-rspace: 0pt;}
+    img {-ms-interpolation-mode: bicubic;}
+  </style>
+<![endif]-->
+      <style type=3D"text/css">
+    body, p, div {
+      font-family: arial,helvetica,sans-serif;
+      font-size: 14px;
+    }
+    body {
+      color: #000000;
+    }
+    body a {
+      color: #1188E6;
+      text-decoration: none;
+    }
+    p { margin: 0; padding: 0; }
+    table.wrapper {
+      width:100% !important;
+      table-layout: fixed;
+      -webkit-font-smoothing: antialiased;
+      -webkit-text-size-adjust: 100%;
+      -moz-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+    img.max-width {
+      max-width: 100% !important;
+    }
+    .column.of-2 {
+      width: 50%;
+    }
+    .column.of-3 {
+      width: 33.333%;
+    }
+    .column.of-4 {
+      width: 25%;
+    }
+    ul ul ul ul  {
+      list-style-type: disc !important;
+    }
+    ol ol {
+      list-style-type: lower-roman !important;
+    }
+    ol ol ol {
+      list-style-type: lower-latin !important;
+    }
+    ol ol ol ol {
+      list-style-type: decimal !important;
+    }
+    @media screen and (max-width:480px) {
+      .preheader .rightColumnContent,
+      .footer .rightColumnContent {
+        text-align: left !important;
+      }
+      .preheader .rightColumnContent div,
+      .preheader .rightColumnContent span,
+      .footer .rightColumnContent div,
+      .footer .rightColumnContent span {
+        text-align: left !important;
+      }
+      .preheader .rightColumnContent,
+      .preheader .leftColumnContent {
+        font-size: 80% !important;
+        padding: 5px 0;
+      }
+      table.wrapper-mobile {
+        width: 100% !important;
+        table-layout: fixed;
+      }
+      img.max-width {
+        height: auto !important;
+        max-width: 100% !important;
+      }
+      a.bulletproof-button {
+        display: block !important;
+        width: auto !important;
+        font-size: 80%;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+      .columns {
+        width: 100% !important;
+      }
+      .column {
+        display: block !important;
+        width: 100% !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+      .social-icon-column {
+        display: inline-block !important;
+      }
+    }
+  </style>
+      <!--user entered Head Start--><!--End Head user entered-->
+    </head>
+    <body>
+      <center class=3D"wrapper" data-link-color=3D"#1188E6" data-body-style=
+=3D"font-size:14px; font-family:arial,helvetica,sans-serif; color:#000000; =
+background-color:#FFFFFF;">
+        <div class=3D"webkit">
+          <table cellpadding=3D"0" cellspacing=3D"0" border=3D"0" width=3D"=
+100%" class=3D"wrapper" bgcolor=3D"#FFFFFF">
+            <tr>
+              <td valign=3D"top" bgcolor=3D"#FFFFFF" width=3D"100%">
+                <table width=3D"100%" role=3D"content-container" class=3D"o=
+uter" align=3D"center" cellpadding=3D"0" cellspacing=3D"0" border=3D"0">
+                  <tr>
+                    <td width=3D"100%">
+                      <table width=3D"100%" cellpadding=3D"0" cellspacing=
+=3D"0" border=3D"0">
+                        <tr>
+                          <td>
+                            <!--[if mso]>
+    <center>
+    <table><tr><td width=3D"600">
+  <![endif]-->
+                                    <table width=3D"100%" cellpadding=3D"0"=
+ cellspacing=3D"0" border=3D"0" style=3D"width:100%; max-width:600px;" alig=
+n=3D"center">
+                                      <tr>
+                                        <td role=3D"modules-container" styl=
+e=3D"padding:0px 0px 0px 0px; color:#000000; text-align:left;" bgcolor=3D"#=
+FFFFFF" width=3D"100%" align=3D"left"><table class=3D"module preheader preh=
+eader-hide" role=3D"module" data-type=3D"preheader" border=3D"0" cellpaddin=
+g=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"display: none !important;=
+ mso-hide: all; visibility: hidden; opacity: 0; color: transparent; height:=
+ 0; width: 0;">
+    <tr>
+      <td role=3D"module-content">
+        <p></p>
+      </td>
+    </tr>
+  </table><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" align=3D"=
+center" width=3D"100%" role=3D"module" data-type=3D"columns" style=3D"paddi=
+ng:0px 0px 0px 0px;" bgcolor=3D"#8036b7" data-distribution=3D"1,1">
+    <tbody>
+      <tr role=3D"module-content">
+        <td height=3D"100%" valign=3D"top"><table width=3D"300" style=3D"wi=
+dth:300px; border-spacing:0; border-collapse:collapse; margin:0px 0px 0px 0=
+px;" cellpadding=3D"0" cellspacing=3D"0" align=3D"left" border=3D"0" bgcolo=
+r=3D"" class=3D"column column-0">
+      <tbody>
+        <tr>
+          <td style=3D"padding:0px;margin:0px;border-spacing:0;"><table cla=
+ss=3D"wrapper" role=3D"module" data-type=3D"image" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"table-layout: fixed;" data=
+-muid=3D"12e19391-90c6-4664-9204-6cab8fde7d7d">
+    <tbody>
+      <tr>
+        <td style=3D"font-size:6px; line-height:10px; padding:30px 0px 0px =
+30px;" valign=3D"top" align=3D"left">
+          <img class=3D"max-width" border=3D"0" style=3D"display:block; col=
+or:#000000; text-decoration:none; font-family:Helvetica, arial, sans-serif;=
+ font-size:16px;" width=3D"220" alt=3D"" data-proportionally-constrained=3D=
+"true" data-responsive=3D"false" src=3D"http://cdn.mcauto-images-production=
+.sendgrid.net/a4143b7f31ded318/1500b7a6-8bdf-4505-81f1-458d11a48d7c/220x30.=
+png" height=3D"30">
+        </td>
+      </tr>
+    </tbody>
+  </table></td>
+        </tr>
+      </tbody>
+    </table><table width=3D"300" style=3D"width:300px; border-spacing:0; bo=
+rder-collapse:collapse; margin:0px 0px 0px 0px;" cellpadding=3D"0" cellspac=
+ing=3D"0" align=3D"left" border=3D"0" bgcolor=3D"" class=3D"column column-1=
+">
+      <tbody>
+        <tr>
+          <td style=3D"padding:0px;margin:0px;border-spacing:0;"><table cla=
+ss=3D"module" role=3D"module" data-type=3D"text" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"table-layout: fixed;" data=
+-muid=3D"c4ac9618-f43f-4632-acca-1bd421c14993" data-mc-module-version=3D"20=
+19-10-22">
+    <tbody>
+      <tr>
+        <td style=3D"padding:30px 30px 30px 0px; line-height:22px; text-ali=
+gn:inherit;" height=3D"100%" valign=3D"top" bgcolor=3D"" role=3D"module-con=
+tent"><div><div style=3D"font-family: inherit; text-align: right"><span sty=
+le=3D"color: #ffffff"><strong>Numer zam=C3=B3wienia: LISEK-2025-FIX</strong></span=
+></div>
+<div style=3D"font-family: inherit; text-align: right"><span style=3D"color=
+: #ffffff"><strong>Data: 05.10.2025 19:13:15</strong></span></div><div></di=
+v></div></td>
+      </tr>
+    </tbody>
+  </table></td>
+        </tr>
+      </tbody>
+    </table></td>
+      </tr>
+    </tbody>
+  </table><table class=3D"wrapper" role=3D"module" data-type=3D"image" bord=
+er=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"table-=
+layout: fixed;" data-muid=3D"a61dd52a-d26c-444f-b868-247b96f2a606">
+    <tbody>
+      <tr>
+        <td style=3D"font-size:6px; line-height:10px; padding:0px 0px 0px 0=
+px;" valign=3D"top" align=3D"center">
+          <img class=3D"max-width" border=3D"0" style=3D"display:block; col=
+or:#000000; text-decoration:none; font-family:Helvetica, arial, sans-serif;=
+ font-size:16px; max-width:100% !important; width:100%; height:auto !import=
+ant;" width=3D"600" alt=3D"" data-proportionally-constrained=3D"true" data-=
+responsive=3D"true" src=3D"http://cdn.mcauto-images-production.sendgrid.net=
+/a4143b7f31ded318/69a95834-287b-49f4-b484-8369ec5af248/600x55.png">
+        </td>
+      </tr>
+    </tbody>
+  </table><table class=3D"module" role=3D"module" data-type=3D"text" border=
+=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"table-la=
+yout: fixed;" data-muid=3D"082e037f-1e28-48fe-934d-fffe3746edd3" data-mc-mo=
+dule-version=3D"2019-10-22">
+    <tbody>
+      <tr>
+        <td style=3D"padding:18px 0px 18px 0px; line-height:22px; text-alig=
+n:inherit;" height=3D"100%" valign=3D"top" bgcolor=3D"" role=3D"module-cont=
+ent"><div><div style=3D"font-family: inherit; text-align: inherit"><strong>=
+Dzi=C4=99kujemy za Twoje zam=C3=B3wienie!</strong></div><div></div></div></=
+td>
+      </tr>
+    </tbody>
+  </table><table class=3D"module" role=3D"module" data-type=3D"text" border=
+=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"table-la=
+yout: fixed;" data-muid=3D"a1792aad-95f6-4156-8623-9001fb1ff2f2" data-mc-mo=
+dule-version=3D"2019-10-22">
+    <tbody>
+      <tr>
+        <td style=3D"padding:18px 0px 18px 0px; line-height:22px; text-alig=
+n:inherit;" height=3D"100%" valign=3D"top" bgcolor=3D"" role=3D"module-cont=
+ent"><div><div style=3D"font-family: inherit; text-align: inherit">I dzi=C4=
+=99kujemy za Twoje zaufanie! Je=C5=9Bli czytasz tego maila, to znaczy, =C5=
+=BCe zakupy ju=C5=BC u ciebie s=C4=85. Mo=C5=BCesz cieszy=C4=87 si=C4=99 za=
+oszcz=C4=99dzonym czasem, bo o zakupy dba Lisek.</div><div></div></div></td=
+>
+      </tr>
+    </tbody>
+  </table><table class=3D"module" role=3D"module" data-type=3D"text" border=
+=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"table-la=
+yout: fixed;" data-muid=3D"a1792aad-95f6-4156-8623-9001fb1ff2f2.1" data-mc-=
+module-version=3D"2019-10-22">
+    <tbody>
+      <tr>
+        <td style=3D"padding:10px 0px 10px 0px; line-height:22px; text-alig=
+n:inherit;" height=3D"100%" valign=3D"top" bgcolor=3D"" role=3D"module-cont=
+ent"><div><div style=3D"font-family: inherit; text-align: inherit"><strong>=
+Adres dostawy:</strong></div><div></div></div></td>
+      </tr>
+    </tbody>
+  </table><table class=3D"module" role=3D"module" data-type=3D"divider" bor=
+der=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"table=
+-layout: fixed;" data-muid=3D"b98e4b6e-d58b-4ccb-88e8-6c85d65cff1e">
+    <tbody>
+      <tr>
+        <td style=3D"padding:0px 0px 0px 0px;" role=3D"module-content" heig=
+ht=3D"100%" valign=3D"top" bgcolor=3D"">
+          <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" align=3D"=
+center" width=3D"100%" height=3D"1px" style=3D"line-height:1px; font-size:1=
+px;">
+            <tbody>
+              <tr>
+                <td style=3D"padding:0px 0px 1px 0px;" bgcolor=3D"#000000">=
+</td>
+              </tr>
+            </tbody>
+          </table>
+        </td>
+      </tr>
+    </tbody>
+  </table><table class=3D"module" role=3D"module" data-type=3D"text" border=
+=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"table-la=
+yout: fixed;" data-muid=3D"44a6efbf-011e-4383-8150-30be569d9e3b" data-mc-mo=
+dule-version=3D"2019-10-22">
+    <tbody>
+      <tr>
+        <td style=3D"padding:18px 0px 18px 0px; line-height:22px; text-alig=
+n:inherit;" height=3D"100%" valign=3D"top" bgcolor=3D"" role=3D"module-cont=
+ent"><div><div style=3D"font-family: inherit; text-align: inherit">aleja Ja=
+na Paw=C5=82a II 3B/142, Gda=C5=84sk</div><div></div></div></td>
+      </tr>
+    </tbody>
+  </table><table class=3D"module" role=3D"module" data-type=3D"text" border=
+=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"table-la=
+yout: fixed;" data-muid=3D"a1792aad-95f6-4156-8623-9001fb1ff2f2.1.1.1" data=
+-mc-module-version=3D"2019-10-22">
+    <tbody>
+      <tr>
+        <td style=3D"padding:10px 0px 10px 0px; line-height:22px; text-alig=
+n:inherit;" height=3D"100%" valign=3D"top" bgcolor=3D"" role=3D"module-cont=
+ent"><div><div style=3D"font-family: inherit; text-align: inherit"><strong>=
+Podsumowanie zam=C3=B3wienia:</strong></div><div></div></div></td>
+      </tr>
+    </tbody>
+  </table><table class=3D"module" role=3D"module" data-type=3D"divider" bor=
+der=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"table=
+-layout: fixed;" data-muid=3D"b98e4b6e-d58b-4ccb-88e8-6c85d65cff1e.1.1">
+    <tbody>
+      <tr>
+        <td style=3D"padding:0px 0px 0px 0px;" role=3D"module-content" heig=
+ht=3D"100%" valign=3D"top" bgcolor=3D"">
+          <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" align=3D"=
+center" width=3D"100%" height=3D"1px" style=3D"line-height:1px; font-size:1=
+px;">
+            <tbody>
+              <tr>
+                <td style=3D"padding:0px 0px 1px 0px;" bgcolor=3D"#000000">=
+</td>
+              </tr>
+            </tbody>
+          </table>
+        </td>
+      </tr>
+    </tbody>
+  </table><table class=3D"module" role=3D"module" data-type=3D"code" border=
+=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"table-la=
+yout: fixed;" data-muid=3D"47e7af0e-d856-462d-a285-b97748dab639">
+    <tbody>
+      <tr>
+        <td height=3D"100%" valign=3D"top" role=3D"module-content"><table>
+                            <tr style=3D"margin-bottom: 50px">
+                                <td style=3D"padding-bottom: 1em; width: 10=
+%;"><img style=3D"width: 80%" src=3D"https://im.k8s.lisek.app/resize?url=3D=
+https%3A%2F%2Fres.cloudinary.com%2Flisek-app%2Fimage%2Fupload%2FProducts%2F=
+BulkZiar_1_Production.png&amp;width=3D50&amp;height=3D50&amp;noEnlarge=3DFa=
+lse&amp;source=3DConfirmationEmail"></td>
+                                <td style=3D"padding-bottom: 1em; width: 60=
+%;">Bu=C5=82ka z ziarnami 50g</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">2 szt.</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">2,78 z=C5=82</td>
+                            </tr>
+                            <tr style=3D"margin-bottom: 50px">
+                                <td style=3D"padding-bottom: 1em; width: 10=
+%;"><img style=3D"width: 80%" src=3D"https://im.k8s.lisek.app/resize?url=3D=
+https%3A%2F%2Fres.cloudinary.com%2Flisek-app%2Fimage%2Fupload%2FProducts%2F=
+Lisiopak6xbanan_3_Production.png&amp;width=3D50&amp;height=3D50&amp;noEnlar=
+ge=3DFalse&amp;source=3DConfirmationEmail"></td>
+                                <td style=3D"padding-bottom: 1em; width: 60=
+%;">Banan 6 szt</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">1 szt.</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">7,49 z=C5=82</td>
+                            </tr>
+                            <tr style=3D"margin-bottom: 50px">
+                                <td style=3D"padding-bottom: 1em; width: 10=
+%;"><img style=3D"width: 80%" src=3D"https://im.k8s.lisek.app/resize?url=3D=
+https%3A%2F%2Fres.cloudinary.com%2Flisek-app%2Fimage%2Fupload%2FProducts%2F=
+5905794217168_3_Production.png&amp;width=3D50&amp;height=3D50&amp;noEnlarge=
+=3DFalse&amp;source=3DConfirmationEmail"></td>
+                                <td style=3D"padding-bottom: 1em; width: 60=
+%;">Soti natural mochi marakuja (6x36ml) 216ml</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">1 szt.</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">26,99 z=C5=82</td>
+                            </tr>
+                            <tr style=3D"margin-bottom: 50px">
+                                <td style=3D"padding-bottom: 1em; width: 10=
+%;"><img style=3D"width: 80%" src=3D"https://im.k8s.lisek.app/resize?url=3D=
+https%3A%2F%2Fres.cloudinary.com%2Flisek-app%2Fimage%2Fupload%2FProducts%2F=
+5904378640866_2_Production.png&amp;width=3D50&amp;height=3D50&amp;noEnlarge=
+=3DFalse&amp;source=3DConfirmationEmail"></td>
+                                <td style=3D"padding-bottom: 1em; width: 60=
+%;">Vera brzoskwinie po=C5=82=C3=B3wki w syropie 560g</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">1 szt.</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">11,49 z=C5=82</td>
+                            </tr>
+                            <tr style=3D"margin-bottom: 50px">
+                                <td style=3D"padding-bottom: 1em; width: 10=
+%;"><img style=3D"width: 80%" src=3D"https://im.k8s.lisek.app/resize?url=3D=
+https%3A%2F%2Fres.cloudinary.com%2Flisek-app%2Fimage%2Fupload%2FProducts%2F=
+5740700996153_1_Production.png&amp;width=3D50&amp;height=3D50&amp;noEnlarge=
+=3DFalse&amp;source=3DConfirmationEmail"></td>
+                                <td style=3D"padding-bottom: 1em; width: 60=
+%;">Fanta Exotic 330ml</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">2 szt.</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">9,98 z=C5=82</td>
+                            </tr>
+                            <tr style=3D"margin-bottom: 50px">
+                                <td style=3D"padding-bottom: 1em; width: 10=
+%;"><img style=3D"width: 80%" src=3D"https://im.k8s.lisek.app/resize?url=3D=
+https%3A%2F%2Fres.cloudinary.com%2Flisek-app%2Fimage%2Fupload%2FProducts%2F=
+5906660202721_1_Production.png&amp;width=3D50&amp;height=3D50&amp;noEnlarge=
+=3DFalse&amp;source=3DConfirmationEmail"></td>
+                                <td style=3D"padding-bottom: 1em; width: 60=
+%;">Hello Day! Magico Kokos nap=C3=B3j owocowy z nata de coco 500ml</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">1 szt.</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">6,79 z=C5=82</td>
+                            </tr>
+                            <tr style=3D"margin-bottom: 50px">
+                                <td style=3D"padding-bottom: 1em; width: 10=
+%;"><img style=3D"width: 80%" src=3D"https://im.k8s.lisek.app/resize?url=3D=
+https%3A%2F%2Fres.cloudinary.com%2Flisek-app%2Fimage%2Fupload%2FProducts%2F=
+5906660202691_1_Production.png&amp;width=3D50&amp;height=3D50&amp;noEnlarge=
+=3DFalse&amp;source=3DConfirmationEmail"></td>
+                                <td style=3D"padding-bottom: 1em; width: 60=
+%;">Hello Day! Magico Mango nap=C3=B3j owocowy z nata de coco 500ml</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">1 szt.</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">6,79 z=C5=82</td>
+                            </tr>
+                            <tr style=3D"margin-bottom: 50px">
+                                <td style=3D"padding-bottom: 1em; width: 10=
+%;"><img style=3D"width: 80%" src=3D"https://im.k8s.lisek.app/resize?url=3D=
+https%3A%2F%2Fres.cloudinary.com%2Flisek-app%2Fimage%2Fupload%2FProducts%2F=
+5902444124067_4_Production.png&amp;width=3D50&amp;height=3D50&amp;noEnlarge=
+=3DFalse&amp;source=3DConfirmationEmail"></td>
+                                <td style=3D"padding-bottom: 1em; width: 60=
+%;">Chrupki kukurydziane naturalne BIO 70 g</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">1 szt.</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">3,99 z=C5=82</td>
+                            </tr>
+                            <tr style=3D"margin-bottom: 50px">
+                                <td style=3D"padding-bottom: 1em; width: 10=
+%;"><img style=3D"width: 80%" src=3D"https://im.k8s.lisek.app/resize?url=3D=
+https%3A%2F%2Fres.cloudinary.com%2Flisek-app%2Fimage%2Fupload%2FProducts%2F=
+5904988311385_1_Production.png&amp;width=3D50&amp;height=3D50&amp;noEnlarge=
+=3DFalse&amp;source=3DConfirmationEmail"></td>
+                                <td style=3D"padding-bottom: 1em; width: 60=
+%;">Dzik Zero Grape bez kofeiny 330ml</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">1 szt.</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">4,29 z=C5=82</td>
+                            </tr>
+                            <tr style=3D"margin-bottom: 50px">
+                                <td style=3D"padding-bottom: 1em; width: 10=
+%;"><img style=3D"width: 80%" src=3D"https://im.k8s.lisek.app/resize?url=3D=
+https%3A%2F%2Fres.cloudinary.com%2Flisek-app%2Fimage%2Fupload%2FProducts%2F=
+5904988309597_11_Production.png&amp;width=3D50&amp;height=3D50&amp;noEnlarg=
+e=3DFalse&amp;source=3DConfirmationEmail"></td>
+                                <td style=3D"padding-bottom: 1em; width: 60=
+%;">Dzik Energy Zero Kalorii Peach 500ml</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">1 szt.</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">5,89 z=C5=82</td>
+                            </tr>
+                            <tr style=3D"margin-bottom: 50px">
+                                <td style=3D"padding-bottom: 1em; width: 10=
+%;"><img style=3D"width: 80%" src=3D"https://im.k8s.lisek.app/resize?url=3D=
+https%3A%2F%2Fres.cloudinary.com%2Flisek-app%2Fimage%2Fupload%2FProducts%2F=
+5900397008540_6_Production.png&amp;width=3D50&amp;height=3D50&amp;noEnlarge=
+=3DFalse&amp;source=3DConfirmationEmail"></td>
+                                <td style=3D"padding-bottom: 1em; width: 60=
+%;">=C5=81owicz d=C5=BCem brzoskwiniowy niskos=C5=82odzony 280g</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">1 szt.</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">6,99 z=C5=82</td>
+                            </tr>
+                            <tr style=3D"margin-bottom: 50px">
+                                <td style=3D"padding-bottom: 1em; width: 10=
+%;"><img style=3D"width: 80%" src=3D"https://im.k8s.lisek.app/resize?url=3D=
+https%3A%2F%2Fres.cloudinary.com%2Flisek-app%2Fimage%2Fupload%2FProducts%2F=
+5907455408021_2_Production.png&amp;width=3D50&amp;height=3D50&amp;noEnlarge=
+=3DFalse&amp;source=3DConfirmationEmail"></td>
+                                <td style=3D"padding-bottom: 1em; width: 60=
+%;">ChaiGreen Peach nap=C3=B3j niegazowany ChaiTea na bazie zielonej herbat=
+y puszka 330ml</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">1 szt.</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">3,29 z=C5=82</td>
+                            </tr>
+                            <tr style=3D"margin-bottom: 50px">
+                                <td style=3D"padding-bottom: 1em; width: 10=
+%;"><img style=3D"width: 80%" src=3D"https://im.k8s.lisek.app/resize?url=3D=
+https%3A%2F%2Fres.cloudinary.com%2Flisek-app%2Fimage%2Fupload%2FProducts%2F=
+5905454140102_1_Production.png&amp;width=3D50&amp;height=3D50&amp;noEnlarge=
+=3DFalse&amp;source=3DConfirmationEmail"></td>
+                                <td style=3D"padding-bottom: 1em; width: 60=
+%;">Mozzarella Buona High Protein 125g</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">1 szt.</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">3,99 z=C5=82</td>
+                            </tr>
+                            <tr style=3D"margin-bottom: 50px">
+                                <td style=3D"padding-bottom: 1em; width: 10=
+%;"><img style=3D"width: 80%" src=3D"https://im.k8s.lisek.app/resize?url=3D=
+https%3A%2F%2Fres.cloudinary.com%2Flisek-app%2Fimage%2Fupload%2FProducts%2F=
+40084107_5_Production.png&amp;width=3D50&amp;height=3D50&amp;noEnlarge=3DFa=
+lse&amp;source=3DConfirmationEmail"></td>
+                                <td style=3D"padding-bottom: 1em; width: 60=
+%;">Jajko Kinder Niespodzianka 20g</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">1 szt.</td>
+                                <td style=3D"padding-bottom: 1em; width: 15=
+%; text-align: right;">5,99 z=C5=82</td>
+                            </tr>
+                    </table></td>
+      </tr>
+    </tbody>
+  </table><table class=3D"module" role=3D"module" data-type=3D"divider" bor=
+der=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"table=
+-layout: fixed;" data-muid=3D"b98e4b6e-d58b-4ccb-88e8-6c85d65cff1e.1.2">
+    <tbody>
+      <tr>
+        <td style=3D"padding:0px 0px 0px 0px;" role=3D"module-content" heig=
+ht=3D"100%" valign=3D"top" bgcolor=3D"">
+          <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" align=3D"=
+center" width=3D"100%" height=3D"1px" style=3D"line-height:1px; font-size:1=
+px;">
+            <tbody>
+              <tr>
+                <td style=3D"padding:0px 0px 1px 0px;" bgcolor=3D"#000000">=
+</td>
+              </tr>
+            </tbody>
+          </table>
+        </td>
+      </tr>
+    </tbody>
+  </table><table class=3D"module" role=3D"module" data-type=3D"code" border=
+=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"table-la=
+yout: fixed;" data-muid=3D"92c5a138-5830-4178-887a-810347e07393">
+    <tbody>
+      <tr>
+        <td height=3D"100%" valign=3D"top" role=3D"module-content">     <ta=
+ble style=3D"width: 100%">
+        <tr>
+            <td style=3D"width: 80%;"><b>Warto=C5=9B=C4=87 zam=C3=B3wienia =
+- Spo=C5=BCywczo-Przemys=C5=82owe</b></td>
+            <td style=3D"width: 20%; text-align: right;"><b>106,74 z=C5=82<=
+/b></td>
+        </tr>
+               =20
+    <tr>
+        <td style=3D"width: 80%;"><b>Zni=C5=BCka</b></td>
+        <td style=3D"width: 20%; text-align: right;"><b>-10,00 z=C5=82</b><=
+/td>
+    </tr>
+   =20
+    <tr>
+        <td style=3D"width: 80%;"><b>Dostawa</b></td>
+        <td style=3D"width: 20%; text-align: right;"><b>4,99 z=C5=82</b></t=
+d>
+    </tr>
+       =20
+    <tr>
+        <td style=3D"width: 80%;"><b>Koszt opakowania</b></td>
+        <td style=3D"width: 20%; text-align: right;"><b>3,96 z=C5=82</b></t=
+d>
+    </tr>
+    <!--   -->
+    <!--<tr>-->
+    <!--    <td style=3D"width: 80%;"><b>Kaucja za butelki i puszki</b></td=
+>-->
+    <!--    <td style=3D"width: 20%; text-align: right;"><b>5,99 z=C5=82</b=
+></td>-->
+    <!--</tr>-->
+    <!---->
+        <tr>
+            <td style=3D"width: 80%;"><b>Op=C5=82ata serwisowa</b></td>
+            <td style=3D"width: 20%; text-align: right;"><b>3,99 z=C5=82</b=
+></td>
+        </tr>
+</table></td>
+      </tr>
+    </tbody>
+  </table><table class=3D"module" role=3D"module" data-type=3D"text" border=
+=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"table-la=
+yout: fixed;" data-muid=3D"478aa8a6-1c48-413e-9aa6-92e8423e3140" data-mc-mo=
+dule-version=3D"2019-10-22">
+    <tbody>
+      <tr>
+        <td style=3D"padding:18px 0px 18px 0px; line-height:22px; text-alig=
+n:inherit;" height=3D"100%" valign=3D"top" bgcolor=3D"" role=3D"module-cont=
+ent"><div><div style=3D"font-family: inherit; text-align: inherit"><strong>=
+Metoda p=C5=82atno=C5=9Bci: Google Pay</strong></div><div></div></div></td>
+      </tr>
+    </tbody>
+  </table><table class=3D"module" role=3D"module" data-type=3D"divider" bor=
+der=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"table=
+-layout: fixed;" data-muid=3D"b98e4b6e-d58b-4ccb-88e8-6c85d65cff1e.1">
+    <tbody>
+      <tr>
+        <td style=3D"padding:0px 0px 0px 0px;" role=3D"module-content" heig=
+ht=3D"100%" valign=3D"top" bgcolor=3D"">
+          <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" align=3D"=
+center" width=3D"100%" height=3D"1px" style=3D"line-height:1px; font-size:1=
+px;">
+            <tbody>
+              <tr>
+                <td style=3D"padding:0px 0px 1px 0px;" bgcolor=3D"#000000">=
+</td>
+              </tr>
+            </tbody>
+          </table>
+        </td>
+      </tr>
+    </tbody>
+  </table><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" align=3D"=
+center" width=3D"100%" role=3D"module" data-type=3D"columns" style=3D"paddi=
+ng:0px 0px 0px 0px;" bgcolor=3D"#FFFFFF" data-distribution=3D"1,1">
+    <tbody>
+      <tr role=3D"module-content">
+        <td height=3D"100%" valign=3D"top"><table width=3D"290" style=3D"wi=
+dth:290px; border-spacing:0; border-collapse:collapse; margin:0px 10px 0px =
+0px;" cellpadding=3D"0" cellspacing=3D"0" align=3D"left" border=3D"0" bgcol=
+or=3D"" class=3D"column column-0">
+      <tbody>
+        <tr>
+          <td style=3D"padding:0px;margin:0px;border-spacing:0;"><table cla=
+ss=3D"module" role=3D"module" data-type=3D"text" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"table-layout: fixed;" data=
+-muid=3D"de921692-6d35-47c1-982b-e51120f950b7" data-mc-module-version=3D"20=
+19-10-22">
+    <tbody>
+      <tr>
+        <td style=3D"padding:18px 0px 18px 0px; line-height:22px; text-alig=
+n:inherit;" height=3D"100%" valign=3D"top" bgcolor=3D"" role=3D"module-cont=
+ent"><div><div style=3D"font-family: inherit; text-align: inherit"><strong>=
+Zap=C5=82acono</strong></div><div></div></div></td>
+      </tr>
+    </tbody>
+  </table></td>
+        </tr>
+      </tbody>
+    </table><table width=3D"290" style=3D"width:290px; border-spacing:0; bo=
+rder-collapse:collapse; margin:0px 0px 0px 10px;" cellpadding=3D"0" cellspa=
+cing=3D"0" align=3D"left" border=3D"0" bgcolor=3D"" class=3D"column column-=
+1">
+      <tbody>
+        <tr>
+          <td style=3D"padding:0px;margin:0px;border-spacing:0;"><table cla=
+ss=3D"module" role=3D"module" data-type=3D"text" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"table-layout: fixed;" data=
+-muid=3D"0e2d6ab5-9a7d-4045-ab9b-dd91a76b7253" data-mc-module-version=3D"20=
+19-10-22">
+    <tbody>
+      <tr>
+        <td style=3D"padding:18px 0px 18px 0px; line-height:22px; text-alig=
+n:inherit;" height=3D"100%" valign=3D"top" bgcolor=3D"" role=3D"module-cont=
+ent"><div><div style=3D"font-family: inherit; text-align: right"><strong>10=
+9,68 z=C5=82</strong></div><div></div></div></td>
+      </tr>
+    </tbody>
+  </table></td>
+        </tr>
+      </tbody>
+    </table></td>
+      </tr>
+    </tbody>
+  </table><table class=3D"module" role=3D"module" data-type=3D"text" border=
+=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"table-la=
+yout: fixed;" data-muid=3D"6553d6f6-2604-4811-85bf-a4ed0f583bad" data-mc-mo=
+dule-version=3D"2019-10-22">
+    <tbody>
+      <tr>
+        <td style=3D"padding:18px 0px 18px 0px; line-height:22px; text-alig=
+n:inherit;" height=3D"100%" valign=3D"top" bgcolor=3D"" role=3D"module-cont=
+ent"><div><div style=3D"font-family: inherit; text-align: inherit"><strong>=
+W za=C5=82=C4=85czniku znajduj=C4=99 si=C4=99 dow=C3=B3d zakupu za napoje a=
+lkoholowe, wyroby tytoniowe b=C4=85d=C5=BA ciep=C5=82e produkty.</strong></=
+div>
+<div style=3D"font-family: inherit; text-align: inherit"><br></div>
+<div style=3D"font-family: inherit; text-align: center"><span style=3D"font=
+-size: 24px"><strong>Masz pytania?</strong></span></div><div></div></div></=
+td>
+      </tr>
+    </tbody>
+  </table><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" class=3D"=
+module" data-role=3D"module-button" data-type=3D"button" role=3D"module" st=
+yle=3D"table-layout:fixed;" width=3D"100%" data-muid=3D"042d6512-e7ff-48c6-=
+9e5a-ccef8964d522">
+      <tbody>
+        <tr>
+          <td align=3D"center" bgcolor=3D"" class=3D"outer-td" style=3D"pad=
+ding:0px 0px 0px 0px;">
+            <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" class=
+=3D"wrapper-mobile" style=3D"text-align:center;">
+              <tbody>
+                <tr>
+                <td align=3D"center" bgcolor=3D"#8036b7" class=3D"inner-td"=
+ style=3D"border-radius:6px; font-size:16px; text-align:center; background-=
+color:inherit;">
+                  <a href=3D"https://u22471213.ct.sendgrid.net/ls/click?upn=
+=3Du001.puF9s7VNU8wxma8LxdKH1Zn-2FNVGC0pE7Y3jIHOJ3tDY5IZ39iJam1Xw-2BjDDVgUl=
+S-2FxwU7xfiD0oM1ZXtRfHP0iZTaK3pLtzkspGXCR9u72ykvCd8DlEwmH4uOPpN8M9gWTZSjrHp=
+hQFqAsWelG-2FZTQ-3D-3DQMYp_W05PRWUUHvTOOaq5rkQLGBT7K9GsU3Yk-2FyAQP-2F9MfeLN=
+-2BO1hVqpS9wcwgG7PFV-2BUquQ7g4MJ6Gy2Albz1618990ItP0l1ho-2FtvY9EQ9UjEp8-2BkK=
+lyZTp3c2C-2Bh9ClJVHWwF3gUYbddZUXczLeMMd9U-2FsBG7WVAAk9UDA4CI4T-2FGlIbp1mKEH=
+ElQlEYH8fz-2FfgT1sHp6bE7k0lyvEKOyUD-2FkEPw0tpwCI62BzkyF747Gr2gqNigZshspAviL=
+OL6ES63FWCSr3vf9-2BsOTYjotcVuktoDZwC1LC1dndl4sKFacRPBFU5nTMd4V-2F2tf34M1jCW=
+N3-2BYPjrlH7zpFmhCi79FLvBddSFmHJ6JevVLTEwyqphOhXF9RB3UU-2BX-2BZATzyB-2BM3-2=
+F-2FOQ-2F3v1PIfdy2-2F0dug-3D-3D" style=3D"background-color:#8036b7; border:=
+1px solid #333333; border-color:#333333; border-radius:20px; border-width:1=
+px; color:#ffffff; display:inline-block; font-size:14px; font-weight:bold; =
+letter-spacing:0px; line-height:normal; padding:12px 18px 12px 18px; text-a=
+lign:center; text-decoration:none; border-style:solid; width:198px;" target=
+=3D"_blank">Skontaktuj si=C4=99</a>
+                </td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      </tbody>
+    </table><table class=3D"module" role=3D"module" data-type=3D"text" bord=
+er=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"table-=
+layout: fixed;" data-muid=3D"b11f546f-858a-4a6d-8fae-e3cd675f20cf" data-mc-=
+module-version=3D"2019-10-22">
+    <tbody>
+      <tr>
+        <td style=3D"padding:18px 60px 18px 60px; line-height:22px; text-al=
+ign:inherit;" height=3D"100%" valign=3D"top" bgcolor=3D"" role=3D"module-co=
+ntent"><div><div style=3D"font-family: inherit; text-align: center"><span s=
+tyle=3D"color: #8036b7">Lub zadzwo=C5=84 do Centrum Obs=C5=82ugi Klienta, k=
+t=C3=B3re dzia=C5=82a pod numerem </span><a href=3D"tel:+48226279367"><span=
+ style=3D"color: #8036b7">+48 22 627 93 67</span></a><span style=3D"color: =
+#8036b7">.</span></div><div></div></div></td>
+      </tr>
+    </tbody>
+  </table><table class=3D"wrapper" role=3D"module" data-type=3D"image" bord=
+er=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"table-=
+layout: fixed;" data-muid=3D"02a217b8-0486-4dd1-8cd7-35c5c1be590e">
+    <tbody>
+      <tr>
+        <td style=3D"font-size:6px; line-height:10px; padding:0px 0px 0px 0=
+px;" valign=3D"top" align=3D"center">
+          <img class=3D"max-width" border=3D"0" style=3D"display:block; col=
+or:#000000; text-decoration:none; font-family:Helvetica, arial, sans-serif;=
+ font-size:16px; max-width:100% !important; width:100%; height:auto !import=
+ant;" width=3D"600" alt=3D"" data-proportionally-constrained=3D"true" data-=
+responsive=3D"true" src=3D"http://cdn.mcauto-images-production.sendgrid.net=
+/a4143b7f31ded318/45bdc3ca-0be3-4ad2-a096-9b94923ec4b3/600x55.png">
+        </td>
+      </tr>
+    </tbody>
+  </table><table class=3D"module" role=3D"module" data-type=3D"text" border=
+=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"table-la=
+yout: fixed;" data-muid=3D"14c36486-ec2a-49fe-b42b-05f50f04766d" data-mc-mo=
+dule-version=3D"2019-10-22">
+    <tbody>
+      <tr>
+        <td style=3D"padding:18px 18px 18px 18px; line-height:22px; text-al=
+ign:inherit; background-color:#ff651a;" height=3D"100%" valign=3D"top" bgco=
+lor=3D"#ff651a" role=3D"module-content"><div><div style=3D"font-family: inh=
+erit; text-align: inherit"><span style=3D"color: #ffffff">Dbaj=C4=85c o =C5=
+=9Brodowisko, ale r=C3=B3wnie=C5=BC o Pa=C5=84stwa komfort nasza firma prze=
+sy=C5=82a potwierdzenie zakup=C3=B3w drog=C4=85 elektroniczn=C4=85. Dokumen=
+t, kt=C3=B3ry otrzymali Pa=C5=84stwo od nas jest r=C3=B3wnowa=C5=BCny z pap=
+ierowym paragonem. Podstaw=C4=85 prawn=C4=85 naszych dzia=C5=82a=C5=84 jest=
+ Rozporz=C4=85dzenie Ministra Finans=C3=B3w w sprawie zwolnie=C5=84 z obowi=
+=C4=85zku prowadzenia ewidencji przy zastosowaniu kas rejestruj=C4=85cych (=
+Dz. U. 2020, poz. 2317).</span></div>
+<div style=3D"font-family: inherit; text-align: inherit"><br></div>
+<div style=3D"font-family: inherit; text-align: inherit"><span style=3D"col=
+or: #ffffff">Numer BDO: 000570200</span></div><div></div></div></td>
+      </tr>
+    </tbody>
+  </table></td>
+                                      </tr>
+                                    </table>
+                                    <!--[if mso]>
+                                  </td>
+                                </tr>
+                              </table>
+                            </center>
+                            <![endif]-->
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </center>
+    <img src=3D"https://u22471213.ct.sendgrid.net/wf/open?upn=3Du001.b8xPFZ=
+rAkIpUZcrbguK2JxIVrJyBiAydCExJEFiN9H7RtzsRZ0Gxk-2F6iCa0pK5sIHB8XA1gwCT9x4le=
+hwuEQR2KJgoJClszTfRh1mphqwiJiPfX75i-2Fzlh09xpbJuNI9EWOsC410Afl-2FqyZSF98pEP=
+kaS1o5S4X9xm0J5ot0L0zu3Z0fE8N4tYKT4fnwEUWhOZg0ae341PwkKBuKajWsvwndqiSZE-2Fp=
+CpS7E0cJqvVfDmnPTGDpvdTK3rMRmzdZ8iqwIHp3BRfaNiWeV4Lm0agq-2Bzi4OWR7Va2IPAtJ2=
+UkNcXREDwymd5XsLx6ljWOtf9HRDGCtUdVRt6uUrLWVYK4EFSiVKjIVAF6Ur-2F27lQadcDyT-2=
+Bu5enl-2BLrHz0NyGlMXrqoiCdWKgo0K9dfOINCXQ-3D-3D" alt=3D"" width=3D"1" heigh=
+t=3D"1" border=3D"0" style=3D"height:1px !important;width:1px !important;bo=
+rder-width:0 !important;margin-top:0 !important;margin-bottom:0 !important;=
+margin-right:0 !important;margin-left:0 !important;padding-top:0 !important=
+;padding-bottom:0 !important;padding-right:0 !important;padding-left:0 !imp=
+ortant;"/></body>
+  </html>
+--83a811d5d7593cf2c5a184e325fe3514ff2c7a7279475bd8d8bb8ec36b0a--

@@ -440,3 +440,62 @@ export interface Schedule {
   loanProgress: LoanProgress[]
   mortgageSummary?: MortgageSummary
 }
+
+// ─── Koszyk inflacyjny (EPIC 14) ─────────────────────────────────────────────
+
+export type BasketItemKind = 'food' | 'household' | 'pet' | 'supplement' | 'other'
+export type StoreId = 'frisco' | 'lisek'
+
+export interface BasketItem {
+  id: string
+  normalizedName: string
+  displayName: string
+  brand?: string
+  unit: 'g' | 'kg' | 'ml' | 'l' | 'szt'
+  packageSize?: number
+  kind: BasketItemKind
+  tracked: boolean
+  trackedManual?: boolean
+  aliases: string[]
+}
+
+export interface PriceObservation {
+  id: string
+  itemId: string
+  date: string
+  store: StoreId
+  unitPrice: number
+  normalizedUnitPrice?: number
+  quantity: number
+  isWeightItem: boolean
+  orderRef: string
+  source: 'email'
+}
+
+export interface BasketConfig {
+  basePeriod?: string
+  method: 'laspeyres' | 'spend_weighted'
+  trackingThreshold: number
+  excludeWeightItems: boolean
+  officialCpi?: { month: string; valuePct: number }[]
+}
+
+export const defaultBasketConfig: BasketConfig = {
+  method: 'laspeyres',
+  trackingThreshold: 3,
+  excludeWeightItems: true,
+}
+
+// Typy parsera .eml
+
+export interface ParsedLine {
+  rawName: string
+  quantity: number
+  unitPrice: number
+  lineTotal: number
+  isWeightItem: boolean
+}
+
+export type ParsedOrder =
+  | { ok: true; store: StoreId; orderRef: string; date: string; lines: ParsedLine[] }
+  | { ok: false; reason: 'unknown_vendor' | 'unknown_template' | 'no_items' | 'parse_error'; detail?: string }

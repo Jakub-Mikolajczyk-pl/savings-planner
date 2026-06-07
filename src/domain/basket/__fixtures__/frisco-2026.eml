@@ -1,0 +1,972 @@
+Return-Path: <el.4ca9347543d0541d937659ce46773da1.1.friscopl.smtp@mailing.frisco.pl>
+Delivered-To: <test@example.com>
+X-WP-SR: 6OsXROLnHvzhUUum+3FJzPJnYrU8vE1F9gu4ibOvX8VoeW87RlMfYqWRb0g8tg==
+Received: (wp-smtpd mx.tlen.pl 39011 invoked from network); 1 Jun 2026 03:49:30 +0200
+Received: from smtp2-963.emaillabs.net.pl ([185.100.231.144])
+          (envelope-sender <el.4ca9347543d0541d937659ce46773da1.1.friscopl.smtp@mailing.frisco.pl>)
+          by mx.tlen.pl (WP-SMTPD) with TLS_AES_256_GCM_SHA384 encrypted SMTP
+          for <test@example.com>; 1 Jun 2026 03:49:30 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=frisco.pl;
+	s=default; t=1780278570;
+	bh=tTLI5pBvG1QryLzSx0wQ+A+8hf0Sg2tzhde0OmlDyRA=;
+	h=From:Date:Subject:To:Feedback-ID;
+	b=Pto4ZAbzsACNtxBs5SmNXYzqaX1cvW0rYyJ7CD9Hv8wIkM6G5wertYFWkNUS8JEFP
+	 W4+EhwIjMv9kq8sRxMunftdexWUUycbaWazx9NQEvWjKgLoQp0yxGHi1diszzYlyJR
+	 RAOgN4ZskAUibOEc9ToxizMYktAFAtgLJfgRe0tyTeAaNt6obbBT3RH4UK7EsM2iW8
+	 d0rXa71GoJgD8ao7em6Z2vn0canpH+JFn3uiwH/0osl178d29WVs/Gzb4/TYrfaDP1
+	 1mL1vh7YR1FglYvnPsvvhL0TbwoW+53ESmS5YaH6D0PRtlm6OwXRoEQkjJK6D7RRvR
+	 t7MBHOmxMlHMA==
+From: Frisco <noreply@frisco.pl>
+Date: Mon, 01 Jun 2026 03:49:29 +0200
+Subject: Twoje =?utf-8?b?emFtw7N3aWVuaWUgamVzdCBqdcW8?= w drodze
+Message-Id: <BBBFFW9VETU4.167WYMB3ERFD3@frisco-commerce-hangfire-7db5468b78-grlqw>
+To: Test User <test@example.com>
+Reply-To: Frisco BOK <bok@frisco.pl>
+X-MAILTAGS: OrderInvoiced
+MIME-Version: 1.0
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Feedback-ID: :tracking.frisco.pl:1.friscopl.smtp:default
+X-Sid: noreply@frisco.pl
+X-Return-Path: <el.4ca9347543d0541d937659ce46773da1.1.friscopl.smtp@mailing.frisco.pl>
+X-WP-DKIM-Status: good (id: frisco.pl)                                                                        
+X-WP-MailID: d0dc58c43126cd1da5fdaed6386cb823
+X-WP-AV: skaner antywirusowy Poczty o2
+X-WP-SPAM: NO (PS-UW) 1U00010 [ERP0]                       
+
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1" /><meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<title>
+    
+        Twoje zamówienie jest już w drodze
+    
+</title>
+<style type="text/css">
+@media all and (max-width: 595px) {
+    /* general responsive classes */ 
+    a[x-apple-data-detectors]{color:inherit !important;text-decoration:none !important;font-size:inherit !important;font-family:inherit !important;font-weight:inherit !important;line-height:inherit !important}
+    .hide_on_mobile{display:none !important}     
+    .fullwidth{width:100% !important;height:auto !important;min-width:100% !important;float:none !important}
+    td{box-sizing:border-box}
+    .padded{box-sizing:border-box;padding-left:10px !important;padding-right:10px !important}  
+    .content{padding-top:0 !important} 
+    .content div#margin-wrapper{padding:40px 0 30px 0 !important}
+    .content div#margin-wrapper.has_progress_indicator{padding-top:8px !important;padding-bottom:15px !important}
+    
+    /* header */    
+    .logo img{width:160px !important;height:auto !important}
+
+    /* progress indicator */
+    .progress{width:230px !important}
+    .progress td{width:100px !important;padding-bottom:10px !important;font-size:10px !important}
+    .progress td img{width:40px !important;height:auto !important}
+    .spacer{height:15px !important}
+    
+    /* order/delivery details */
+    .order td{font-size:14px !important}
+    td.title{font-size:18px !important}
+    td.edit{text-align:center !important}
+    .button{display:block !important;margin:auto !important}
+    .prodimg{width:42px !important}
+    .prodimg img{width:42px !important;height:auto !important}
+    .products td{font-size:10px !important}
+    .weight{width:15px !important}
+    .weight img{width:15px !important;height:auto !important}
+    
+    /* rating */
+    .rating,.rating a{width:25px !important;height:25px !important;font-size:12px !important;line-height:25px !important;border-radius:3px}
+    td.sp{width:5px !important}
+    .ratingtbl{width:295px !important}
+    .ratingtbl .title{font-size:18px !important}
+
+    /* coupons */
+    .num{font-size:30px !important}
+    .category{font-size:12px !important}
+    .validity{font-size:10px !important}
+    .code{width:150px !important}
+    .code td{font-size:16px !important}
+    .coupon .button{width:150px !important;font-size:12px !important}
+
+    /* footer */
+    #van{position:absolute;width:100px;height:70px;right:20px;background-image:url(https://commerce.frisco.pl/images/mailer/frisco_van_new.png);background-repeat:no-repeat;background-size:110px}
+    u ~ div #van{display:none !important;visibility:hidden !important}
+    .footer{background-image:none !important;background-color:#9a0050 !important}
+    .questions{padding:25px !important;font-size:15px !important/*;text-align:center !important*/}
+    .contact a{font-size:14px !important}
+    .contact td.icon{display:none !important}    
+    .contact td.text{padding-left:7px !important;padding-right:7px !important}    
+}
+</style>
+<!--[if mso]>
+<style type="text/css">
+    .rating{background-color:#FFF}
+</style>
+<![endif]-->
+    
+</head>
+<body marginheight="0" marginwidth="0" topmargin="0" leftmargin="0" rightmargin="0" bottommargin="0" bgcolor="#FFFFFF" style="margin:0;padding:0;-webkit-text-size-adjust:none">
+<table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#FFFFFF" class="fullwidth"><tr><td>
+<table border="0" cellpadding="0" cellspacing="0" width="600" class="fullwidth" align="center" style="margin:auto">
+<tr>
+    <td class="header">
+    
+        <table border="0" cellpadding="0" cellspacing="0" width="600" class="fullwidth" bgcolor="#9a0050">
+        <tr>
+            <td class="logo"><a href="https://www.frisco.pl/?mail_event=OrderInvoiced&mail_variant=&mail_action=Logo"><img src="https://commerce.frisco.pl/images/mailer/frisco_logo_new.png" height="100" width="180" style="display:block;border:none" /></a></td>
+            <td style="padding:0 20px 0 0;text-align:right;font-family:Arial,Helvetica,sans-serif;font-size:12px"><a href="https://www.frisco.pl/view-email/20260601-3a21930c019048f592bdaa01b1668038" style="color:#FFF;text-decoration:none">Nie&nbsp;widzisz&nbsp;e-maila?&nbsp;»</a></td>
+        </tr>
+        </table>
+    
+    </td>
+</tr>
+<tr>
+    <td class="content" style="padding:40px 0 30px 0">
+    <!-- END HEADER -->   
+
+
+
+<div class="padded has_progress_indicator" id="margin-wrapper">
+
+    <!-- START PROGRESS INDICATOR STEP TWO ACTIVE -->
+    <table border="0" cellpadding="0" cellspacing="0" width="420" align="center" style="margin:auto" class="progress">
+        <tr>
+            <td height="90" width="140" style="text-align:center;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#9e9e9e;padding:0 0 15px 0;border-bottom:2px solid #eee"><img src="https://commerce.frisco.pl/images/mailer/step1_off@2x.png" height="50" width="50" style="display:block;border:none;margin:auto" align="center" /><br>Potwierdzenie<br>zamówienia</td>
+            <td height="90" width="140" style="text-align:center;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#A30050;padding:0 0 15px 0;border-bottom:2px solid #A30050"><img src="https://commerce.frisco.pl/images/mailer/step2_on@2x.png" height="50" width="50" style="display:block;border:none;margin:auto" align="center" /><br>Zamówienie<br>w drodze</td>
+            <td height="90" width="140" style="text-align:center;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#9e9e9e;padding:0 0 15px 0;border-bottom:2px solid #eee"><img src="https://commerce.frisco.pl/images/mailer/step3_off@2x.png" height="50" width="50" style="display:block;border:none;margin:auto" align="center"/><br>Ankieta<br>po zakupie</td>
+        </tr>
+        <tr>
+            <td colspan="3" height="35">&nbsp;</td>
+        </tr>
+    </table>
+    <!-- END PROGRESS INDICATOR STEP TWO ACTIVE -->
+
+    <!-- START DELIVERY CONFIRMATION -->
+    <table border="0" cellpadding="0" cellspacing="0" width="512" class="fullwidth" align="center" style="margin:auto">
+        
+        <tr>
+            <td colspan="2" style="font-family:Arial,Helvetica,sans-serif;font-size:24px;color:#424242;font-weight:bold;text-align:center;padding-bottom:30px" class="title">
+                Skompletowaliśmy Twoje zamówienie
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#424242;text-align:center">
+                Twoje zamówienie niebawem zostanie dostarczone<br>na&nbsp;wybrany przez Ciebie adres i&nbsp;godzinę.
+            </td>
+        </tr>
+        
+        <tr>
+            <td height="25">&nbsp;</td>
+        </tr>
+    </table>
+    <!-- END DELIVERY CONFIRMATION -->
+
+    
+
+    <!-- START ORDER INFO -->
+    <table border="0" cellpadding="0" cellspacing="0" width="512" class="fullwidth order" align="center" style="margin:auto">
+        <tr>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#424242;padding:7px 2px" valign="top">Numer zamówienia:</td>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#464646;padding:7px 2px;text-align:right" valign="top">FRISCO-2026-FIX</td>
+        </tr>
+        
+        <tr>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#424242;font-weight:bold;padding:7px 2px" valign="top">
+                
+                    Termin dostawy:
+                
+            </td>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#464646;font-weight:bold;padding:7px 2px;text-align:right" valign="top">
+                
+                    poniedziałek, 01.06.2026, 11:30-12:30
+                
+            </td>
+        </tr>
+        
+        
+        
+        <tr>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#424242;padding:7px 2px" valign="top">
+                
+                    Adres dostawy:
+                
+            </td>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#464646;padding:7px 2px;text-align:right" valign="top">ul. Testowa 1, 00-001 Warszawa </td>
+        </tr>
+        <tr>
+            <td colspan="2" height="20">&nbsp;</td>
+        </tr>
+    </table>
+
+    <table border="0" cellpadding="0" cellspacing="0" width="512" class="fullwidth order" align="center" style="margin:auto">
+        <tr>
+            <td colspan="2" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#424242;padding:7px 2px;font-weight:bold">ROZLICZENIE ZAMÓWIENIA: </td>
+        </tr>
+
+        
+        <tr>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#424242;padding:7px 2px" valign="top">Friscoiny:</td>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#464646;padding:7px 2px;text-align:right" valign="top">+ 290 pkt</td>
+        </tr>
+        <tr>
+            <td colspan="2" height="20">&nbsp;</td>
+        </tr>
+        
+
+        
+        <tr>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#424242;padding:7px 2px" valign="top">Sprzedawca:</td>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#A30050;font-weight:bold;padding:7px 2px;text-align:right" valign="top">Frisco S.A.</td>
+        </tr>
+        <tr>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#424242;padding:7px 2px" valign="top">Wartość zamówienia:</td>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#464646;padding:7px 2px;text-align:right" valign="top">570,59 zł</td>
+        </tr>
+        
+        <tr>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#424242;padding:7px 2px" valign="top">Kupony rabatowe:</td>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#464646;padding:7px 2px;text-align:right" valign="top">
+                - 50,00 zł
+            </td>
+        </tr>
+        
+        
+        <tr>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#424242;padding:7px 2px" valign="top">Koszt spakowania:</td>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#464646;padding:7px 2px;text-align:right" valign="top">5,60 zł</td>
+        </tr>
+        
+        
+        
+        <tr>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#424242;padding:7px 2px" valign="top">Kaucja:</td>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#464646;padding:7px 2px;text-align:right" valign="top">2,00 zł</td>
+        </tr>
+        
+        
+        
+        <tr>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#424242;padding:7px 2px" valign="top">Rozliczenie salda:</td>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#464646;padding:7px 2px;text-align:right" valign="top">
+                + 0,56 zł
+            </td>
+        </tr>
+        
+        
+        
+        <tr>
+            <td colspan="2" height="20">&nbsp;</td>
+        </tr>
+        
+
+        <tr>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#424242;font-weight:bold;padding:7px 2px" valign="top">Kwota do zapłaty:</td>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#464646;font-weight:bold;padding:7px 2px;text-align:right" valign="top">528,75 zł</td>
+        </tr>
+        <tr>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#424242;padding:7px 2px" valign="top">Sposób płatności:</td>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#464646;padding:7px 2px;text-align:right" valign="top">Płatność online</td>
+        </tr>
+        <tr>
+            <td colspan="2" height="20">&nbsp;</td>
+        </tr>
+    </table>
+
+    
+    <table border="0" cellpadding="0" cellspacing="0" width="512" class="fullwidth order" align="center" style="margin:auto">
+        <tr>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;color:#424242;padding:7px 2px" valign="top" colspan="2">BILANS SALDA:</td>
+        </tr>
+
+        
+        <tr>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#424242;padding:7px 2px" valign="top">Sprzedawca:</td>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#A30050;font-weight:bold;padding:7px 2px;text-align:right" valign="top">Frisco S.A.</td>
+        </tr>
+        <tr>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#424242;padding:7px 2px" valign="top">Saldo poprzednie:</td>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#464646;padding:7px 2px;text-align:right" valign="top">
+                + 0,00 zł
+            </td>
+        </tr>
+        <tr>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#424242;padding:7px 2px" valign="top">Kwota operacji:</td>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#464646;padding:7px 2px;text-align:right" valign="top">
+                - 1,54 zł
+            </td>
+        </tr>
+        <tr>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;color:#424242;padding:7px 2px" valign="top">Saldo bieżące:</td>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#464646;padding:7px 2px;text-align:right" valign="top">
+                - 1,54 zł
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" height="20">&nbsp;</td>
+        </tr>
+        
+
+        
+    </table>
+    
+    <!-- END ORDER INFO -->
+
+    
+    <table border="0" cellpadding="0" cellspacing="0" width="512" class="fullwidth" align="center" style="margin:auto">
+        <tr>
+            <td height="70" style="border-left:2px solid #A30050;padding:0 20px"><img src="https://commerce.frisco.pl/images/mailer/uwaga@2x.png" height="40" width="40" style="display:block;border:none" /></td>
+            <td style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#424242"><strong>Uwaga. W zamówieniu znajdują się produkty na wagę.</strong><br>W związku z tym ich cena mogła nieznacznie ulec zmianie.</td>
+        </tr>
+        <tr>
+            <td colspan="2" height="25">&nbsp;</td>
+        </tr>
+    </table>
+    
+
+    
+    
+    <table border="0" cellpadding="0" cellspacing="0" width="512" class="fullwidth" align="center" style="margin:auto">
+        <tr>
+            <td style="text-align:center;font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#424242">
+                Sprzedawcą poniższych produktów jest
+                <strong style="font-size:16px;color:#A30050;font-weight:bold;">Frisco S.A.</strong>
+            </td>
+        </tr>
+    </table>
+    <!-- START PRODUCT TABLE HEADER -->
+    <table border="0" cellpadding="0" cellspacing="0" width="580" class="fullwidth products" align="center" style="margin:auto">
+        <tr>
+            <td colspan="2" style="font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;color:#9e9e9e;border-bottom:2px solid #eee;padding:10px 0">PRODUKT</td>
+            <td style="font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;color:#9e9e9e;border-bottom:2px solid #eee;padding:10px 0;text-align:center">ILOŚĆ</td>
+            <td colspan="2" style="font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;color:#9e9e9e;border-bottom:2px solid #eee;padding:10px 0;text-align:center">CENA</td>
+            <td style="font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;color:#9e9e9e;border-bottom:2px solid #eee;padding:10px 0;text-align:center">RAZEM</td>
+        </tr>
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1742995034/a0d984e3-4868-41fa-b822-b02036be5f99.jpg" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">SOKOŁÓW Mięso mielone wołowe 400g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">2</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">14,59 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">29,18 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1739274014/1b5d0d22-3513-4113-b3c7-d968cc8e3647.jpg" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">SOKOŁÓW Szynka z piersi indyka -plastry 120g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">2</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">7,56 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">15,12 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1593730016/101627_5.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">PIĄTNICA Serek wiejski bez laktozy 200g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">4</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">3,82 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">15,28 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1696321115/56af7fe5-ce13-42ce-83cc-cf530a184338.jpg" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">OWOLOVO Mus jabłkowo-jagodowy 200g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">2,73 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">2,73 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1700610371/144810.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">OWOLOVO Mus jabłkowo-malinowy 200g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">2,73 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">2,73 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1633428553/013b47b4-a922-4ad5-ac78-38ac301ee697.jpg" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">FRISCO FRESH Ogórki krótkie 2-4 szt. 600g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">3,57 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"><img src="https://commerce.frisco.pl/images/mailer/weight@2x.png" height="15" width="20" /></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">3,57 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1499864908/be/4030.jpg" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">FRISCO FRESH Marchew luz 750g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">2,52 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"><img src="https://commerce.frisco.pl/images/mailer/weight@2x.png" height="15" width="20" /></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">2,52 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1749724479/7e3b1268-9321-488a-9331-718eae65cd87.jpg" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">DAN CAKE Pinsa 230g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">13,68 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">13,68 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1738934555/95592235-91de-441c-9258-44af904f5e7f.jpg" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">FRISCO FRESH Filet z piersi z kurczaka (400g-600g) 500g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">2</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">12,67 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"><img src="https://commerce.frisco.pl/images/mailer/weight@2x.png" height="15" width="20" /></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">25,34 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1719240635/8ac1a689-fd4a-4be5-bd42-7dda0436951d.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">GALBANI Mortadella 100g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">2</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">11,03 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">22,06 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1762941189/5bfd8e86-413d-45ad-ac34-15ae88181b4a.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">SUEMPOL Łosoś Atlantycki wędzony na zimno, plastrowany 100g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">2</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">15,50 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">31,00 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1747176649/120027.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">HORTEX Borówka 280g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">15,23 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">15,23 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1766101655/144384.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">PROSTE HISTORIE Kartofle ze skórką grubo ciosane bezglutenowe 600g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">8,20 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">8,20 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1772024988/6181e956-889d-4316-8967-ed57b13258b6.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">MAKŁOWICZ I SYNOWIE Lody wanilia z palonym masłem 460ml</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">23,72 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">23,72 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1764805585/154028.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">COCA-COLA ZERO Napój gazowany 1,5l</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">2</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">8,20 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">16,40 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1764200844/153882.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">FANTA Zero Napój gazowany o smaku pomarańczowym 1,5l</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">2</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">8,57 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">17,14 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1778712422/148718.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">REGINA Chamomile Nawilżany papier toaletowy z ekstraktem z rumianku i aloesu 42 szt. 1 szt.</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">6,83 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">6,83 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1778712406/15101.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">REGINA Blitz Ręcznik papierowy 1 szt.</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">12,77 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">12,77 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1773877610/95955.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">ZOTT Natur Jogurt naturalny bez laktozy 180g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">4</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">2,45 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">9,80 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1758581276/106963.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">PIĄTNICA Skyr Jogurt typu islandzkiego naturalny 150g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">5</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">3,37 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">16,85 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1612914426/104151_5.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">MLEKOVITA Bez laktozy Śmietana 18% 200g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">3,18 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">3,18 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1738021627/4796.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">GALBANI Ser Mozzarella (kulka) 125g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">4,64 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">4,64 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1759830149/90a54ba4-523c-44df-93f4-8301a4b8838d.jpg" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">SPOŁEM KIELCE Majonez kielecki 500ml</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">10,58 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">10,58 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1695941274/144639.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">SANTE GO ON! Granola proteinowa z brownie i wiśniami 300g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">9,12 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">9,12 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1695941271/144638.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">SANTE GO ON! Granola proteinowa z orzechami laskowymi, migdałami i czekoladą 300g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">9,12 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">9,12 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1740440752/150570_8.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">VELVET White Comfort Papier toaletowy 10 rolek 1,156kg</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">14,41 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">14,41 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1696320905/e25b1e3f-bc65-428e-b5f3-98ad2937d0b9.jpg" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">OWOLOVO Mus jabłkowo-brzoskwiniowy 200g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">2,73 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">2,73 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1741650404/134783.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">DORITOS Chipsy kukurydziane o smaku słodkiego chilli 100g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">6,65 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">6,65 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1699487573/98193.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">HORTEX Jagody leśne mrożone 280g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">15,05 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">15,05 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1715161719/5f04fdd2-3cec-4017-96fd-f6d3b3334c90.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">ONEDAYMORE Granola potrójnie czekoladowa 500g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">15,14 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">15,14 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1499864971/be/4091.jpg" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">FRISCO FRESH Kalarepa 200g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">3,64 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">3,64 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1750718858/150329_596.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">HOUSE OF ASIA Pasta Bulgogi (średnio ostra) 50g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">2</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">7,11 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">14,22 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1747176724/98189.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">HORTEX Maliny mrożone 280g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">18,24 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">18,24 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1774257470/d784d136-773a-4119-9dee-8a4b49d09328.jpg" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">BERRY TRADE Mix malina i borówka amerykańska 250g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">22,80 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">22,80 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1727943808/8f554ef1-8540-4f87-98d2-52a5ed31e3b0.jpg" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">KAMIS Czosnek granulowany mielony w całości 16g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">2,36 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">2,36 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1773186401/80187.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">PRYMAT Papryka słodka mielona XL 50g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">3,18 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">3,18 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1758754042/149333.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">FROSCH Tabletki do zmywarki limonkowe 70 szt. 1 szt.</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">45,61 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">45,61 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1499864205/be/3409.jpg" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">FRISCO FRESH Cebula 6-12 szt. 1kg</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">3,23 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"><img src="https://commerce.frisco.pl/images/mailer/weight@2x.png" height="15" width="20" /></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">3,23 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1499864966/be/4087.jpg" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">FRISCO FRESH Cebula czerwona 3-5 szt. 650g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">3,33 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"><img src="https://commerce.frisco.pl/images/mailer/weight@2x.png" height="15" width="20" /></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">3,33 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1532436220/be/3429.jpg" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">FRISCO FRESH Pomidory 3-4 szt. tacka 600g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">7,63 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"><img src="https://commerce.frisco.pl/images/mailer/weight@2x.png" height="15" width="20" /></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">7,63 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1499864304/be/3495.jpg" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">FRISCO FRESH Sałata masłowa 180g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">4,64 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">4,64 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1750891670/123857.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">PRYMAT Mieszanka do ogórków kwaszonych i małosolnych 40g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">2,45 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">2,45 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1681771763/103821.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">MUTTI Passata (przecier pomidorowy) 700g</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">1</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">10,03 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">10,03 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <!-- START PRODUCT ROW -->
+        <tr>
+            <td width="42" style="border-bottom:2px solid #eee" class="prodimg"><img src="https://res.cloudinary.com/dj484tw6k/f_auto,q_auto,c_pad,b_white,w_42,h_42/v1756475270/18422025-a891-4483-84dc-5df7bd7dcc35.png" height="42" width="42" style="display:block;border:none"></td>
+            <td style="padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">FRISCO Worek 60l z tasiemką 1 szt.</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee">3</td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">0,00 zł</td>
+            <td width="20" style="border-bottom:2px solid #eee" class="weight"></td>
+            <td style="text-align:center;padding:0 2px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#424242;border-bottom:2px solid #eee;white-space:nowrap">0,00 zł</td>
+        </tr>
+        <!-- END PRODUCT ROW -->
+        
+        <tr>
+            <td colspan="6" height="20">&nbsp;</td>
+        </tr>
+    </table>
+    <!-- END PRODUCT TABLE FOOTER -->
+    
+    
+
+    
+    <table border="0" cellpadding="0" cellspacing="0" width="512" class="fullwidth order" align="center" style="margin:auto">
+        <tr>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;color:#424242;padding:7px 2px" valign="top" colspan="2">OSZCZĘDNOŚCI W TYM ZAMÓWIENIU:</td>
+        </tr>
+        <tr>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#424242;padding:7px 2px" valign="top">Kupony rabatowe:</td>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#464646;padding:7px 2px;text-align:right" valign="top">
+                - 50,00 zł
+            </td>
+        </tr>
+        <tr>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#424242;padding:7px 2px" valign="top">Naliczone promocje:</td>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#464646;padding:7px 2px;text-align:right" valign="top">
+                - 24,60 zł
+            </td>
+        </tr>
+        <tr>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#424242;padding:7px 2px" valign="top">Dostawa:</td>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#464646;padding:7px 2px;text-align:right" valign="top">
+                - 14,00 zł
+            </td>
+        </tr>
+        <tr>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;color:#424242;padding:7px 2px" valign="top">Suma oszczędności:</td>
+            <td width="50%" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;color:#32A63B;padding:7px 2px;text-align:right" valign="top">
+                88,60 zł
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" height="20">&nbsp;</td>
+        </tr>
+    </table>
+    
+
+</div>
+
+
+
+    <!-- START FOOTER -->   
+    <div id="van"></div>
+    </td>
+</tr>
+<tr>
+    <td class="footer" background="https://commerce.frisco.pl/images/mailer/footer_new2.png" width="600" valign="top" style="background-repeat:no-repeat;background-position:right top" bgcolor="#9a0050">
+    <!--[if gte mso 9]>
+    <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:600px">
+    <v:fill type="tile" src="https://commerce.frisco.pl/images/mailer/footer_new2.png" color="#FFFFFF" />
+    <v:textbox style="mso-fit-shape-to-text:true" inset="0,0,0,0">
+    <![endif]-->
+    <div>
+         
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" class="fullwidth">
+        <tr>
+            <td class="questions" style="padding:60px 0 40px 25px;color:#FFF;font-family:Arial,Helvetica,sans-serif;font-size:20px;font-weight:bold">
+                Masz pytania?<br>Zadzwoń lub napisz do nas!
+            </td>
+        </tr>
+        <tr>
+            <td class="padded">
+                
+                <table border="0" cellpadding="0" cellspacing="0" align="center" style="margin:auto" class="contact">
+                <tr>
+                    <td>
+                               
+                    <!--[if mso]>
+                    <table border="0" cellpadding="0" cellspacing="0"><tr><td valign="top">
+                    <![endif]-->    
+
+                    <table border="0" cellpadding="0" cellspacing="0" align="left" class="left">
+                    <tr>
+                        <td class="icon" style="padding-left:0;padding-right:10px"><img src="https://commerce.frisco.pl/images/mailer/tel@2x.png" height="26" width="25" style="display:block;border:none" /></td>
+                        <td class="text" style="padding-right:20px;border-right:1px solid #FFF"><a href="tel:223315000" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#FFF;text-decoration:none">22&nbsp;331&nbsp;5000</a></td>
+                    </tr>
+                    </table>
+
+                    <!--[if mso]>
+                    </td><td valign="top">
+                    <![endif]-->
+
+                    <table border="0" cellpadding="0" cellspacing="0" align="left" class="mid">
+                    <tr>
+                        <td class="icon" style="padding-left:20px;padding-right:10px"><img src="https://commerce.frisco.pl/images/mailer/mail@2x.png" height="26" width="35" style="display:block;border:none" /></td>
+                        <td class="text" style="padding-right:20px;border-right:1px solid #FFF"><a href="mailto:bok@frisco.pl" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#FFF;text-decoration:none">bok@frisco.pl</a></td>
+                    </tr>
+                    </table>
+
+                    <!--[if mso]>
+                    </td><td valign="top">
+                    <![endif]-->
+
+                    <table border="0" cellpadding="0" cellspacing="0" align="left" class="right">
+                    <tr>
+                        <td class="icon" style="padding-left:20px;padding-right:10px"><img src="https://commerce.frisco.pl/images/mailer/like@2x.png" height="26" width="31" style="display:block;border:none" /></td>
+                        <td class="text"><a href="https://www.facebook.com/FriscoPL/" style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#FFF;text-decoration:none">Polub&nbsp;nas!</a></td>
+                    </tr>
+                    </table>       
+
+                    <!--[if mso]>
+                    </td></tr></table>
+                    <![endif]-->
+
+                    </td>
+                </tr>
+                </table>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                 
+                <table border="0" cellpadding="0" cellspacing="0" width="100%" class="fullwidth">
+                <tr>
+                    <td colspan="3" height="25"></td>
+                </tr>
+                </table>               
+                
+            </td>
+        </tr>
+        </table>
+        
+    </div>
+    <!--[if gte mso 9]>
+    </v:textbox>
+    </v:rect>
+    <![endif]-->
+    </td>
+</tr>
+<tr>
+    <td>
+
+
+
+    </td>
+</tr>
+</table>
+</td></tr></table>
+</body></html>
