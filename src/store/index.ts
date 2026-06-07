@@ -189,6 +189,7 @@ interface AppState extends DataState, SyncState {
   setItemTracked: (id: string, tracked: boolean | null) => void
   mergeBasketItems: (targetId: string, sourceId: string) => void
   removeBasketItem: (id: string) => void
+  updateBasketItem: (id: string, patch: Partial<Pick<BasketItem, 'displayName' | 'unit' | 'packageSize' | 'kind'>>) => void
 
   // Derived (computed on every call)
   getSchedule: () => Schedule
@@ -1385,6 +1386,14 @@ export const useStore = create<AppState>()(
           set(s => ({
             basketItems: s.basketItems.filter(i => i.id !== id),
             priceObservations: s.priceObservations.filter(o => o.itemId !== id),
+          }))
+        },
+
+        updateBasketItem: (id, patch) => {
+          set(s => ({
+            basketItems: s.basketItems.map(item =>
+              item.id === id ? { ...item, ...patch } : item,
+            ),
           }))
         },
 

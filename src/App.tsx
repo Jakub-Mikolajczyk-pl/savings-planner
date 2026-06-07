@@ -13,6 +13,7 @@ import {
   ReceiptText,
   Settings,
   ShieldCheck,
+  ShoppingBasket,
   Tags,
   TrendingUp,
   WalletCards,
@@ -39,6 +40,7 @@ import { SecurityBufferFocus } from './components/plan/SecurityBufferFocus'
 import { PayPeriodsSection } from './components/payperiods/PayPeriodsSection'
 import { ScheduleTable } from './components/schedule/ScheduleTable'
 import { SubscriptionList } from './components/subscriptions/SubscriptionList'
+import { BasketPage } from './components/basket/BasketPage'
 import { AdvancedSettings } from './components/ui/AdvancedSettings'
 import { PageHeader, SectionCard, StatCard, surface } from './components/ui/Layout'
 import { allSnapshotMonths, balanceAsOf, BUCKET_LABELS, totalAssetsAsOf } from './domain/accounts'
@@ -49,7 +51,7 @@ import type { Account, AccountBucket, AccountSnapshot } from './domain/types'
 import { BACKEND_MODE, IS_API_MODE } from './config'
 import { useStore } from './store'
 
-type AppTab = 'overview' | 'assets' | 'plan' | 'transactions' | 'settings'
+type AppTab = 'overview' | 'assets' | 'plan' | 'transactions' | 'settings' | 'basket'
 type AppIcon = typeof LayoutDashboard
 
 const TABS: Array<{ id: AppTab; label: string; icon: AppIcon }> = [
@@ -57,6 +59,7 @@ const TABS: Array<{ id: AppTab; label: string; icon: AppIcon }> = [
   { id: 'assets', label: 'Majątek', icon: WalletCards },
   { id: 'plan', label: 'Plan', icon: BarChart3 },
   { id: 'transactions', label: 'Transakcje', icon: Tags },
+  { id: 'basket', label: 'Koszyk', icon: ShoppingBasket },
   { id: 'settings', label: 'Ustawienia', icon: Settings },
 ]
 
@@ -65,6 +68,7 @@ const TAB_HASH: Record<AppTab, string> = {
   assets: '#/majatek',
   plan: '#/plan',
   transactions: '#/transakcje',
+  basket: '#/koszyk',
   settings: '#/ustawienia',
 }
 
@@ -74,6 +78,7 @@ const HASH_TAB: Record<string, AppTab> = {
   '#/majatek': 'assets',
   '#/plan': 'plan',
   '#/transakcje': 'transactions',
+  '#/koszyk': 'basket',
   '#/ustawienia': 'settings',
 }
 
@@ -184,6 +189,7 @@ export default function App() {
             {activeTab === 'assets' && <AssetsPage />}
             {activeTab === 'plan' && <PlanPage />}
             {activeTab === 'transactions' && <TransactionsPage />}
+            {activeTab === 'basket' && <BasketPage />}
             {activeTab === 'settings' && <SettingsPage />}
           </main>
 
