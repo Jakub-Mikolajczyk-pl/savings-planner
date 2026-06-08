@@ -81,6 +81,10 @@ jobs:
           TG_CHAT:  ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           set -euo pipefail
+          if [ -z "${TG_TOKEN}" ] || [ -z "${TG_CHAT}" ]; then
+            echo "ERROR: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID secret is empty — check secret scope (repo or user level)" >&2
+            exit 1
+          fi
           # Derive epic slug from the commit subject, e.g. "epic-14-koszyk-inflacyjny"
           SLUG=$(git log -1 --pretty=%s | grep -oE 'epic-[0-9]+[a-z0-9-]*' | head -n1 || true)
           FILE=""
@@ -95,7 +99,14 @@ jobs:
             MSG=$(printf '⚠️ <b>%s</b> deployed on savings.lan — NO human-verify checklist found (%s)' \
                   "${SLUG:-app}" "${FILE:-no matching handover}")
           fi
-          curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+          RESPONSE=$(curl -s -w '\n%{http_code}' -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
             -d chat_id="${TG_CHAT}" \
             -d parse_mode="HTML" \
-            --data-urlencode text="$MSG" >/dev/null
+            --data-urlencode text="$MSG")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n-1)
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "ERROR: Telegram API returned HTTP ${HTTP_CODE}: ${BODY}" >&2
+            exit 1
+          fi
+          echo "Telegram notified (HTTP 200)"
