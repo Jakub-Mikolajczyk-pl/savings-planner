@@ -1,0 +1,4 @@
+# Shell scripts and git hooks must stay LF so they run on the Linux CI runner
+# and as git hooks, even when cloned on Windows (core.autocrlf=true).
+*.sh text eol=lf
+.githooks/* text eol=lf

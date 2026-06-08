@@ -102,6 +102,7 @@ Regenerate the dataset any time with `node scripts/make-demo-data.mjs`.
 git clone https://github.com/Jakub-Mikolajczyk-pl/savings-planner.git
 cd savings-planner
 npm install
+bash scripts/bootstrap.sh   # activate version-controlled git hooks (once per clone)
 npm run dev
 ```
 

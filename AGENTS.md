@@ -28,6 +28,35 @@ After a deliverable accepted by Jakub:
 4. Move/update the Todoist card in AI Workbench if the connector is available; otherwise tell Jakub exactly what to move.
 5. Commit memory changes in `E:/repo/brain-memory`.
 
+## HUMAN-VERIFY block — mandatory in every handover
+
+Every file matching `docs/planning/EPIC-*.md` **MUST** contain the following
+marker block, placed at the end of the file.  The pre-commit hook in
+`.githooks/pre-commit` rejects commits that add/modify an EPIC handover without
+the block.
+
+**Exact markers (do not alter the comment text):**
+
+```markdown
+<!-- HUMAN-VERIFY:START -->
+## Human verification (on savings.lan)
+
+- [ ] <behavioral check on the live app>
+<!-- HUMAN-VERIFY:END -->
+```
+
+Checklist items must be behavioral — verifiable by using `savings.lan` — not
+code-level (no "tests green", "lint passes"). See `CLAUDE.md` for the full rule
+and a worked example.
+
+## Git hooks bootstrap (run once per clone)
+
+```bash
+bash scripts/bootstrap.sh   # sets core.hooksPath .githooks
+```
+
+Without this, the pre-commit gate is silently inactive.
+
 ## Project Notes
 
 - Main app repo: `E:/repo/savings-planner`
