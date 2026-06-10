@@ -14,7 +14,7 @@ import type {
   UpcomingExpense,
 } from './types'
 import { addMonths, formatYearMonth, monthDiff, dateToYearMonth } from './formatting'
-import { ikzeMonthlyContributionCost } from './ikze'
+import { ikzeMonthlyContributionCost, calculateProjectedIkzeRefund } from './ikze'
 import { buildMortgageSchedule } from './mortgage'
 
 interface GoalState {
@@ -203,14 +203,25 @@ export function buildSchedule(
       ? mortgageEntry.payment + mortgageEntry.overpayment
       : 0
 
+    // Calculate expected IKZE Tax Refund in May of the following year
+    let ikzeTaxRefund = 0
+    if (yearMonth.endsWith('-05')) {
+      const [currentYear] = yearMonth.split('-').map(Number)
+      const taxYear = currentYear - 1
+      const matchingPlans = settings.ikzePlans?.filter(p => p.year === taxYear) ?? []
+      for (const plan of matchingPlans) {
+        ikzeTaxRefund += calculateProjectedIkzeRefund(plan, settings.includeIkzeContributionsInCashflow ?? false)
+      }
+    }
+
     // Savings allocation uses what's left after loan payments
-    const savingsPool = grossFreeCash - totalLoanPayment - mortgagePaymentTotal
+    const savingsPool = grossFreeCash - totalLoanPayment - mortgagePaymentTotal + ikzeTaxRefund
     const bonusPool = Math.max(0, whatIfDelta)
     const manualAlloc = override.perGoalAllocation ?? {}
     const goalAllocations = allocateMonth(savingsPool, sortedGoals, states, yearMonth, manualAlloc, bonusPool)
 
     // freeCash = what's actually left for savings after expenses AND loan payments
-    const freeCash = income - expensesTotal - totalLoanPayment - mortgagePaymentTotal
+    const freeCash = income + ikzeTaxRefund - expensesTotal - totalLoanPayment - mortgagePaymentTotal
     rows.push({
       yearMonth,
       label: formatYearMonth(yearMonth),
@@ -221,6 +232,7 @@ export function buildSchedule(
       loanPaymentsTotal: totalLoanPayment,
       mortgagePaymentTotal,
       ikzeContributionTotal,
+      ikzeTaxRefund,
       freeCash,
       goalAllocations,
       loanEntries,

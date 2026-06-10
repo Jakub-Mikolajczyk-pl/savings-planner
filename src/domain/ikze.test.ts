@@ -5,6 +5,7 @@ import {
   calculateIkzeEntry,
   ikzeMonthlyContributionCost,
   payoutsLeftToYearEnd,
+  calculateProjectedIkzeRefund,
 } from './ikze'
 import type { IkzePlanEntry } from './types'
 
@@ -95,8 +96,8 @@ describe('IKZE planner', () => {
     const defaults = buildDefaultIkzePlans('2026-06')
 
     expect(defaults).toMatchObject([
-      { id: 'ikze-jakub-2026', ownerName: 'Jakub', role: 'entrepreneur', year: 2026, annualLimit: 0, contributedAmount: 0, payoutsLeft: 7 },
-      { id: 'ikze-zona-2026', ownerName: 'Zona', role: 'employee', year: 2026, annualLimit: 0, contributedAmount: 0, payoutsLeft: 7 },
+      { id: 'ikze-jakub-2026', ownerName: 'Jakub', role: 'entrepreneur', year: 2026, annualLimit: 16572.6, contributedAmount: 0, payoutsLeft: 7, pitRate: 0.32 },
+      { id: 'ikze-zona-2026', ownerName: 'Zona', role: 'employee', year: 2026, annualLimit: 11048.4, contributedAmount: 0, payoutsLeft: 7, pitRate: 0.12 },
     ])
   })
 
@@ -108,5 +109,32 @@ describe('IKZE planner', () => {
 
     expect(ikzeMonthlyContributionCost({ ikzePlans: entries, includeIkzeContributionsInCashflow: false })).toBe(0)
     expect(ikzeMonthlyContributionCost({ ikzePlans: entries, includeIkzeContributionsInCashflow: true })).toBe(500)
+  })
+
+  it('calculates projected tax refund correctly', () => {
+    const plan: IkzePlanEntry = {
+      id: 'test-ikze',
+      year: 2026,
+      ownerName: 'Test',
+      role: 'employee',
+      annualLimit: 11048.40,
+      contributedAmount: 1000,
+      payoutsLeft: 7,
+      pitRate: 0.12,
+    }
+
+    // With includeInCashflow = true:
+    // perPayout = ceilToGrosze((11048.40 - 1000) / 7) = 1435.49
+    // projected = 1000 + 7 * 1435.49 = 11048.43
+    // capped at 11048.40 * 0.12 = 1325.808 -> rounded to 1326
+    expect(calculateProjectedIkzeRefund(plan, true)).toBe(1326)
+
+    // With includeInCashflow = false:
+    // projected = 1000
+    // 1000 * 0.12 = 120
+    expect(calculateProjectedIkzeRefund(plan, false)).toBe(120)
+
+    // Returns 0 if annual limit is 0
+    expect(calculateProjectedIkzeRefund({ ...plan, annualLimit: 0 }, true)).toBe(0)
   })
 })

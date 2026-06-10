@@ -124,4 +124,36 @@ describe('buildSchedule — basic allocation', () => {
     expect(rows[0].freeCash).toBe(3500)
     expect(rows[0].goalAllocations[0].allocated).toBe(3500)
   })
+
+  it('schedules and applies IKZE tax refund in May of the next year', () => {
+    const goals: Goal[] = [makeGoal({ id: 'g1', name: 'Poduszka', targetAmount: 20000, priority: 1 })]
+    const settingsWithIkze: Settings = {
+      ...baseSettings,
+      startMonth: '2026-06',
+      horizonMonths: 15,
+      ikzePlans: [
+        {
+          id: 'jakub',
+          year: 2026,
+          ownerName: 'Jakub',
+          role: 'entrepreneur',
+          annualLimit: 10000,
+          contributedAmount: 4000,
+          payoutsLeft: 6,
+          pitRate: 0.32,
+        },
+      ],
+      includeIkzeContributionsInCashflow: true,
+    }
+
+    const { rows } = buildSchedule(settingsWithIkze, goals, noLoans, {})
+
+    const may2027Row = rows.find(r => r.yearMonth === '2027-05')!
+    expect(may2027Row.ikzeTaxRefund).toBe(3200)
+    expect(may2027Row.freeCash).toBe(6200) // 10000 (income) - 6000 (expenses) - 1000 (IKZE contribution) + 3200 (refund)
+
+    const june2026Row = rows.find(r => r.yearMonth === '2026-06')!
+    expect(june2026Row.ikzeTaxRefund).toBe(0)
+    expect(june2026Row.freeCash).toBe(3000) // 10000 - 6000 - 1000
+  })
 })

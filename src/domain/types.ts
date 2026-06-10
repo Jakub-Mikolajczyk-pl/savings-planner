@@ -370,6 +370,7 @@ export interface IkzePlanEntry {
   annualLimit: number
   contributedAmount: number
   payoutsLeft: number
+  pitRate?: number
 }
 
 export interface Settings {
@@ -405,6 +406,7 @@ export interface MonthRow {
   loanPaymentsTotal: number
   mortgagePaymentTotal: number
   ikzeContributionTotal: number
+  ikzeTaxRefund?: number
   freeCash: number
   goalAllocations: GoalAllocation[]
   loanEntries: LoanMonthEntry[]

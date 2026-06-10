@@ -120,6 +120,11 @@ export function ScheduleTable() {
                     value={row.income}
                     onCommit={v => setOverride(row.yearMonth, { income: v })}
                   />
+                  {(row.ikzeTaxRefund !== undefined && row.ikzeTaxRefund > 0) && (
+                    <div className="mt-1 text-[10px] leading-4 text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                      + zwrot IKZE {formatPLN(row.ikzeTaxRefund)}
+                    </div>
+                  )}
                 </td>
 
                 {/* Expenses */}

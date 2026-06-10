@@ -1,4 +1,4 @@
-import type { IkzePlanEntry, IkzePlanStatus, Settings } from './types'
+import type { IkzePlanEntry, IkzePlanStatus, Settings, IkzeParticipantRole } from './types'
 
 export interface IkzeCalculatedEntry extends IkzePlanEntry {
   remaining: number
@@ -11,6 +11,12 @@ export interface IkzeFamilySummary {
   contributedAmount: number
   remaining: number
   perPayout: number
+}
+
+export const IKZE_LIMITS: Record<number, Record<IkzeParticipantRole, number>> = {
+  2024: { employee: 9388.80, entrepreneur: 14083.20 },
+  2025: { employee: 10430.40, entrepreneur: 15645.60 },
+  2026: { employee: 11048.40, entrepreneur: 16572.60 },
 }
 
 const ceilToGrosze = (value: number) => value <= 0 ? 0 : Math.ceil((value - Number.EPSILON) * 100) / 100
@@ -59,10 +65,33 @@ export function ikzeMonthlyContributionCost(settings: Pick<Settings, 'ikzePlans'
   return summarizeIkzePlans(settings.ikzePlans ?? []).perPayout
 }
 
+export function calculateProjectedIkzeRefund(entry: IkzePlanEntry, includeInCashflow: boolean): number {
+  const annualLimit = Math.max(0, entry.annualLimit)
+  if (annualLimit <= 0) return 0
+
+  const contributedAmount = Math.max(0, entry.contributedAmount)
+  const payoutsLeft = Math.max(0, Math.floor(entry.payoutsLeft))
+  const remaining = Math.max(annualLimit - contributedAmount, 0)
+  const perPayout = payoutsLeft > 0 ? ceilToGrosze(remaining / payoutsLeft) : remaining
+
+  const projectedContributions = includeInCashflow
+    ? contributedAmount + payoutsLeft * perPayout
+    : contributedAmount
+
+  const deductibleAmount = Math.min(projectedContributions, annualLimit)
+  const pitRate = entry.pitRate ?? 0
+
+  return Math.round(deductibleAmount * pitRate)
+}
+
 export function buildDefaultIkzePlans(yearMonth: string): IkzePlanEntry[] {
   const [year] = yearMonth.split('-').map(Number)
   const planYear = year || new Date().getFullYear()
   const payoutsLeft = payoutsLeftToYearEnd(yearMonth)
+
+  const getLimit = (y: number, r: IkzeParticipantRole) => {
+    return IKZE_LIMITS[y]?.[r] ?? IKZE_LIMITS[2026]?.[r] ?? 0
+  }
 
   return [
     {
@@ -70,18 +99,20 @@ export function buildDefaultIkzePlans(yearMonth: string): IkzePlanEntry[] {
       year: planYear,
       ownerName: 'Jakub',
       role: 'entrepreneur',
-      annualLimit: 0,
+      annualLimit: getLimit(planYear, 'entrepreneur'),
       contributedAmount: 0,
       payoutsLeft,
+      pitRate: 0.32,
     },
     {
       id: `ikze-zona-${planYear}`,
       year: planYear,
       ownerName: 'Zona',
       role: 'employee',
-      annualLimit: 0,
+      annualLimit: getLimit(planYear, 'employee'),
       contributedAmount: 0,
       payoutsLeft,
+      pitRate: 0.12,
     },
   ]
 }
