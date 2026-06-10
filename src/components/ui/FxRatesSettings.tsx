@@ -1,4 +1,7 @@
-import { Coins } from 'lucide-react'
+import { useState } from 'react'
+import { CloudDownload, Coins } from 'lucide-react'
+import { fxApi } from '../../api/client'
+import { IS_API_MODE } from '../../config'
 import { BASE_CURRENCY, currenciesForRateEditor, DEFAULT_FX_RATES, fxRateToBase } from '../../domain/fx'
 import { useStore } from '../../store'
 
@@ -13,6 +16,26 @@ export function FxRatesSettings() {
 
   const currencies = currenciesForRateEditor(accounts, settings)
   const usedCurrencies = new Set(accounts.map(account => account.currency))
+  const [nbpMessage, setNbpMessage] = useState<string | null>(null)
+
+  const fetchNbpRates = () => {
+    setNbpMessage('Pobieram tabelę A z NBP...')
+    fxApi.rates()
+      .then(response => {
+        const fxRates = { ...(settings.fxRates ?? {}) }
+        let updated = 0
+        for (const currency of currencies) {
+          const rate = response.rates[currency]
+          if (rate !== undefined && rate > 0) {
+            fxRates[currency] = Math.round(rate * 10000) / 10000
+            updated++
+          }
+        }
+        updateSettings({ fxRates })
+        setNbpMessage(`Zaktualizowano ${updated} kursów (${response.source}${response.effectiveDate ? `, ${response.effectiveDate}` : ''}).`)
+      })
+      .catch(() => setNbpMessage('Nie udało się pobrać kursów NBP — backend lub api.nbp.pl nie odpowiada.'))
+  }
 
   const setRate = (currency: string, raw: string) => {
     const value = parseFloat(raw.replace(',', '.'))
@@ -35,6 +58,20 @@ export function FxRatesSettings() {
         Konta w walutach obcych są przeliczane na {settings.baseCurrency ?? BASE_CURRENCY} tym kursem
         (net worth, struktura majątku, poduszka). Puste pole = kurs domyślny.
       </p>
+
+      {IS_API_MODE && (
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={fetchNbpRates}
+            className="flex items-center gap-2 rounded-md border border-gray-200 px-3 py-1.5 text-xs text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+          >
+            <CloudDownload size={13} />
+            Pobierz aktualne kursy z NBP
+          </button>
+          {nbpMessage && <p className="mt-1.5 text-xs text-gray-600 dark:text-gray-300">{nbpMessage}</p>}
+        </div>
+      )}
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {currencies.map(currency => {

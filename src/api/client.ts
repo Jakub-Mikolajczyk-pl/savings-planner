@@ -292,6 +292,18 @@ export const reconciliationApi = {
     get<SnapshotSuggestion[]>(`/reconciliation/snapshot-suggestions?yearMonth=${yearMonth}`),
 }
 
+export interface FxRatesResponse {
+  source: string
+  table?: string
+  effectiveDate?: string
+  fetchedAt: string
+  rates: Record<string, number>
+}
+
+export const fxApi = {
+  rates: () => get<FxRatesResponse>('/fx/rates'),
+}
+
 export interface NudgeTestResult {
   sent: boolean
   message: string
