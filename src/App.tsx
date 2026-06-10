@@ -30,7 +30,10 @@ import { NextCycleForecast } from './components/forecast/NextCycleForecast'
 import { GoalInsightsSection } from './components/goals/GoalInsightsSection'
 import { GoalList } from './components/goals/GoalList'
 import { Hero } from './components/hero/Hero'
+import { IkePlanner } from './components/ike/IkePlanner'
 import { IkzePlanner } from './components/ikze/IkzePlanner'
+import { PpkTracker } from './components/ppk/PpkTracker'
+import { BelkaEstimator } from './components/belka/BelkaEstimator'
 import { IngestSection } from './components/ingest/IngestSection'
 import { LeakAnalysisSection } from './components/leakanalysis/LeakAnalysisSection'
 import { LoanList } from './components/loans/LoanList'
@@ -366,8 +369,41 @@ function PlanPage() {
         <NextCycleForecast />
       </SectionCard>
 
-      <SectionCard title="IKZE roczne" description="Limity, wpłaty i rekomendowana dopłata na pozostałe wypłaty." icon={PiggyBank} accent="plan">
+      <SectionCard title="IKZE roczne" description="Limity, wpłaty, rekomendowana dopłata i prognozowany zwrot PIT." icon={PiggyBank} accent="plan">
         <IkzePlanner />
+      </SectionCard>
+
+      <SectionCard
+        title="IKE roczne"
+        description="Drugie konto emerytalne obok IKZE — bez zwrotu PIT, ale zysk bez podatku Belki."
+        icon={ShieldCheck}
+        accent="plan"
+        collapsible
+        defaultOpen={false}
+      >
+        <IkePlanner />
+      </SectionCard>
+
+      <SectionCard
+        title="PPK"
+        description="Pracowniczy plan kapitałowy — składka z pensji + dopłaty pracodawcy i państwa."
+        icon={Database}
+        accent="plan"
+        collapsible
+        defaultOpen={false}
+      >
+        <PpkTracker />
+      </SectionCard>
+
+      <SectionCard
+        title="Podatek Belki: maklerskie vs IKE/IKZE"
+        description="Ile 19% podatku od zysków zjada przy regularnym inwestowaniu."
+        icon={ReceiptText}
+        accent="plan"
+        collapsible
+        defaultOpen={false}
+      >
+        <BelkaEstimator />
       </SectionCard>
 
       <SectionCard title="Prognoza celów i długów" icon={TrendingUp} accent="plan">
@@ -575,8 +611,9 @@ function useOverviewModel() {
   const subscriptionsCost = firstMonth?.subscriptionsTotal ?? 0
   const oneTimeCost = firstMonth?.oneTimeExpensesTotal ?? 0
   const ikzeCost = firstMonth?.ikzeContributionTotal ?? 0
+  const retirementCost = ikzeCost + (firstMonth?.ikeContributionTotal ?? 0) + (firstMonth?.ppkContributionTotal ?? 0)
   const debtCost = (firstMonth?.loanPaymentsTotal ?? 0) + (firstMonth?.mortgagePaymentTotal ?? 0)
-  const monthlyCosts = livingCosts + subscriptionsCost + oneTimeCost + debtCost + ikzeCost
+  const monthlyCosts = livingCosts + subscriptionsCost + oneTimeCost + debtCost + retirementCost
   const activeGoalIds = new Set(goals.filter(goal => (goal.currentSaved ?? 0) < goal.targetAmount).map(goal => goal.id))
   const nextGoals = schedule.goalProgress.filter(goal => activeGoalIds.has(goal.goalId)).slice(0, 4)
   const nextExpenses = upcomingExpenses
@@ -603,7 +640,7 @@ function useOverviewModel() {
     debtValue: formatPLN(debt),
     monthlyIncome: `${formatPLN(monthlyIncome)}/mc`,
     monthlyCosts: `${formatPLN(monthlyCosts)}/mc`,
-    costsDetail: `Życie ${formatPLN(livingCosts)} · Abon. ${formatPLN(subscriptionsCost)} · Jedn. ${formatPLN(oneTimeCost)} · Raty ${formatPLN(debtCost)} · IKZE ${formatPLN(ikzeCost)}`,
+    costsDetail: `Życie ${formatPLN(livingCosts)} · Abon. ${formatPLN(subscriptionsCost)} · Jedn. ${formatPLN(oneTimeCost)} · Raty ${formatPLN(debtCost)} · Emerytura ${formatPLN(retirementCost)}`,
     cashflowMonthLabel: firstMonth ? formatYearMonth(firstMonth.yearMonth) : 'Pierwszy miesiąc',
     emergencyFund: formatPLN(emergencyFund),
     emergencyFundLabel: bucketLabel,

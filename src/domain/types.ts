@@ -373,6 +373,29 @@ export interface IkzePlanEntry {
   pitRate?: number
 }
 
+// IKE: roczny limit wpłat (3× prognozowane przeciętne wynagrodzenie), bez zwrotu PIT —
+// korzyść to brak 19% podatku Belki od zysków przy wypłacie po 60. roku życia.
+export interface IkePlanEntry {
+  id: string
+  year: number
+  ownerName: string
+  annualLimit: number
+  contributedAmount: number
+  payoutsLeft: number
+}
+
+// PPK: pracowniczy plan kapitałowy — składka pracownika + pracodawcy + dopłaty państwa.
+export interface PpkSettings {
+  enabled: boolean
+  ownerName?: string
+  grossMonthlySalary: number
+  employeePct: number // % pensji brutto potrącany z wypłaty (standard 2.0)
+  employerPct: number // % pensji brutto dokładany przez pracodawcę (standard 1.5)
+  currentBalance: number
+  annualStateBonus: number // dopłata roczna państwa (240 zł)
+  includeInCashflow: boolean // czy składka pracownika pomniejsza wolne środki w planie
+}
+
 export interface Settings {
   monthlyIncome: number
   monthlyExpenses: number
@@ -385,6 +408,9 @@ export interface Settings {
   emergencyFundTarget?: number  // cel funduszu awaryjnego — stała kwota (domyślnie 10000)
   ikzePlans?: IkzePlanEntry[]
   includeIkzeContributionsInCashflow?: boolean
+  ikePlans?: IkePlanEntry[]
+  includeIkeContributionsInCashflow?: boolean
+  ppk?: PpkSettings // tracker PPK/PPE; brak => nieskonfigurowany
   creditCard?: CreditCard // tracker karty kredytowej; brak => karta nieskonfigurowana
 }
 
@@ -409,6 +435,8 @@ export interface MonthRow {
   mortgagePaymentTotal: number
   ikzeContributionTotal: number
   ikzeTaxRefund?: number
+  ikeContributionTotal?: number
+  ppkContributionTotal?: number
   freeCash: number
   goalAllocations: GoalAllocation[]
   loanEntries: LoanMonthEntry[]

@@ -15,6 +15,8 @@ import type {
 } from './types'
 import { addMonths, formatYearMonth, monthDiff, dateToYearMonth } from './formatting'
 import { ikzeMonthlyContributionCost, calculateProjectedIkzeRefund } from './ikze'
+import { ikeMonthlyContributionCost } from './ike'
+import { ppkMonthlyEmployeeCost } from './ppk'
 import { buildMortgageSchedule } from './mortgage'
 
 interface GoalState {
@@ -160,6 +162,8 @@ export function buildSchedule(
     .filter(subscription => subscription.active)
     .reduce((sum, subscription) => sum + subscription.monthlyAmount, 0)
   const ikzeContributionTotal = ikzeMonthlyContributionCost(settings)
+  const ikeContributionTotal = ikeMonthlyContributionCost(settings)
+  const ppkContributionTotal = ppkMonthlyEmployeeCost(settings)
 
   for (let i = 0; i < settings.horizonMonths; i++) {
     const yearMonth = addMonths(settings.startMonth, i)
@@ -169,7 +173,7 @@ export function buildSchedule(
     const oneTimeExpensesTotal = upcomingExpenses
       .filter(expense => !expense.isPaid && expense.targetMonth === yearMonth)
       .reduce((sum, expense) => sum + expense.amount, 0)
-    const expensesTotal = expenses + subscriptionsTotal + oneTimeExpensesTotal + ikzeContributionTotal
+    const expensesTotal = expenses + subscriptionsTotal + oneTimeExpensesTotal + ikzeContributionTotal + ikeContributionTotal + ppkContributionTotal
     const income = baseIncome + whatIfDelta
     const grossFreeCash = baseIncome + Math.min(0, whatIfDelta) - expensesTotal
 
@@ -233,6 +237,8 @@ export function buildSchedule(
       mortgagePaymentTotal,
       ikzeContributionTotal,
       ikzeTaxRefund,
+      ikeContributionTotal,
+      ppkContributionTotal,
       freeCash,
       goalAllocations,
       loanEntries,
