@@ -85,15 +85,35 @@ jobs:
             echo "ERROR: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID secret is empty — check secret scope (repo or user level)" >&2
             exit 1
           fi
-          # Derive epic slug from the commit subject, e.g. "epic-14-koszyk-inflacyjny"
-          SLUG=$(git log -1 --pretty=%s | grep -oE 'epic-[0-9]+[a-z0-9-]*' | head -n1 || true)
-          FILE=""
-          if [ -n "$SLUG" ]; then
-            N=$(echo "$SLUG" | grep -oE '[0-9]+' | head -n1)
-            FILE=$(ls docs/planning/EPIC-${N}*.md 2>/dev/null | head -n1 || true)
+          # Find the handover with the checklist, most specific match first:
+          # 1. a handover touched by the deployed commit itself,
+          # 2. epic slug in the commit subject (case-insensitive, "EPIC-15" works too),
+          # 3. the highest-numbered handover that has a HUMAN-VERIFY block.
+          has_block() { [ -n "$1" ] && [ -f "$1" ] && grep -q 'HUMAN-VERIFY:START' "$1"; }
+
+          FILE=$(git diff-tree --no-commit-id --name-only -r HEAD -- 'docs/planning/EPIC-*.md' | head -n1 || true)
+          has_block "$FILE" || FILE=""
+
+          if [ -z "$FILE" ]; then
+            SLUG=$(git log -1 --pretty=%s | grep -oiE 'epic-[0-9]+' | head -n1 || true)
+            if [ -n "$SLUG" ]; then
+              N=$(echo "$SLUG" | grep -oE '[0-9]+')
+              FILE=$(ls docs/planning/EPIC-${N}-*.md docs/planning/EPIC-${N}.md 2>/dev/null | head -n1 || true)
+              has_block "$FILE" || FILE=""
+            fi
           fi
-          if [ -n "$FILE" ] && grep -q 'HUMAN-VERIFY:START' "$FILE"; then
-            BLOCK=$(sed -n '/HUMAN-VERIFY:START/,/HUMAN-VERIFY:END/p' "$FILE" | grep -v 'HUMAN-VERIFY:')
+
+          if [ -z "$FILE" ]; then
+            FILE=$(for f in docs/planning/EPIC-*.md; do
+              grep -q 'HUMAN-VERIFY:START' "$f" && echo "$f"
+            done | sort -t- -k2,2n | tail -n1 || true)
+          fi
+
+          SLUG=$(basename "${FILE:-app}" .md | tr '[:upper:]' '[:lower:]')
+          if has_block "$FILE"; then
+            BLOCK=$(sed -n '/HUMAN-VERIFY:START/,/HUMAN-VERIFY:END/p' "$FILE" \
+              | grep -v 'HUMAN-VERIFY:' \
+              | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
             MSG=$(printf '✅ <b>%s</b> deployed on savings.lan\n\n%s' "${SLUG:-app}" "$BLOCK")
           else
             MSG=$(printf '⚠️ <b>%s</b> deployed on savings.lan — NO human-verify checklist found (%s)' \
