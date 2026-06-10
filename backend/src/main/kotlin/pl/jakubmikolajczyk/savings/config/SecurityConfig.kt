@@ -43,6 +43,7 @@ import org.springframework.web.filter.OncePerRequestFilter
     CorsProperties::class,
     IngestProperties::class,
     LlmProperties::class,
+    NudgesProperties::class,
 )
 class SecurityConfig(
     private val securityProperties: SecurityProperties,

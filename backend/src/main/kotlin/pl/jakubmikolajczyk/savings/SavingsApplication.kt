@@ -2,6 +2,7 @@ package pl.jakubmikolajczyk.savings
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
+import org.springframework.scheduling.annotation.EnableScheduling
 
 /**
  * Main Spring Boot entry point.
@@ -28,6 +29,7 @@ import org.springframework.boot.runApplication
  *    If you put controllers in a sibling package, Spring may not discover them.
  */
 @SpringBootApplication
+@EnableScheduling
 class SavingsApplication
 
 fun main(args: Array<String>) {

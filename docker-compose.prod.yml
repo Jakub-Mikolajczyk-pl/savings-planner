@@ -18,6 +18,9 @@ services:
       LLM_MIN_CONFIDENCE: ${LLM_MIN_CONFIDENCE:-0.70}
       LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-30}
       LLM_RECATEGORIZE_BATCH_SIZE: ${LLM_RECATEGORIZE_BATCH_SIZE:-10}
+      NUDGES_ENABLED: ${NUDGES_ENABLED:-true}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"'"]
       interval: 30s

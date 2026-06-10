@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
-import { Database, Download, FileUp, RotateCcw, Upload } from 'lucide-react'
+import { BellRing, Database, Download, FileUp, RotateCcw, Upload } from 'lucide-react'
+import { nudgesApi } from '../../api/client'
 import { IS_API_MODE } from '../../config'
 import { currentYearMonth } from '../../domain/formatting'
 import { useStore } from '../../store'
@@ -20,6 +21,17 @@ export function AdvancedSettings() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [importCsvOpen, setImportCsvOpen] = useState(false)
   const [bootstrapMessage, setBootstrapMessage] = useState<string | null>(null)
+  const [nudgeMessage, setNudgeMessage] = useState<string | null>(null)
+
+  const handleNudgeTest = async () => {
+    setNudgeMessage('Wysyłam...')
+    try {
+      const result = await nudgesApi.test()
+      setNudgeMessage(result.message)
+    } catch {
+      setNudgeMessage('Backend nie odpowiada albo endpoint /nudges/test jest niedostępny.')
+    }
+  }
 
   const handleExport = () => {
     const json = exportData()
@@ -173,6 +185,29 @@ export function AdvancedSettings() {
       <div className="border-t border-gray-100 pt-4 dark:border-gray-800">
         <FxRatesSettings />
       </div>
+
+      {IS_API_MODE && (
+        <div className="border-t border-gray-100 pt-4 dark:border-gray-800">
+          <div className="flex items-center gap-2">
+            <BellRing size={15} className="text-gray-500 dark:text-gray-400" />
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Przypomnienia Telegram</h3>
+          </div>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            Backend sam przypomina: snapshoty na koniec miesiąca, limity IKZE/IKE na początku
+            miesiąca i koniec stałej stopy hipoteki. Wymaga TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID
+            w .env na serwerze.
+          </p>
+          <button
+            type="button"
+            onClick={handleNudgeTest}
+            className="mt-3 flex items-center gap-2 rounded-md border border-gray-200 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+          >
+            <BellRing size={14} />
+            Wyślij testowe przypomnienie
+          </button>
+          {nudgeMessage && <p className="mt-2 text-xs text-gray-600 dark:text-gray-300">{nudgeMessage}</p>}
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-3 border-t border-gray-100 pt-4 dark:border-gray-800">
         <button

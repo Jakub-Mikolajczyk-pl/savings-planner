@@ -289,6 +289,15 @@ export const reconciliationApi = {
   monthly: (months = 6) => get<MonthlyActuals[]>(`/reconciliation/monthly?months=${months}`),
 }
 
+export interface NudgeTestResult {
+  sent: boolean
+  message: string
+}
+
+export const nudgesApi = {
+  test: () => post<NudgeTestResult>('/nudges/test', {}),
+}
+
 export const loansApi = {
   list: () => get<Loan[]>('/debts'),
   create: (loan: Omit<Loan, 'id'> & { id?: string }) => post<Loan>('/debts', loan),

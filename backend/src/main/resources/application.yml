@@ -38,3 +38,7 @@ app:
     timeout-seconds: ${LLM_TIMEOUT_SECONDS:30}
     recategorize-batch-size: ${LLM_RECATEGORIZE_BATCH_SIZE:10}
 
+  nudges:
+    enabled: ${NUDGES_ENABLED:true}
+    telegram-bot-token: ${TELEGRAM_BOT_TOKEN:}
+    telegram-chat-id: ${TELEGRAM_CHAT_ID:}

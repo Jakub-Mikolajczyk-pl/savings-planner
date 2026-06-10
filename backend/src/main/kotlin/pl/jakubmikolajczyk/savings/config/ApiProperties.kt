@@ -44,6 +44,15 @@ data class IngestProperties(
     val internalTransferSourceAccounts: List<String> = emptyList(),
 )
 
+@ConfigurationProperties(prefix = "app.nudges")
+data class NudgesProperties(
+    val enabled: Boolean = true,
+    // Token i chat id trzymaj w CT111 `.env` (TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID).
+    // Puste wartości = nudges są no-opem, więc dev/local nie spamuje.
+    val telegramBotToken: String = "",
+    val telegramChatId: String = "",
+)
+
 @ConfigurationProperties(prefix = "app.llm")
 data class LlmProperties(
     val enabled: Boolean = false,
