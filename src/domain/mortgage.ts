@@ -1,5 +1,5 @@
 import type { MortgageMonthEntry, MortgagePlan, MortgageSummary } from './types'
-import { addMonths } from './formatting'
+import { addMonths, monthDiff } from './formatting'
 
 const roundMoney = (value: number): number => Math.round(value * 100) / 100
 
@@ -146,6 +146,69 @@ export function buildMortgageSchedule(
       refinance,
     },
   }
+}
+
+/*
+ * Symulacja zmiennej stopy (WIBOR/WIRON + marża).
+ *
+ * Polskie hipoteki najczęściej pływają ze wskaźnikiem referencyjnym albo mają
+ * stałą stopę tylko przez pierwsze 5 lat. Scenariusze pokazują skok raty po
+ * końcu okresu stałej stopy przy różnych poziomach wskaźnika.
+ */
+export interface WiborScenario {
+  scenarioRate: number // założony poziom wskaźnika w %
+  effectiveRate: number // wskaźnik + marża
+  monthlyPayment: number // rata po przejściu na zmienną stopę
+  paymentDelta: number // różnica vs rata bazowa dziś
+  resetMonth: string // pierwszy miesiąc nowej raty
+  balanceAtReset: number
+  remainingMonthsAtReset: number
+}
+
+export const DEFAULT_WIBOR_SCENARIOS = [4, 6, 8]
+
+export function buildWiborScenarios(
+  plan: MortgagePlan | undefined,
+  startMonth: string,
+  scenarioRates: number[] = DEFAULT_WIBOR_SCENARIOS,
+): WiborScenario[] {
+  if (!plan || plan.principal <= 0 || plan.termMonths <= 0) return []
+  const margin = plan.bankMargin
+  if (margin === undefined || margin < 0) return []
+
+  // Koniec stałej stopy: fixedRateUntil to OSTATNI miesiąc starej raty.
+  const resetMonth = plan.fixedRateUntil && plan.fixedRateUntil >= startMonth
+    ? addMonths(plan.fixedRateUntil, 1)
+    : startMonth
+  const monthsToReset = Math.max(0, monthDiff(startMonth, resetMonth))
+  if (monthsToReset >= plan.termMonths) return []
+
+  let balanceAtReset = plan.principal
+  if (monthsToReset > 0) {
+    const { entries } = buildMortgageSchedule(plan, startMonth, monthsToReset, true)
+    balanceAtReset = entries[monthsToReset - 1]?.balanceAfter ?? plan.principal
+  }
+  if (balanceAtReset <= 0) return []
+
+  const remainingMonthsAtReset = Math.max(1, plan.termMonths - monthsToReset)
+  const currentPayment = basePayment(plan)
+
+  const rates = [...new Set([...(plan.referenceRate !== undefined && plan.referenceRate >= 0 ? [plan.referenceRate] : []), ...scenarioRates])]
+    .sort((a, b) => a - b)
+
+  return rates.map(scenarioRate => {
+    const effectiveRate = roundMoney(scenarioRate + margin)
+    const monthlyPayment = calculateMortgagePayment(balanceAtReset, monthlyRate(effectiveRate), remainingMonthsAtReset)
+    return {
+      scenarioRate,
+      effectiveRate,
+      monthlyPayment,
+      paymentDelta: roundMoney(monthlyPayment - currentPayment),
+      resetMonth,
+      balanceAtReset,
+      remainingMonthsAtReset,
+    }
+  })
 }
 
 function buildRefinanceSummary(

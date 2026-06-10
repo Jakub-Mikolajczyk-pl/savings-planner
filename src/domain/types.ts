@@ -309,6 +309,11 @@ export interface MortgagePlan {
   oneTimeOverpayments: MortgageOneTimeOverpayment[]
   refinanceAnnualInterestRate?: number
   refinanceCost?: number
+  // Oprocentowanie zmienne: annualInterestRate = referenceRate + bankMargin.
+  referenceRateName?: string // np. 'WIBOR 3M', 'WIBOR 6M', 'WIRON 1M'
+  referenceRate?: number // bieżący poziom wskaźnika w %
+  bankMargin?: number // stała marża banku w %
+  fixedRateUntil?: string // "YYYY-MM" — ostatni miesiąc stałej stopy; potem rata pływa
 }
 
 export interface MortgageMonthEntry {

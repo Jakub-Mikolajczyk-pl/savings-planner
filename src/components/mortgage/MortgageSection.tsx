@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Home, Plus, Trash2 } from 'lucide-react'
 import { useStore } from '../../store'
 import type { MortgageOneTimeOverpayment, MortgageOverpaymentMode, MortgagePlan } from '../../domain/types'
-import { buildMortgageSchedule } from '../../domain/mortgage'
+import { buildMortgageSchedule, buildWiborScenarios } from '../../domain/mortgage'
 import { formatPLN, formatYearMonth } from '../../domain/formatting'
 import { createId } from '../../domain/id'
 import { CurrencyInput } from '../ui/CurrencyInput'
@@ -87,6 +87,24 @@ export function MortgageSection() {
   )
 
   const updateDraft = (patch: Partial<typeof draft>) => setDraft(current => ({ ...current, ...patch }))
+
+  // Wskaźnik + marża → po edycji odświeżamy efektywne oprocentowanie planu.
+  const updateVariableRate = (patch: Partial<Pick<MortgagePlan, 'referenceRate' | 'bankMargin' | 'referenceRateName' | 'fixedRateUntil'>>) => {
+    setDraft(current => {
+      const next = { ...current, ...patch }
+      const reference = next.referenceRate ?? 0
+      const margin = next.bankMargin ?? 0
+      if ((patch.referenceRate !== undefined || patch.bankMargin !== undefined) && reference > 0 && margin > 0) {
+        next.annualInterestRate = Math.round((reference + margin) * 100) / 100
+      }
+      return next
+    })
+  }
+
+  const wiborScenarios = useMemo(
+    () => buildWiborScenarios({ ...draft, id: draft.id ?? 'draft' }, settings.startMonth),
+    [draft, settings.startMonth],
+  )
   const visibleEntries = entries.slice(0, visibleEntryCount)
   const hasMoreEntries = visibleEntryCount < entries.length
   const save = () => {
@@ -141,6 +159,92 @@ export function MortgageSection() {
             <NumberInput label="Oprocentowanie" value={draft.annualInterestRate} min={0} max={30} step={0.01} suffix="%" onChange={v => updateDraft({ annualInterestRate: v })} />
             <NumberInput label="Cały okres" value={draft.originalTermMonths} min={1} max={480} suffix="m" onChange={v => updateDraft({ originalTermMonths: v })} />
             <NumberInput label="Pozostały okres" value={draft.termMonths} min={1} max={480} suffix="m" onChange={v => updateDraft({ termMonths: v })} />
+          </div>
+
+          <div className="space-y-3 rounded-lg border border-amber-200 bg-amber-50/40 p-3 dark:border-amber-900/60 dark:bg-amber-950/15">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-amber-800 dark:text-amber-300">
+                Oprocentowanie zmienne (WIBOR/WIRON)
+              </p>
+              <p className="mt-0.5 text-xs text-amber-700/80 dark:text-amber-400/80">
+                Rozbij oprocentowanie na wskaźnik + marżę banku. Jeśli masz stałą stopę na 5 lat,
+                wpisz jej ostatni miesiąc — zobaczysz, jak rata skoczy przy różnych poziomach wskaźnika.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <label className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Wskaźnik</span>
+                <select
+                  value={draft.referenceRateName ?? 'WIBOR 3M'}
+                  onChange={e => updateVariableRate({ referenceRateName: e.target.value })}
+                  className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option>WIBOR 3M</option>
+                  <option>WIBOR 6M</option>
+                  <option>WIRON 1M</option>
+                </select>
+              </label>
+              <NumberInput
+                label="Poziom wskaźnika"
+                value={draft.referenceRate ?? 0}
+                min={0}
+                max={30}
+                step={0.01}
+                suffix="%"
+                onChange={v => updateVariableRate({ referenceRate: v })}
+              />
+              <NumberInput
+                label="Marża banku"
+                value={draft.bankMargin ?? 0}
+                min={0}
+                max={10}
+                step={0.01}
+                suffix="%"
+                onChange={v => updateVariableRate({ bankMargin: v })}
+              />
+              <label className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Stała stopa do</span>
+                <input
+                  type="month"
+                  value={draft.fixedRateUntil ?? ''}
+                  onChange={e => updateVariableRate({ fixedRateUntil: e.target.value || undefined })}
+                  className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </label>
+            </div>
+
+            {wiborScenarios.length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                  Rata od {formatYearMonth(wiborScenarios[0].resetMonth)} (saldo ~{formatPLN(wiborScenarios[0].balanceAtReset)}, {wiborScenarios[0].remainingMonthsAtReset} mies. do końca):
+                </p>
+                <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {wiborScenarios.map(scenario => {
+                    const isCurrent = scenario.scenarioRate === draft.referenceRate
+                    return (
+                      <div
+                        key={scenario.scenarioRate}
+                        className={`rounded-md border px-3 py-2 ${
+                          isCurrent
+                            ? 'border-blue-300 bg-blue-50/60 dark:border-blue-800 dark:bg-blue-950/30'
+                            : 'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800'
+                        }`}
+                      >
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {draft.referenceRateName ?? 'WIBOR'} {scenario.scenarioRate}%{isCurrent ? ' (dziś)' : ''}
+                        </p>
+                        <p className="mt-1 text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100">
+                          {formatPLN(scenario.monthlyPayment)}
+                        </p>
+                        <p className={`text-xs tabular-nums ${scenario.paymentDelta > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                          {scenario.paymentDelta >= 0 ? '+' : ''}{formatPLN(scenario.paymentDelta)} vs dziś
+                        </p>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60">

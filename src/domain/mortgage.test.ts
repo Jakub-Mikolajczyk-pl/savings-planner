@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildMortgageSchedule, calculateMortgagePayment } from './mortgage'
+import { buildMortgageSchedule, buildWiborScenarios, calculateMortgagePayment } from './mortgage'
 import type { MortgagePlan } from './types'
 
 const basePlan: MortgagePlan = {
@@ -111,5 +111,50 @@ describe('mortgage schedule', () => {
 
     expect(entries[0].overpayment).toBe(50000)
     expect(entries[1].payment).toBeLessThan(entries[0].payment)
+  })
+})
+
+describe('buildWiborScenarios', () => {
+  const variablePlan: MortgagePlan = {
+    ...basePlan,
+    annualInterestRate: 7.2,
+    referenceRateName: 'WIBOR 3M',
+    referenceRate: 5.2,
+    bankMargin: 2,
+    fixedRateUntil: '2027-12',
+  }
+
+  it('returns nothing without a bank margin', () => {
+    expect(buildWiborScenarios(basePlan, '2026-01')).toEqual([])
+    expect(buildWiborScenarios(undefined, '2026-01')).toEqual([])
+  })
+
+  it('simulates the payment jump after the fixed-rate period ends', () => {
+    const scenarios = buildWiborScenarios(variablePlan, '2026-01', [4, 6, 8])
+    expect(scenarios.map(s => s.scenarioRate)).toEqual([4, 5.2, 6, 8])
+
+    const first = scenarios[0]
+    expect(first.resetMonth).toBe('2028-01')
+    expect(first.balanceAtReset).toBeLessThan(variablePlan.principal)
+    expect(first.remainingMonthsAtReset).toBe(variablePlan.termMonths - 24)
+
+    const byRate = new Map(scenarios.map(s => [s.scenarioRate, s]))
+    expect(byRate.get(8)!.monthlyPayment).toBeGreaterThan(byRate.get(6)!.monthlyPayment)
+    expect(byRate.get(6)!.monthlyPayment).toBeGreaterThan(byRate.get(4)!.monthlyPayment)
+    expect(byRate.get(8)!.effectiveRate).toBe(10)
+  })
+
+  it('applies the variable rate immediately when there is no fixed period', () => {
+    const scenarios = buildWiborScenarios({ ...variablePlan, fixedRateUntil: undefined }, '2026-01', [6])
+    expect(scenarios[0].resetMonth).toBe('2026-01')
+    expect(scenarios[0].balanceAtReset).toBe(variablePlan.principal)
+  })
+
+  it('skips scenarios when the fixed period outlives the loan', () => {
+    const scenarios = buildWiborScenarios(
+      { ...variablePlan, termMonths: 12, fixedRateUntil: '2028-12' },
+      '2026-01',
+    )
+    expect(scenarios).toEqual([])
   })
 })
