@@ -1,4 +1,4 @@
-import { allSnapshotMonths, balanceAsOf, BUCKET_LABELS } from './accounts'
+import { allSnapshotMonths, BUCKET_LABELS, sumBucketBalances } from './accounts'
 import type { Account, AccountBucket, AccountSnapshot, Schedule, Settings } from './types'
 
 export type SecurityBufferId = 'emergency_fund' | 'safety_cushion'
@@ -44,8 +44,8 @@ export function buildSecurityBuffers(
   const monthlyCostBasis = committedMonthlyCostBasis(settings, schedule)
   const safetyCushionMonths = settings.safetyCushionMonths ?? 6
   const safetyBuckets = settings.emergencyFundBuckets ?? ['safety_cushion']
-  const safetyCurrent = latestMonth ? sumBuckets(accounts, snapshots, latestMonth, safetyBuckets) : 0
-  const emergencyCurrent = latestMonth ? sumBuckets(accounts, snapshots, latestMonth, ['emergency_fund']) : 0
+  const safetyCurrent = latestMonth ? sumBucketBalances(accounts, snapshots, latestMonth, safetyBuckets, settings) : 0
+  const emergencyCurrent = latestMonth ? sumBucketBalances(accounts, snapshots, latestMonth, ['emergency_fund'], settings) : 0
   const buffers: SecurityBuffer[] = [
     makeBuffer({
       id: 'emergency_fund',
@@ -113,12 +113,6 @@ function makeBuffer({
     detail,
     focusCopy,
   }
-}
-
-function sumBuckets(accounts: Account[], snapshots: AccountSnapshot[], yearMonth: string, buckets: AccountBucket[]): number {
-  return accounts
-    .filter(account => buckets.includes(account.bucket))
-    .reduce((total, account) => total + balanceAsOf(snapshots, account, yearMonth), 0)
 }
 
 function formatBucketSubtitle(buckets: AccountBucket[]): string {

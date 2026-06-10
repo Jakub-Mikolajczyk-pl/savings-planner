@@ -1,4 +1,5 @@
 import type { Account, AccountBucket, AccountSnapshot } from './types'
+import { convertToBase, type FxSettings } from './fx'
 
 export const ACCOUNT_BUCKETS: AccountBucket[] = [
   'accounts',
@@ -57,6 +58,34 @@ export function allSnapshotMonths(snapshots: AccountSnapshot[]): string[] {
   return [...new Set(snapshots.map(s => s.yearMonth))].sort()
 }
 
-export function totalAssetsAsOf(accounts: Account[], snapshots: AccountSnapshot[], yearMonth: string): number {
-  return accounts.reduce((total, account) => total + balanceAsOf(snapshots, account, yearMonth), 0)
+/** Saldo konta przeliczone na walutę bazową (PLN) po kursie z ustawień. */
+export function convertedBalanceAsOf(
+  snapshots: AccountSnapshot[],
+  account: Account,
+  yearMonth: string,
+  fx?: FxSettings,
+): number {
+  return convertToBase(balanceAsOf(snapshots, account, yearMonth), account.currency, fx)
+}
+
+export function totalAssetsAsOf(
+  accounts: Account[],
+  snapshots: AccountSnapshot[],
+  yearMonth: string,
+  fx?: FxSettings,
+): number {
+  return accounts.reduce((total, account) => total + convertedBalanceAsOf(snapshots, account, yearMonth, fx), 0)
+}
+
+/** Suma sald (w walucie bazowej) kont należących do wskazanych bucketów. */
+export function sumBucketBalances(
+  accounts: Account[],
+  snapshots: AccountSnapshot[],
+  yearMonth: string,
+  buckets: AccountBucket[],
+  fx?: FxSettings,
+): number {
+  return accounts
+    .filter(account => buckets.includes(account.bucket))
+    .reduce((total, account) => total + convertedBalanceAsOf(snapshots, account, yearMonth, fx), 0)
 }

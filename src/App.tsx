@@ -43,11 +43,10 @@ import { SubscriptionList } from './components/subscriptions/SubscriptionList'
 import { BasketPage } from './components/basket/BasketPage'
 import { AdvancedSettings } from './components/ui/AdvancedSettings'
 import { PageHeader, SectionCard, StatCard, surface } from './components/ui/Layout'
-import { allSnapshotMonths, balanceAsOf, BUCKET_LABELS, totalAssetsAsOf } from './domain/accounts'
+import { allSnapshotMonths, BUCKET_LABELS, sumBucketBalances, totalAssetsAsOf } from './domain/accounts'
 import { buildSchedule } from './domain/allocation'
 import { formatPLN, formatYearMonth } from './domain/formatting'
 import { periodKey } from './domain/payPeriods'
-import type { Account, AccountBucket, AccountSnapshot } from './domain/types'
 import { BACKEND_MODE, IS_API_MODE } from './config'
 import { useStore } from './store'
 
@@ -562,13 +561,13 @@ function useOverviewModel() {
   const months = allSnapshotMonths(snapshots)
   const latestMonth = months.at(-1)
   const previousMonth = months.at(-2)
-  const totalAssets = latestMonth ? totalAssetsAsOf(accounts, snapshots, latestMonth) : 0
-  const previousAssets = previousMonth ? totalAssetsAsOf(accounts, snapshots, previousMonth) : undefined
+  const totalAssets = latestMonth ? totalAssetsAsOf(accounts, snapshots, latestMonth, settings) : 0
+  const previousAssets = previousMonth ? totalAssetsAsOf(accounts, snapshots, previousMonth, settings) : undefined
   const debt = loans.reduce((sum, loan) => sum + loan.remainingBalance, 0) + (mortgagePlan?.principal ?? 0)
   const netWorth = totalAssets - debt
   const netWorthDelta = previousAssets === undefined ? undefined : totalAssets - previousAssets
   const emergencyBuckets = settings.emergencyFundBuckets ?? []
-  const emergencyFund = latestMonth ? sumBuckets(emergencyBuckets, latestMonth, accounts, snapshots) : 0
+  const emergencyFund = latestMonth ? sumBucketBalances(accounts, snapshots, latestMonth, emergencyBuckets, settings) : 0
   const firstMonth = schedule.rows[0]
   const freeCash = firstMonth?.freeCash ?? settings.monthlyIncome - settings.monthlyExpenses
   const monthlyIncome = firstMonth?.income ?? settings.monthlyIncome
@@ -616,8 +615,3 @@ function useOverviewModel() {
   }
 }
 
-function sumBuckets(bucketIds: AccountBucket[], yearMonth: string, accounts: Account[], snapshots: AccountSnapshot[]) {
-  return accounts
-    .filter(account => bucketIds.includes(account.bucket))
-    .reduce((total, account) => total + balanceAsOf(snapshots, account, yearMonth), 0)
-}

@@ -1,7 +1,8 @@
 import { TrendingDown, TrendingUp, WalletCards } from 'lucide-react'
-import { allSnapshotMonths, balanceAsOf, BUCKET_LABELS, totalAssetsAsOf } from '../../domain/accounts'
+import { allSnapshotMonths, BUCKET_LABELS, sumBucketBalances, totalAssetsAsOf } from '../../domain/accounts'
 import { formatPLN, formatYearMonth } from '../../domain/formatting'
 import type { Account, AccountBucket, AccountSnapshot } from '../../domain/types'
+import { useStore } from '../../store'
 
 interface Props {
   accounts: Account[]
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export function AssetsKpi({ accounts, snapshots, emergencyFundBuckets, safetyCushionTarget, safetyCushionMonths, emergencyFundTarget }: Props) {
+  const fx = useStore(s => s.settings)
   const months = allSnapshotMonths(snapshots)
   const latestMonth = months.at(-1)
   const previousMonth = months.at(-2)
@@ -27,13 +29,13 @@ export function AssetsKpi({ accounts, snapshots, emergencyFundBuckets, safetyCus
     )
   }
 
-  const totalAssets = totalAssetsAsOf(accounts, snapshots, latestMonth)
-  const previousAssets = previousMonth ? totalAssetsAsOf(accounts, snapshots, previousMonth) : undefined
+  const totalAssets = totalAssetsAsOf(accounts, snapshots, latestMonth, fx)
+  const previousAssets = previousMonth ? totalAssetsAsOf(accounts, snapshots, previousMonth, fx) : undefined
   const totalDelta = previousAssets === undefined ? undefined : totalAssets - previousAssets
   // Poduszka bezpieczeństwa = konfigurowalny zestaw bucketów (docelowo ~6 mies. kosztów rodziny).
-  const safetyCushion = sumBuckets(accounts, snapshots, latestMonth, emergencyFundBuckets)
+  const safetyCushion = sumBucketBalances(accounts, snapshots, latestMonth, emergencyFundBuckets, fx)
   // Fundusz awaryjny = TYLKO konta przypisane do bucketu 'emergency_fund' (mała, szybko dostępna kwota).
-  const emergencyFund = sumBuckets(accounts, snapshots, latestMonth, ['emergency_fund'])
+  const emergencyFund = sumBucketBalances(accounts, snapshots, latestMonth, ['emergency_fund'], fx)
 
   return (
     <div className="grid gap-3 md:grid-cols-3">
@@ -54,12 +56,6 @@ export function AssetsKpi({ accounts, snapshots, emergencyFundBuckets, safetyCus
       />
     </div>
   )
-}
-
-function sumBuckets(accounts: Account[], snapshots: AccountSnapshot[], yearMonth: string, buckets: AccountBucket[]): number {
-  return accounts
-    .filter(account => buckets.includes(account.bucket))
-    .reduce((total, account) => total + balanceAsOf(snapshots, account, yearMonth), 0)
 }
 
 function formatBucketSubtitle(buckets: AccountBucket[]): string {

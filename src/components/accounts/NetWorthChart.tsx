@@ -13,6 +13,7 @@ import {
 import { allSnapshotMonths, totalAssetsAsOf } from '../../domain/accounts'
 import { formatPLN, formatYearMonth } from '../../domain/formatting'
 import type { Account, AccountSnapshot, Loan, MortgagePlan } from '../../domain/types'
+import { useStore } from '../../store'
 
 interface Props {
   accounts: Account[]
@@ -29,11 +30,12 @@ interface ChartPoint {
 }
 
 export function NetWorthChart({ accounts, snapshots, loans, mortgagePlan }: Props) {
+  const fx = useStore(s => s.settings)
   const data = useMemo<ChartPoint[]>(() => {
     const debt = currentDebt(loans, mortgagePlan)
 
     return allSnapshotMonths(snapshots).map(yearMonth => {
-      const assets = totalAssetsAsOf(accounts, snapshots, yearMonth)
+      const assets = totalAssetsAsOf(accounts, snapshots, yearMonth, fx)
       return {
         label: formatYearMonth(yearMonth),
         assets,
@@ -41,7 +43,7 @@ export function NetWorthChart({ accounts, snapshots, loans, mortgagePlan }: Prop
         debt,
       }
     })
-  }, [accounts, snapshots, loans, mortgagePlan])
+  }, [accounts, snapshots, loans, mortgagePlan, fx])
 
   if (data.length === 0) {
     return null

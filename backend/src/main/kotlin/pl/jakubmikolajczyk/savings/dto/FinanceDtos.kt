@@ -215,6 +215,12 @@ data class MortgagePlanDto(
      */
     val refinanceAnnualInterestRate: BigDecimal? = null,
     val refinanceCost: BigDecimal? = null,
+    // Oprocentowanie zmienne: annualInterestRate = wskaźnik referencyjny + marża.
+    // fixedRateUntil ("YYYY-MM") = koniec okresu stałej stopy; potem rata pływa z WIBOR/WIRON.
+    val referenceRateName: String? = null,
+    val referenceRate: BigDecimal? = null,
+    val bankMargin: BigDecimal? = null,
+    val fixedRateUntil: String? = null,
 )
 
 enum class IkzeParticipantRole {
@@ -230,6 +236,30 @@ data class IkzePlanEntryDto(
     @field:NotNull val annualLimit: BigDecimal = BigDecimal.ZERO,
     @field:NotNull val contributedAmount: BigDecimal = BigDecimal.ZERO,
     @field:Min(0) val payoutsLeft: Int = 0,
+    // Krańcowa stawka PIT (0.12 / 0.19 / 0.32) do prognozy zwrotu podatku za wpłaty IKZE.
+    val pitRate: BigDecimal? = null,
+)
+
+// IKE: limit roczny + wpłaty, bez zwrotu PIT (korzyść = brak podatku Belki przy wypłacie).
+data class IkePlanEntryDto(
+    @field:NotBlank val id: String,
+    @field:Min(2000) val year: Int,
+    @field:NotBlank val ownerName: String,
+    @field:NotNull val annualLimit: BigDecimal = BigDecimal.ZERO,
+    @field:NotNull val contributedAmount: BigDecimal = BigDecimal.ZERO,
+    @field:Min(0) val payoutsLeft: Int = 0,
+)
+
+// PPK: śledzenie pracowniczego planu kapitałowego jako osobnego aktywa emerytalnego.
+data class PpkSettingsDto(
+    val enabled: Boolean = false,
+    val ownerName: String? = null,
+    @field:NotNull val grossMonthlySalary: BigDecimal = BigDecimal.ZERO,
+    @field:NotNull val employeePct: BigDecimal = BigDecimal("2.0"),
+    @field:NotNull val employerPct: BigDecimal = BigDecimal("1.5"),
+    @field:NotNull val currentBalance: BigDecimal = BigDecimal.ZERO,
+    @field:NotNull val annualStateBonus: BigDecimal = BigDecimal("240"),
+    val includeInCashflow: Boolean = false,
 )
 
 data class SettingsDto(
@@ -246,6 +276,14 @@ data class SettingsDto(
     val includeIkzeContributionsInCashflow: Boolean = false,
     // Tracker karty kredytowej; null => karta nieskonfigurowana. JSONB blob, brak migracji.
     @field:Valid val creditCard: CreditCardDto? = null,
+    // Multi-currency: waluta bazowa raportowania + ręczne kursy (1 jednostka = X PLN).
+    val baseCurrency: String? = null,
+    val fxRates: Map<String, BigDecimal>? = null,
+    // IKE: roczny planer obok IKZE.
+    @field:Valid val ikePlans: List<IkePlanEntryDto> = emptyList(),
+    val includeIkeContributionsInCashflow: Boolean = false,
+    // PPK/PPE tracker; null => nieskonfigurowany.
+    @field:Valid val ppk: PpkSettingsDto? = null,
 )
 
 data class CreditCardDto(

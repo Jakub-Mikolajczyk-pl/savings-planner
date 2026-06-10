@@ -1,8 +1,10 @@
 import { memo, useMemo } from 'react'
 import { Trash2 } from 'lucide-react'
 import { balanceAsOf, isActiveInMonth, totalAssetsAsOf } from '../../domain/accounts'
+import { convertToBase, fxRateToBase, type FxSettings } from '../../domain/fx'
 import { formatPLN, formatYearMonth } from '../../domain/formatting'
 import type { Account, AccountSnapshot } from '../../domain/types'
+import { useStore } from '../../store'
 import { CurrencyInput } from '../ui/CurrencyInput'
 
 interface Props {
@@ -14,6 +16,7 @@ interface Props {
 }
 
 export function AccountsTable({ accounts, snapshots, months, onSetSnapshot, onRemoveSnapshot }: Props) {
+  const fx = useStore(s => s.settings)
   const snapshotsByCell = useMemo(() => {
     const map = new Map<string, AccountSnapshot>()
     snapshots.forEach(snapshot => {
@@ -27,12 +30,12 @@ export function AccountsTable({ accounts, snapshots, months, onSetSnapshot, onRe
     const map = new Map<string, { total: number; delta?: number }>()
     let previous: number | undefined
     ;[...months].sort().forEach(yearMonth => {
-      const total = totalAssetsAsOf(accounts, snapshots, yearMonth)
+      const total = totalAssetsAsOf(accounts, snapshots, yearMonth, fx)
       map.set(yearMonth, { total, delta: previous === undefined ? undefined : total - previous })
       previous = total
     })
     return map
-  }, [accounts, snapshots, months])
+  }, [accounts, snapshots, months, fx])
 
   if (accounts.length === 0) {
     return (
@@ -79,6 +82,7 @@ export function AccountsTable({ accounts, snapshots, months, onSetSnapshot, onRe
               snapshotsByCell={snapshotsByCell}
               total={monthTotals.get(yearMonth)?.total ?? 0}
               delta={monthTotals.get(yearMonth)?.delta}
+              fx={fx}
               onSetSnapshot={onSetSnapshot}
               onRemoveSnapshot={onRemoveSnapshot}
             />
@@ -94,6 +98,7 @@ interface RowProps extends Omit<Props, 'months'> {
   snapshotsByCell: Map<string, AccountSnapshot>
   total: number
   delta?: number
+  fx: FxSettings
 }
 
 const AccountsTableRow = memo(function AccountsTableRow({
@@ -103,6 +108,7 @@ const AccountsTableRow = memo(function AccountsTableRow({
   snapshotsByCell,
   total,
   delta,
+  fx,
   onSetSnapshot,
   onRemoveSnapshot,
 }: RowProps) {
@@ -147,6 +153,11 @@ const AccountsTableRow = memo(function AccountsTableRow({
             </div>
             {!snapshot && carryForward > 0 && (
               <p className="mt-1 text-xs text-gray-400">carry-forward: {formatPLN(carryForward)}</p>
+            )}
+            {fxRateToBase(account.currency, fx) !== 1 && (snapshot?.balance ?? carryForward) > 0 && (
+              <p className="mt-1 text-xs tabular-nums text-sky-600 dark:text-sky-400">
+                ≈ {formatPLN(convertToBase(snapshot?.balance ?? carryForward, account.currency, fx))}
+              </p>
             )}
           </td>
         )

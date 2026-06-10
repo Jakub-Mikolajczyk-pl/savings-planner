@@ -378,6 +378,8 @@ export interface Settings {
   monthlyExpenses: number
   startMonth: string // "YYYY-MM" format
   horizonMonths: number
+  baseCurrency?: string // waluta bazowa raportowania; brak => 'PLN'
+  fxRates?: Record<string, number> // ręczne kursy: 1 jednostka waluty = X PLN
   emergencyFundBuckets: AccountBucket[]
   safetyCushionMonths?: number  // cel poduszki = tyle miesięcy kosztów (domyślnie 6)
   emergencyFundTarget?: number  // cel funduszu awaryjnego — stała kwota (domyślnie 10000)

@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
-import { allSnapshotMonths, balanceAsOf, BUCKET_LABELS, isActiveInMonth } from '../../domain/accounts'
+import { allSnapshotMonths, BUCKET_LABELS, convertedBalanceAsOf, isActiveInMonth } from '../../domain/accounts'
 import { formatPLN, formatYearMonth } from '../../domain/formatting'
 import type { Account, AccountBucket, AccountSnapshot } from '../../domain/types'
+import { useStore } from '../../store'
 
 interface Props {
   accounts: Account[]
@@ -12,6 +13,7 @@ interface Props {
 const COLORS = ['#2563eb', '#16a34a', '#f59e0b', '#db2777', '#7c3aed', '#0891b2', '#dc2626']
 
 export function AssetsPie({ accounts, snapshots }: Props) {
+  const fx = useStore(s => s.settings)
   const [mode, setMode] = useState<'bucket' | 'account'>('bucket')
   const latestMonth = allSnapshotMonths(snapshots).at(-1)
 
@@ -22,7 +24,7 @@ export function AssetsPie({ accounts, snapshots }: Props) {
       .filter(account => isActiveInMonth(account, latestMonth))
       .map(account => ({
         account,
-        balance: balanceAsOf(snapshots, account, latestMonth),
+        balance: convertedBalanceAsOf(snapshots, account, latestMonth, fx),
       }))
       .filter(item => item.balance > 0)
 
@@ -44,7 +46,7 @@ export function AssetsPie({ accounts, snapshots }: Props) {
       name: BUCKET_LABELS[bucket],
       value,
     }))
-  }, [accounts, latestMonth, mode, snapshots])
+  }, [accounts, fx, latestMonth, mode, snapshots])
 
   const total = data.reduce((sum, item) => sum + item.value, 0)
 

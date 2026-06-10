@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { CalendarPlus, Eye, EyeOff, FileUp, Lock, Pencil, Plus, Trash2, Unlock } from 'lucide-react'
-import { ACCOUNT_BUCKETS, allSnapshotMonths, balanceAsOf, BUCKET_LABELS } from '../../domain/accounts'
+import { ACCOUNT_BUCKETS, allSnapshotMonths, convertedBalanceAsOf, BUCKET_LABELS } from '../../domain/accounts'
 import { addMonths, currentYearMonth, formatPLN } from '../../domain/formatting'
 import { buildSchedule } from '../../domain/allocation'
 import { committedMonthlyCostBasis } from '../../domain/securityBuffers'
@@ -225,6 +225,7 @@ function EmergencyFundBucketsPanel({
   selectedBuckets: AccountBucket[]
   onChange: (buckets: AccountBucket[]) => void
 }) {
+  const fx = useStore(s => s.settings)
   const latestMonth = allSnapshotMonths(snapshots).at(-1)
   const toggleBucket = (bucket: AccountBucket) => {
     if (selectedBuckets.includes(bucket)) {
@@ -238,7 +239,7 @@ function EmergencyFundBucketsPanel({
   const total = latestMonth
     ? accounts
         .filter(account => selectedBuckets.includes(account.bucket))
-        .reduce((sum, account) => sum + balanceAsOf(snapshots, account, latestMonth), 0)
+        .reduce((sum, account) => sum + convertedBalanceAsOf(snapshots, account, latestMonth, fx), 0)
     : 0
 
   return (
@@ -262,7 +263,7 @@ function EmergencyFundBucketsPanel({
           const bucketTotal = latestMonth
             ? accounts
                 .filter(account => account.bucket === bucket)
-                .reduce((sum, account) => sum + balanceAsOf(snapshots, account, latestMonth), 0)
+                .reduce((sum, account) => sum + convertedBalanceAsOf(snapshots, account, latestMonth, fx), 0)
             : 0
 
           return (
