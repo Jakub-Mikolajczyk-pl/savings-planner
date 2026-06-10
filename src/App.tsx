@@ -34,6 +34,7 @@ import { IkePlanner } from './components/ike/IkePlanner'
 import { IkzePlanner } from './components/ikze/IkzePlanner'
 import { PpkTracker } from './components/ppk/PpkTracker'
 import { BelkaEstimator } from './components/belka/BelkaEstimator'
+import { FireProjection } from './components/fire/FireProjection'
 import { IngestSection } from './components/ingest/IngestSection'
 import { LeakAnalysisSection } from './components/leakanalysis/LeakAnalysisSection'
 import { LoanList } from './components/loans/LoanList'
@@ -505,6 +506,17 @@ function PlanGoalsTab() {
 function PlanRetirementTab() {
   return (
     <div className="space-y-4">
+      <div className="anim-rise anim-rise-1">
+        <SectionCard
+          title="Kiedy mogę przestać pracować?"
+          description="Projekcja FIRE: kapitał emerytalno-inwestycyjny + miesięczne wpłaty vs cel 25× rocznych wydatków."
+          icon={TrendingUp}
+          accent="plan"
+        >
+          <FireProjection />
+        </SectionCard>
+      </div>
+
       <div className="anim-rise anim-rise-1">
         <SectionCard title="IKZE roczne" description="Wpłaty odliczasz od podatku — planer pokazuje limit, dopłaty i prognozowany zwrot PIT." icon={PiggyBank} accent="plan">
           <IkzePlanner />
