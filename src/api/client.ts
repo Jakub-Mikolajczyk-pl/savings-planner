@@ -22,6 +22,7 @@ import type {
   PayPeriodSettings,
   RecategorizeResult,
   Settings,
+  SnapshotSuggestion,
   Subscription,
   UpcomingExpense,
 } from '../domain/types'
@@ -287,6 +288,8 @@ export const goalInsightsApi = {
 
 export const reconciliationApi = {
   monthly: (months = 6) => get<MonthlyActuals[]>(`/reconciliation/monthly?months=${months}`),
+  snapshotSuggestions: (yearMonth: string) =>
+    get<SnapshotSuggestion[]>(`/reconciliation/snapshot-suggestions?yearMonth=${yearMonth}`),
 }
 
 export interface NudgeTestResult {

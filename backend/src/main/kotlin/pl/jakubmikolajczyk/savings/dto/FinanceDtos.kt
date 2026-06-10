@@ -304,6 +304,18 @@ data class MonthlyActualsDto(
     val transactionCount: Int,
 )
 
+// Propozycja salda na koniec miesiąca: ostatni snapshot + delta z transakcji.
+data class SnapshotSuggestionDto(
+    val accountId: UUID,
+    val accountName: String,
+    val yearMonth: String, // miesiąc, dla którego proponujemy saldo
+    val baseYearMonth: String?, // miesiąc ostatniego snapshota (null = brak, baza 0)
+    val baseBalance: BigDecimal,
+    val transactionsDelta: BigDecimal,
+    val suggestedBalance: BigDecimal,
+    val transactionCount: Int,
+)
+
 data class MonthOverrideDto(
     val income: BigDecimal? = null,
     val expenses: BigDecimal? = null,

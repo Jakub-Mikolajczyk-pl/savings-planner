@@ -289,6 +289,18 @@ export interface GoalInsights {
   goals: GoalPace[]
 }
 
+// Propozycja salda konta na koniec miesiąca: ostatni snapshot + delta transakcji.
+export interface SnapshotSuggestion {
+  accountId: string
+  accountName: string
+  yearMonth: string
+  baseYearMonth?: string
+  baseBalance: number
+  transactionsDelta: number
+  suggestedBalance: number
+  transactionCount: number
+}
+
 // Rzeczywiste przepływy miesiąca kalendarzowego z transakcji (plan vs wykonanie).
 export interface MonthlyActuals {
   yearMonth: string
