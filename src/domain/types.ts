@@ -424,6 +424,15 @@ export interface PpkSettings {
   includeInCashflow: boolean // czy składka pracownika pomniejsza wolne środki w planie
 }
 
+// Zapisany scenariusz what-if: nazwane odchylenie od planu bazowego.
+export interface PlanScenario {
+  id: string
+  name: string
+  incomeDelta: number // zł/mc względem bazowego dochodu (może być ujemne)
+  expensesDelta: number // zł/mc względem bazowych kosztów (dodatnie = drożej)
+  loanOverpayment: number // dodatkowa miesięczna nadpłata kredytów
+}
+
 export interface Settings {
   monthlyIncome: number
   monthlyExpenses: number
@@ -440,6 +449,7 @@ export interface Settings {
   includeIkeContributionsInCashflow?: boolean
   ppk?: PpkSettings // tracker PPK/PPE; brak => nieskonfigurowany
   creditCard?: CreditCard // tracker karty kredytowej; brak => karta nieskonfigurowana
+  scenarios?: PlanScenario[] // zapisane scenariusze what-if
 }
 
 export interface MonthOverride {

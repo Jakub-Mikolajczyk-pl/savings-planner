@@ -40,6 +40,7 @@ import { LoanList } from './components/loans/LoanList'
 import { MortgageSection } from './components/mortgage/MortgageSection'
 import { NextBestActionPanel } from './components/plan/NextBestActionPanel'
 import { ReconciliationSection } from './components/reconciliation/ReconciliationSection'
+import { ScenarioManager } from './components/scenarios/ScenarioManager'
 import { SecurityBufferFocus } from './components/plan/SecurityBufferFocus'
 import { PayPeriodsSection } from './components/payperiods/PayPeriodsSection'
 import { ScheduleTable } from './components/schedule/ScheduleTable'
@@ -453,6 +454,17 @@ function PlanGoalsTab() {
       <div className="anim-rise anim-rise-2">
         <SectionCard title="Symulacja what-if" description="Przesuń suwak i zobacz, co zmienia +500 zł miesięcznie." icon={ReceiptText} accent="plan">
           <WhatIfSlider />
+        </SectionCard>
+      </div>
+
+      <div className="anim-rise anim-rise-2">
+        <SectionCard
+          title="Zapisane scenariusze"
+          description="Utrata pracy, dziecko, podwyżka — nazwane warianty planu porównane z bazą."
+          icon={ListChecks}
+          accent="plan"
+        >
+          <ScenarioManager />
         </SectionCard>
       </div>
 

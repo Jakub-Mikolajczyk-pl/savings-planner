@@ -284,6 +284,8 @@ data class SettingsDto(
     val includeIkeContributionsInCashflow: Boolean = false,
     // PPK/PPE tracker; null => nieskonfigurowany.
     @field:Valid val ppk: PpkSettingsDto? = null,
+    // Zapisane scenariusze what-if.
+    @field:Valid val scenarios: List<PlanScenarioDto> = emptyList(),
 )
 
 data class CreditCardDto(
@@ -291,6 +293,15 @@ data class CreditCardDto(
     @field:NotNull val limit: BigDecimal = BigDecimal.ZERO,
     @field:NotNull val availableLimit: BigDecimal = BigDecimal.ZERO,
     @field:Min(1) @field:Max(28) val repaymentDayOfMonth: Int? = null,
+)
+
+// Zapisany scenariusz what-if (nazwane odchylenie od planu bazowego).
+data class PlanScenarioDto(
+    @field:NotBlank val id: String,
+    @field:NotBlank val name: String,
+    @field:NotNull val incomeDelta: BigDecimal = BigDecimal.ZERO,
+    @field:NotNull val expensesDelta: BigDecimal = BigDecimal.ZERO,
+    @field:NotNull val loanOverpayment: BigDecimal = BigDecimal.ZERO,
 )
 
 // Rzeczywiste przepływy miesiąca z transakcji bankowych — do porównania plan vs wykonanie.
