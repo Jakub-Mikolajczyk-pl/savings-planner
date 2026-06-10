@@ -289,6 +289,17 @@ export interface GoalInsights {
   goals: GoalPace[]
 }
 
+// Rzeczywiste przepływy miesiąca kalendarzowego z transakcji (plan vs wykonanie).
+export interface MonthlyActuals {
+  yearMonth: string
+  income: number
+  expense: number
+  savingsContribution: number
+  savingsWithdrawal: number
+  uncategorizedCount: number
+  transactionCount: number
+}
+
 export type MortgageOverpaymentMode = 'shortenTerm' | 'reducePayment'
 
 export interface MortgageOneTimeOverpayment {

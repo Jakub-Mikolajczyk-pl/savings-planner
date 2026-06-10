@@ -39,6 +39,7 @@ import { LeakAnalysisSection } from './components/leakanalysis/LeakAnalysisSecti
 import { LoanList } from './components/loans/LoanList'
 import { MortgageSection } from './components/mortgage/MortgageSection'
 import { NextBestActionPanel } from './components/plan/NextBestActionPanel'
+import { ReconciliationSection } from './components/reconciliation/ReconciliationSection'
 import { SecurityBufferFocus } from './components/plan/SecurityBufferFocus'
 import { PayPeriodsSection } from './components/payperiods/PayPeriodsSection'
 import { ScheduleTable } from './components/schedule/ScheduleTable'
@@ -390,6 +391,12 @@ function PlanCashflowTab({ schedule, goalsCount }: { schedule: ReturnType<typeof
       <div className="anim-rise anim-rise-1">
         <SectionCard title="Miesięczny cashflow" description="Bazowe przychody, koszty życia i wolne środki po ratach." icon={CircleDollarSign} accent="plan">
           <Hero />
+        </SectionCard>
+      </div>
+
+      <div className="anim-rise anim-rise-2">
+        <SectionCard title="Plan vs wykonanie" description="Czy rzeczywistość z banku trzyma się planu — miesiąc po miesiącu, z odchyleniem." icon={TrendingUp} accent="plan">
+          <ReconciliationSection />
         </SectionCard>
       </div>
 

@@ -15,6 +15,7 @@ import {
   overridesApi,
   payPeriodsApi,
   recategorizeApi,
+  reconciliationApi,
   settingsApi,
   snapshotsApi,
   subscriptionsApi,
@@ -47,6 +48,7 @@ import type {
   IncomeAnchorCandidate,
   IngestResult,
   Loan,
+  MonthlyActuals,
   PriceObservation,
   Settings,
   Overrides,
@@ -105,6 +107,7 @@ interface SyncState {
   cycleTransactions?: BankTransaction[]
   cycleTransactionsPeriod?: { accountId: string; periodNo: number }
   goalInsights?: GoalInsights
+  monthlyActuals?: MonthlyActuals[]
 }
 
 interface BootstrapResult {
@@ -136,6 +139,7 @@ interface AppState extends DataState, SyncState {
   loadLeakAnalysis: (accountId: string, periodNo: number) => Promise<void>
   loadCycleTransactions: (accountId: string, periodNo: number) => Promise<void>
   loadGoalInsights: (accountId?: string) => Promise<void>
+  loadMonthlyActuals: (months?: number) => Promise<void>
   clearSyncError: () => void
 
   // Actions
@@ -515,6 +519,7 @@ export const useStore = create<AppState>()(
         cycleTransactions: undefined,
         cycleTransactionsPeriod: undefined,
         goalInsights: undefined,
+        monthlyActuals: undefined,
         whatIfDelta: 0,
         loanOverpayment: 0,
 
@@ -772,6 +777,16 @@ export const useStore = create<AppState>()(
             set({ goalInsights, lastSyncedAt: syncStamp() })
           } catch (error) {
             set({ goalInsights: undefined, syncError: describeSyncError(error) })
+          }
+        },
+
+        loadMonthlyActuals: async (months = 6) => {
+          if (!IS_API_MODE) return
+          try {
+            const monthlyActuals = await reconciliationApi.monthly(months)
+            set({ monthlyActuals, lastSyncedAt: syncStamp() })
+          } catch (error) {
+            set({ monthlyActuals: undefined, syncError: describeSyncError(error) })
           }
         },
 

@@ -293,6 +293,17 @@ data class CreditCardDto(
     @field:Min(1) @field:Max(28) val repaymentDayOfMonth: Int? = null,
 )
 
+// Rzeczywiste przepływy miesiąca z transakcji bankowych — do porównania plan vs wykonanie.
+data class MonthlyActualsDto(
+    val yearMonth: String,
+    val income: BigDecimal,
+    val expense: BigDecimal,
+    val savingsContribution: BigDecimal,
+    val savingsWithdrawal: BigDecimal,
+    val uncategorizedCount: Int,
+    val transactionCount: Int,
+)
+
 data class MonthOverrideDto(
     val income: BigDecimal? = null,
     val expenses: BigDecimal? = null,

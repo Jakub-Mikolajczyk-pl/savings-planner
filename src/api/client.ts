@@ -14,6 +14,7 @@ import type {
   IncomeAnchorCandidate,
   IngestResult,
   Loan,
+  MonthlyActuals,
   MortgagePlan,
   Overrides,
   PayPeriod,
@@ -282,6 +283,10 @@ export const goalInsightsApi = {
     const query = params.toString()
     return get<GoalInsights>(`/goal-insights${query ? `?${query}` : ''}`)
   },
+}
+
+export const reconciliationApi = {
+  monthly: (months = 6) => get<MonthlyActuals[]>(`/reconciliation/monthly?months=${months}`),
 }
 
 export const loansApi = {
