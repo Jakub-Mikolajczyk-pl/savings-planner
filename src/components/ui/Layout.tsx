@@ -129,6 +129,65 @@ export function SectionCard({
   )
 }
 
+interface SubTabDef<T extends string> {
+  id: T
+  label: string
+  icon?: LucideIcon
+}
+
+/*
+ * Pigułkowa pod-nawigacja wewnątrz strony (np. Plan → Budżet / Cele / Emerytura).
+ * Aktywna pigułka = atrament na papierze; reszta wtapia się w tło.
+ */
+export function SubTabs<T extends string>({
+  tabs,
+  active,
+  onChange,
+  label,
+}: {
+  tabs: Array<SubTabDef<T>>
+  active: T
+  onChange: (id: T) => void
+  label: string
+}) {
+  return (
+    <nav
+      aria-label={label}
+      className="inline-flex max-w-full flex-wrap items-center gap-1 rounded-2xl border border-gray-200/80 bg-white/70 p-1 shadow-[0_1px_2px_rgba(16,17,19,0.05)] dark:border-gray-800 dark:bg-gray-900/60"
+    >
+      {tabs.map(tab => {
+        const Icon = tab.icon
+        const isActive = tab.id === active
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => onChange(tab.id)}
+            aria-current={isActive ? 'page' : undefined}
+            className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 ${
+              isActive
+                ? 'bg-gray-950 font-medium text-gray-50 shadow-sm dark:bg-gray-100 dark:text-gray-950'
+                : 'text-gray-600 hover:bg-gray-100/80 hover:text-gray-950 dark:text-gray-400 dark:hover:bg-gray-800/70 dark:hover:text-gray-100'
+            }`}
+          >
+            {Icon && <Icon size={15} />}
+            {tab.label}
+          </button>
+        )
+      })}
+    </nav>
+  )
+}
+
+/* Jednolinijkowe wprowadzenie dla początkujących — serif, jak nota na marginesie. */
+export function PlainIntro({ children }: { children: ReactNode }) {
+  return (
+    <p className="font-display max-w-3xl text-[0.95rem] italic leading-relaxed text-gray-500 dark:text-gray-400">
+      {children}
+    </p>
+  )
+}
+
 export function StatCard({ label, value, detail, tone = 'neutral' }: StatCardProps) {
   return (
     <div className={`${surface} p-4`}>

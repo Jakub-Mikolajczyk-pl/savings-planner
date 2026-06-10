@@ -45,7 +45,7 @@ import { ScheduleTable } from './components/schedule/ScheduleTable'
 import { SubscriptionList } from './components/subscriptions/SubscriptionList'
 import { BasketPage } from './components/basket/BasketPage'
 import { AdvancedSettings } from './components/ui/AdvancedSettings'
-import { PageHeader, SectionCard, StatCard, surface } from './components/ui/Layout'
+import { PageHeader, PlainIntro, SectionCard, StatCard, SubTabs, surface } from './components/ui/Layout'
 import { allSnapshotMonths, BUCKET_LABELS, sumBucketBalances, totalAssetsAsOf } from './domain/accounts'
 import { buildSchedule } from './domain/allocation'
 import { formatPLN, formatYearMonth } from './domain/formatting'
@@ -246,16 +246,18 @@ function OverviewPage({ onNavigate }: { onNavigate: (tab: AppTab) => void }) {
         accent="overview"
       />
 
+      {overview.accounts.length === 0 && <StartHereCard onNavigate={onNavigate} />}
+
       <NetWorthHero overview={overview} />
 
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <div className="anim-rise anim-rise-2 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Dochód / mc" value={overview.monthlyIncome} detail={overview.cashflowMonthLabel} tone="positive" />
         <StatCard label="Koszty / mc" value={overview.monthlyCosts} detail={overview.costsDetail} tone="negative" />
         <StatCard label="Wolne środki / mc" value={overview.freeCash} detail={overview.freeCashDetail} tone={overview.freeCashTone} />
         <StatCard label="Poduszka bezpieczeństwa" value={overview.emergencyFund} detail={overview.emergencyFundLabel} tone="asset" />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.65fr)]">
+      <div className="anim-rise anim-rise-3 grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.65fr)]">
         <SectionCard title="Net worth w czasie" description="Snapshoty kont minus bieżące saldo długów." icon={TrendingUp} accent="assets">
           <NetWorthChart
             accounts={overview.accounts}
@@ -267,7 +269,7 @@ function OverviewPage({ onNavigate }: { onNavigate: (tab: AppTab) => void }) {
         <AssetsPie accounts={overview.accounts} snapshots={overview.snapshots} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="anim-rise anim-rise-4 grid gap-4 lg:grid-cols-2">
         <SectionCard title="Najbliższe cele" icon={ListChecks} accent="plan">
           {overview.nextGoals.length === 0 ? (
             <EmptyLine text="Brak aktywnych celów w planie." />
@@ -334,6 +336,22 @@ function useAccountSnapshotsOnDemand() {
   }, [hasHydratedFromBackend, hasLoadedAccountSnapshots, loadAccountSnapshots])
 }
 
+type PlanSubTab = 'cashflow' | 'goals' | 'retirement' | 'home'
+
+const PLAN_SUBTABS: Array<{ id: PlanSubTab; label: string; icon: AppIcon }> = [
+  { id: 'cashflow', label: 'Budżet miesiąca', icon: CircleDollarSign },
+  { id: 'goals', label: 'Cele i długi', icon: ListChecks },
+  { id: 'retirement', label: 'Emerytura i podatki', icon: PiggyBank },
+  { id: 'home', label: 'Hipoteka', icon: Home },
+]
+
+const PLAN_INTROS: Record<PlanSubTab, string> = {
+  cashflow: 'Ile wpływa, ile wypływa i co naprawdę zostaje każdego miesiąca. Jeśli dopiero zaczynasz — zacznij tutaj.',
+  goals: 'Na co zbierasz i co spłacasz. Aplikacja sama rozdziela wolne środki między cele i pokazuje, kiedy dojedziesz do mety.',
+  retirement: 'IKZE daje zwrot podatku co roku, IKE chroni zyski przed podatkiem Belki, a w PPK pracodawca dokłada do Twojej emerytury.',
+  home: 'Rata, nadpłaty i to, co w Polsce najważniejsze: co się stanie z ratą, gdy zmieni się WIBOR.',
+}
+
 function PlanPage() {
   useAccountSnapshotsOnDemand()
   const settings = useStore(s => s.settings)
@@ -343,78 +361,95 @@ function PlanPage() {
   const subscriptions = useStore(s => s.subscriptions)
   const upcomingExpenses = useStore(s => s.upcomingExpenses)
   const overrides = useStore(s => s.overrides)
+  const [subTab, setSubTab] = useState<PlanSubTab>('cashflow')
   const schedule = useMemo(
     () => buildSchedule(settings, goals, loans, overrides, 0, 0, mortgagePlan, subscriptions, upcomingExpenses),
     [settings, goals, loans, overrides, mortgagePlan, subscriptions, upcomingExpenses],
   )
-  const mortgageSummary = schedule.mortgageSummary
 
   return (
     <div className="space-y-5">
-      <PageHeader title="Plan" description="Cashflow, cele, raty i harmonogram miesięczny." icon={BarChart3} accent="plan" />
+      <PageHeader title="Plan" description="Budżet, cele, emerytura i hipoteka — podzielone na proste kroki." icon={BarChart3} accent="plan" />
 
-      <SectionCard title="Miesięczny cashflow" description="Bazowe przychody, koszty życia i wolne środki po ratach." icon={CircleDollarSign} accent="plan">
-        <Hero />
-      </SectionCard>
+      <div className="anim-rise space-y-3">
+        <SubTabs tabs={PLAN_SUBTABS} active={subTab} onChange={setSubTab} label="Sekcje planu" />
+        <PlainIntro>{PLAN_INTROS[subTab]}</PlainIntro>
+      </div>
 
-      <SectionCard title="Następny najlepszy ruch" description="Jedna lokalna rekomendacja na podstawie cashflow, buforów, IKZE i celów." icon={ListChecks} accent="plan">
-        <NextBestActionPanel schedule={schedule} />
-      </SectionCard>
+      {subTab === 'cashflow' && <PlanCashflowTab schedule={schedule} goalsCount={goals.length} />}
+      {subTab === 'goals' && <PlanGoalsTab />}
+      {subTab === 'retirement' && <PlanRetirementTab />}
+      {subTab === 'home' && <PlanHomeTab />}
+    </div>
+  )
+}
 
-      <SectionCard title="Priorytet bezpieczeństwa" description="Systemowe cele odbudowy poduszki i funduszu awaryjnego." icon={ShieldCheck} accent="plan">
-        <SecurityBufferFocus schedule={schedule} />
-      </SectionCard>
+function PlanCashflowTab({ schedule, goalsCount }: { schedule: ReturnType<typeof buildSchedule>; goalsCount: number }) {
+  return (
+    <div className="space-y-4">
+      <div className="anim-rise anim-rise-1">
+        <SectionCard title="Miesięczny cashflow" description="Bazowe przychody, koszty życia i wolne środki po ratach." icon={CircleDollarSign} accent="plan">
+          <Hero />
+        </SectionCard>
+      </div>
 
-      <SectionCard title="Prognoza następnego cyklu" description="Abonamenty, jednorazowe koszty, raty i najbliższa spłata karty." icon={CalendarClock} accent="plan">
-        <NextCycleForecast />
-      </SectionCard>
+      <div className="anim-rise anim-rise-2">
+        <SectionCard title="Następny najlepszy ruch" description="Jedna konkretna rekomendacja: co zrobić z pieniędzmi w tym miesiącu." icon={ListChecks} accent="plan">
+          <NextBestActionPanel schedule={schedule} />
+        </SectionCard>
+      </div>
 
-      <SectionCard title="IKZE roczne" description="Limity, wpłaty, rekomendowana dopłata i prognozowany zwrot PIT." icon={PiggyBank} accent="plan">
-        <IkzePlanner />
-      </SectionCard>
+      <div className="anim-rise anim-rise-3">
+        <SectionCard title="Priorytet bezpieczeństwa" description="Fundusz awaryjny i poduszka — zanim zaczniesz gonić inne cele." icon={ShieldCheck} accent="plan">
+          <SecurityBufferFocus schedule={schedule} />
+        </SectionCard>
+      </div>
 
-      <SectionCard
-        title="IKE roczne"
-        description="Drugie konto emerytalne obok IKZE — bez zwrotu PIT, ale zysk bez podatku Belki."
-        icon={ShieldCheck}
-        accent="plan"
-        collapsible
-        defaultOpen={false}
-      >
-        <IkePlanner />
-      </SectionCard>
+      <div className="anim-rise anim-rise-4">
+        <SectionCard title="Prognoza następnego cyklu" description="Abonamenty, jednorazowe koszty, raty i najbliższa spłata karty." icon={CalendarClock} accent="plan">
+          <NextCycleForecast />
+        </SectionCard>
+      </div>
 
-      <SectionCard
-        title="PPK"
-        description="Pracowniczy plan kapitałowy — składka z pensji + dopłaty pracodawcy i państwa."
-        icon={Database}
-        accent="plan"
-        collapsible
-        defaultOpen={false}
-      >
-        <PpkTracker />
-      </SectionCard>
+      <div className="anim-rise anim-rise-4">
+        <SectionCard
+          title="Harmonogram miesięczny"
+          description="Miesiąc po miesiącu: możesz ręcznie nadpisać przychody, koszty i alokacje celów."
+          icon={BarChart3}
+          accent="plan"
+          collapsible
+          defaultOpen={false}
+          collapsedSummary={
+            <div className="flex flex-wrap gap-x-5 gap-y-1">
+              <span>Horyzont: <strong>{schedule.rows.length} mies.</strong></span>
+              <span>Cele: <strong>{goalsCount}</strong></span>
+              <span>Pierwszy miesiąc: <strong>{schedule.rows[0]?.label ?? 'brak'}</strong></span>
+            </div>
+          }
+        >
+          <ScheduleTable />
+        </SectionCard>
+      </div>
+    </div>
+  )
+}
 
-      <SectionCard
-        title="Podatek Belki: maklerskie vs IKE/IKZE"
-        description="Ile 19% podatku od zysków zjada przy regularnym inwestowaniu."
-        icon={ReceiptText}
-        accent="plan"
-        collapsible
-        defaultOpen={false}
-      >
-        <BelkaEstimator />
-      </SectionCard>
+function PlanGoalsTab() {
+  return (
+    <div className="space-y-4">
+      <div className="anim-rise anim-rise-1">
+        <SectionCard title="Prognoza celów i długów" description="Kiedy każdy cel i kredyt dojedzie do mety przy obecnym tempie." icon={TrendingUp} accent="plan">
+          <SavingsChart />
+        </SectionCard>
+      </div>
 
-      <SectionCard title="Prognoza celów i długów" icon={TrendingUp} accent="plan">
-        <SavingsChart />
-      </SectionCard>
+      <div className="anim-rise anim-rise-2">
+        <SectionCard title="Symulacja what-if" description="Przesuń suwak i zobacz, co zmienia +500 zł miesięcznie." icon={ReceiptText} accent="plan">
+          <WhatIfSlider />
+        </SectionCard>
+      </div>
 
-      <SectionCard title="Symulacja what-if" icon={ReceiptText} accent="plan">
-        <WhatIfSlider />
-      </SectionCard>
-
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="anim-rise anim-rise-3 grid gap-4 xl:grid-cols-2">
         <SectionCard title="Cele" icon={ListChecks} accent="plan">
           <GoalInsightsSection />
           <div className="my-4 border-t border-gray-200 dark:border-gray-800" />
@@ -425,28 +460,7 @@ function PlanPage() {
         </SectionCard>
       </div>
 
-      <SectionCard
-        title="Kredyt hipoteczny"
-        icon={Home}
-        accent="plan"
-        collapsible
-        defaultOpen={false}
-        collapsedSummary={
-          mortgagePlan
-            ? (
-                <div className="flex flex-wrap gap-x-5 gap-y-1">
-                  <span>Saldo: <strong className="tabular-nums">{formatPLN(mortgagePlan.principal)}</strong></span>
-                  <span>Rata: <strong className="tabular-nums">{formatPLN(mortgageSummary?.currentMonthlyPayment ?? 0)}</strong></span>
-                  <span>Spłata: <strong>{mortgageSummary?.payoffMonth ?? 'po horyzoncie'}</strong></span>
-                </div>
-              )
-            : 'Brak zapisanego planu hipotecznego.'
-        }
-      >
-        <MortgageSection />
-      </SectionCard>
-
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="anim-rise anim-rise-4 grid gap-4 xl:grid-cols-2">
         <SectionCard
           title="Karta kredytowa"
           description="Wykorzystany limit i ile zejdzie z konta przy najbliższej spłacie."
@@ -455,31 +469,75 @@ function PlanPage() {
         >
           <CreditCardSection />
         </SectionCard>
-        <SectionCard title="Nadchodzące wydatki" icon={CalendarClock} accent="plan">
+        <SectionCard title="Nadchodzące wydatki" description="Jednorazowe, zaplanowane wydatki — plan odlicza je we właściwym miesiącu." icon={CalendarClock} accent="plan">
           <UpcomingExpenseList />
         </SectionCard>
       </div>
 
-      <SectionCard title="Abonamenty" icon={Database} accent="plan">
-        <SubscriptionList />
-      </SectionCard>
+      <div className="anim-rise anim-rise-4">
+        <SectionCard title="Abonamenty" description="Stałe subskrypcje — sumują się do miesięcznych kosztów planu." icon={Database} accent="plan">
+          <SubscriptionList />
+        </SectionCard>
+      </div>
+    </div>
+  )
+}
 
+function PlanRetirementTab() {
+  return (
+    <div className="space-y-4">
+      <div className="anim-rise anim-rise-1">
+        <SectionCard title="IKZE roczne" description="Wpłaty odliczasz od podatku — planer pokazuje limit, dopłaty i prognozowany zwrot PIT." icon={PiggyBank} accent="plan">
+          <IkzePlanner />
+        </SectionCard>
+      </div>
+
+      <div className="anim-rise anim-rise-2">
+        <SectionCard
+          title="IKE roczne"
+          description="Drugie konto emerytalne obok IKZE — bez zwrotu PIT, ale zysk bez 19% podatku Belki."
+          icon={ShieldCheck}
+          accent="plan"
+        >
+          <IkePlanner />
+        </SectionCard>
+      </div>
+
+      <div className="anim-rise anim-rise-3">
+        <SectionCard
+          title="PPK"
+          description="Pracowniczy plan kapitałowy — Twoja składka z pensji plus dopłaty pracodawcy i państwa."
+          icon={Database}
+          accent="plan"
+        >
+          <PpkTracker />
+        </SectionCard>
+      </div>
+
+      <div className="anim-rise anim-rise-4">
+        <SectionCard
+          title="Podatek Belki: maklerskie vs IKE/IKZE"
+          description="Ile 19% podatku od zysków zjada przy regularnym inwestowaniu — i ile ratują konta emerytalne."
+          icon={ReceiptText}
+          accent="plan"
+        >
+          <BelkaEstimator />
+        </SectionCard>
+      </div>
+    </div>
+  )
+}
+
+function PlanHomeTab() {
+  return (
+    <div className="anim-rise anim-rise-1">
       <SectionCard
-        title="Harmonogram miesięczny"
-        description="Nadpisania przychodów, kosztów i alokacji celów."
-        icon={BarChart3}
+        title="Kredyt hipoteczny"
+        description="Saldo, rata, nadpłaty, refinansowanie i scenariusze WIBOR po okresie stałej stopy."
+        icon={Home}
         accent="plan"
-        collapsible
-        defaultOpen={false}
-        collapsedSummary={
-          <div className="flex flex-wrap gap-x-5 gap-y-1">
-            <span>Horyzont: <strong>{schedule.rows.length} mies.</strong></span>
-            <span>Cele: <strong>{goals.length}</strong></span>
-            <span>Pierwszy miesiąc: <strong>{schedule.rows[0]?.label ?? 'brak'}</strong></span>
-          </div>
-        }
       >
-        <ScheduleTable />
+        <MortgageSection />
       </SectionCard>
     </div>
   )
@@ -523,6 +581,57 @@ function SettingsPage() {
   )
 }
 
+function StartHereCard({ onNavigate }: { onNavigate: (tab: AppTab) => void }) {
+  const steps: Array<{ step: string; title: string; copy: string; tab: AppTab; cta: string }> = [
+    {
+      step: '1',
+      title: 'Dodaj konta',
+      copy: 'Wpisz swoje konta (także w EUR/USD) i pierwsze saldo. To jest fundament net worth.',
+      tab: 'assets',
+      cta: 'Otwórz Majątek',
+    },
+    {
+      step: '2',
+      title: 'Ustaw budżet',
+      copy: 'Podaj miesięczny dochód i koszty życia — plan policzy wolne środki.',
+      tab: 'plan',
+      cta: 'Otwórz Plan',
+    },
+    {
+      step: '3',
+      title: 'Dodaj cele',
+      copy: 'Wakacje, remont, poduszka — aplikacja sama rozdzieli na nie wolne środki.',
+      tab: 'plan',
+      cta: 'Dodaj cel',
+    },
+  ]
+
+  return (
+    <div className={`${surface} anim-rise p-6`}>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.09em] text-indigo-600 dark:text-indigo-400">Zacznij tutaj</p>
+      <h2 className="mt-1 font-display text-xl font-semibold text-gray-950 dark:text-gray-50">
+        Trzy kroki i plan zaczyna działać
+      </h2>
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        {steps.map(item => (
+          <div key={item.step} className="flex flex-col rounded-xl border border-gray-200/80 p-4 dark:border-gray-800">
+            <span className="font-display text-2xl font-semibold text-gray-300 dark:text-gray-600">{item.step}</span>
+            <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">{item.title}</p>
+            <p className="mt-1 flex-1 text-xs leading-relaxed text-gray-500 dark:text-gray-400">{item.copy}</p>
+            <button
+              type="button"
+              onClick={() => onNavigate(item.tab)}
+              className="mt-3 inline-flex w-fit items-center rounded-md bg-gray-950 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-950 dark:hover:bg-white"
+            >
+              {item.cta}
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function DomainButton({ onClick, label }: { onClick: () => void; label: string }) {
   return (
     <button
@@ -542,7 +651,7 @@ function EmptyLine({ text }: { text: string }) {
 function NetWorthHero({ overview }: { overview: ReturnType<typeof useOverviewModel> }) {
   const negative = overview.netWorthTone === 'negative'
   return (
-    <div className={`${surface} overflow-hidden`}>
+    <div className={`${surface} anim-rise anim-rise-1 overflow-hidden`}>
       <div className="grid gap-6 p-6 sm:grid-cols-[1.25fr_1fr] sm:p-7">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.09em] text-gray-500 dark:text-gray-400">Net worth</p>
