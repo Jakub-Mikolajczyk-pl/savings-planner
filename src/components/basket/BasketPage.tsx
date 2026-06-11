@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import {
   CartesianGrid,
   Legend,
@@ -14,6 +14,8 @@ import {
 import {
   ArrowDown,
   ArrowUp,
+  ChevronLeft,
+  ChevronRight,
   Eye,
   EyeOff,
   FileUp,
@@ -617,6 +619,10 @@ export function BasketPage() {
   const [showImport, setShowImport] = useState(false)
   const [sort, setSort] = useState<Sort>({ key: 'name', dir: 'asc' })
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
+  // Jednorazowe pozycje (1 obserwacja) zaśmiecają listę i nie dają porównań cen —
+  // domyślnie ukryte, przełącznik w nagłówku karty.
+  const [hideSingletons, setHideSingletons] = useState(true)
+  const [page, setPage] = useState(0)
 
   const cpiSeries = useMemo(
     () => personalCpiSeries(basketItems, priceObservations, basketConfig),
@@ -629,6 +635,21 @@ export function BasketPage() {
   )
   const allRows = useMemo(() => buildRows(basketItems, priceObservations), [basketItems, priceObservations])
   const sortedRows = useMemo(() => applySort(allRows, sort), [allRows, sort])
+
+  const singletonCount = useMemo(() => allRows.filter(r => r.obsCount <= 1).length, [allRows])
+  const visibleRows = useMemo(
+    () => hideSingletons ? sortedRows.filter(r => r.obsCount > 1) : sortedRows,
+    [sortedRows, hideSingletons],
+  )
+
+  // Pagination
+  const PAGE_SIZE = 25
+  const pageCount = Math.max(1, Math.ceil(visibleRows.length / PAGE_SIZE))
+  const safePage = Math.min(page, pageCount - 1)
+  const pagedRows = useMemo(
+    () => visibleRows.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE),
+    [visibleRows, safePage],
+  )
 
   const trackedCount = basketItems.filter(i => i.tracked).length
 
@@ -659,8 +680,27 @@ export function BasketPage() {
   const hasGus = (basketConfig.officialCpi ?? []).length > 0
   const showChart = chartData.length >= 2
 
-  const handleSort = (key: SortKey) =>
+  const handleSort = (key: SortKey) => {
     setSort(prev => prev.key === key ? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' })
+    setPage(0)
+  }
+
+  const toggleSingletons = () => {
+    setHideSingletons(v => !v)
+    setPage(0)
+  }
+
+  const basketTableAction = singletonCount > 0 ? (
+    <button
+      type="button"
+      onClick={toggleSingletons}
+      className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-2.5 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+      title={hideSingletons ? 'Pokaż pozycje z jedną obserwacją' : 'Ukryj pozycje z jedną obserwacją'}
+    >
+      {hideSingletons ? <Eye size={13} /> : <EyeOff size={13} />}
+      {hideSingletons ? `Pokaż jednorazowe (${singletonCount})` : 'Ukryj jednorazowe'}
+    </button>
+  ) : undefined
 
   const handleRemove = (id: string) => {
     removeBasketItem(id)
@@ -770,7 +810,7 @@ export function BasketPage() {
       <BasketConfigPanel config={basketConfig} onChange={setBasketConfig} earliestMonth={earliestMonth} />
 
       {/* Basket table */}
-      <SectionCard title="Produkty w koszyku" icon={ShoppingBasket} accent="assets">
+      <SectionCard title="Produkty w koszyku" icon={ShoppingBasket} accent="assets" action={basketTableAction}>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -788,11 +828,11 @@ export function BasketPage() {
               </tr>
             </thead>
             <tbody>
-              {sortedRows.map(row => {
+              {pagedRows.map(row => {
                 const selected = selectedItemId === row.item.id
                 return (
-                  <>
-                    <tr key={row.item.id}
+                  <Fragment key={row.item.id}>
+                    <tr
                       onClick={() => setSelectedItemId(prev => prev === row.item.id ? null : row.item.id)}
                       className={`cursor-pointer border-b border-gray-50 dark:border-gray-800/50 transition-colors ${selected ? 'bg-indigo-50/60 dark:bg-indigo-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-800/30'}`}>
                       <td className="pl-2 py-2.5 text-center">
@@ -845,15 +885,46 @@ export function BasketPage() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </Fragment>
                 )
               })}
             </tbody>
           </table>
-          {sortedRows.length === 0 && (
-            <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">Brak produktów.</p>
+          {visibleRows.length === 0 && (
+            <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+              {hideSingletons && singletonCount > 0
+                ? `Wszystkie pozycje mają tylko jedną obserwację — kliknij „Pokaż jednorazowe (${singletonCount})", aby je wyświetlić.`
+                : 'Brak produktów.'}
+            </p>
           )}
         </div>
+
+        {pageCount > 1 && (
+          <div className="mt-3 flex items-center justify-between gap-3 text-xs text-gray-500 dark:text-gray-400">
+            <span className="tabular-nums">
+              Pozycje {safePage * PAGE_SIZE + 1}–{Math.min(visibleRows.length, safePage * PAGE_SIZE + PAGE_SIZE)} z {visibleRows.length}
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setPage(p => Math.max(0, p - 1))}
+                disabled={safePage === 0}
+                className="inline-flex items-center gap-1 rounded-md border border-gray-200 dark:border-gray-700 px-2 py-1 font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+              >
+                <ChevronLeft size={13} />Poprzednia
+              </button>
+              <span className="px-2 tabular-nums">{safePage + 1} / {pageCount}</span>
+              <button
+                type="button"
+                onClick={() => setPage(p => Math.min(pageCount - 1, p + 1))}
+                disabled={safePage >= pageCount - 1}
+                className="inline-flex items-center gap-1 rounded-md border border-gray-200 dark:border-gray-700 px-2 py-1 font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+              >
+                Następna<ChevronRight size={13} />
+              </button>
+            </div>
+          </div>
+        )}
       </SectionCard>
 
       {showImport && <ImportEmailsDialog onClose={() => setShowImport(false)} />}
