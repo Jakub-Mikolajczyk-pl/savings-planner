@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useStore } from './index'
+import { useStore, basketOnlyPersistValue, readPersistedLocalState } from './index'
 import { defaultBasketConfig } from '../domain/types'
 import { parseOrderEmail } from '../domain/basket/parseOrderEmail'
 import frisco2026 from '../domain/basket/__fixtures__/frisco-2026.eml?raw'
@@ -176,5 +176,50 @@ describe('basket store slice', () => {
     expect(basketItems).toHaveLength(itemsBefore.length)
     expect(priceObservations).toHaveLength(obsBefore.length)
     expect(basketConfig).toEqual(defaultBasketConfig)
+  })
+})
+
+// ─── basket persistence in API mode ───────────────────────────────────────────
+// W trybie API koszyk nie ma backendu, więc musi przeżyć przeładowanie przez
+// localStorage (basket-only), a hydrateFromBackend nie może go wyzerować.
+
+describe('basket persistence (API mode helpers)', () => {
+  const fullPersist = JSON.stringify({
+    version: 0,
+    state: {
+      accounts: [{ id: 'a1' }],
+      transactions: [{ id: 't1' }],
+      settings: { monthlyIncome: 999 },
+      basketItems: [{ id: 'b1', displayName: 'X' }],
+      priceObservations: [{ itemId: 'b1', date: '2025-01-01', unitPrice: 5 }],
+      basketConfig: { ...defaultBasketConfig, trackingThreshold: 7 },
+    },
+  })
+
+  it('basketOnlyPersistValue zostawia tylko koszyk, usuwa dane finansowe', () => {
+    const out = JSON.parse(basketOnlyPersistValue(fullPersist)!)
+    expect(out.version).toBe(0)
+    expect(out.state.basketItems).toHaveLength(1)
+    expect(out.state.priceObservations).toHaveLength(1)
+    expect(out.state.basketConfig.trackingThreshold).toBe(7)
+    // dane finansowe nie mogą trafić do localStorage w API mode
+    expect(out.state.accounts).toBeUndefined()
+    expect(out.state.transactions).toBeUndefined()
+    expect(out.state.settings).toBeUndefined()
+  })
+
+  it('niepoprawny JSON → undefined (nic nie zapisujemy)', () => {
+    expect(basketOnlyPersistValue('{ niepoprawny json')).toBeUndefined()
+  })
+
+  it('round-trip: basket-only zapis → readPersistedLocalState odczytuje koszyk', () => {
+    localStorage.setItem('savings-planner-v1', basketOnlyPersistValue(fullPersist)!)
+    const read = readPersistedLocalState()!
+    expect(read.basketItems).toHaveLength(1)
+    expect(read.priceObservations).toHaveLength(1)
+    expect(read.basketConfig.trackingThreshold).toBe(7)
+    // finanse puste po stripie — backend i tak jest źródłem prawdy
+    expect(read.accounts).toEqual([])
+    expect(read.transactions).toEqual([])
   })
 })

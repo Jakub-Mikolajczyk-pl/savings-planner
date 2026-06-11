@@ -330,9 +330,44 @@ const isBackendEmpty = async () => {
 const localStorageAdapter = {
   getItem: (name: string) => globalThis.localStorage?.getItem(name) ?? null,
   setItem: (name: string, value: string) => {
-    if (!IS_API_MODE) globalThis.localStorage?.setItem(name, value)
+    if (!IS_API_MODE) {
+      globalThis.localStorage?.setItem(name, value)
+      return
+    }
+    /*
+     * W trybie API backend jest źródłem prawdy dla danych finansowych, więc
+     * trzymamy je poza przeglądarką. Ale koszyk inflacyjny nie ma jeszcze
+     * backendu — gdybyśmy go nie zapisali, znikałby przy każdym przeładowaniu
+     * (hydrateFromBackend nadpisuje stan pustym koszykiem). Dlatego w API mode
+     * persystujemy WYŁĄCZNIE koszyk.
+     */
+    const basketOnly = basketOnlyPersistValue(value)
+    if (basketOnly !== undefined) globalThis.localStorage?.setItem(name, basketOnly)
   },
   removeItem: (name: string) => globalThis.localStorage?.removeItem(name),
+}
+
+/*
+ * Z pełnego payloadu persist (partialize → { state, version }) zostawia tylko
+ * pola koszyka. Używane w API mode, żeby dane finansowe nie lądowały w
+ * localStorage, a koszyk (bez backendu) przeżył przeładowanie.
+ * Zwraca undefined, gdy payload jest nieparsowalny — wtedy nic nie zapisujemy.
+ */
+export function basketOnlyPersistValue(value: string): string | undefined {
+  try {
+    const parsed = JSON.parse(value) as { state?: Partial<DataState>; version?: number }
+    const s = parsed.state ?? {}
+    return JSON.stringify({
+      ...parsed,
+      state: {
+        basketItems: s.basketItems ?? [],
+        priceObservations: s.priceObservations ?? [],
+        basketConfig: s.basketConfig ?? defaultBasketConfig,
+      },
+    })
+  } catch {
+    return undefined
+  }
 }
 
 /*
@@ -342,7 +377,7 @@ const localStorageAdapter = {
  * Dzięki temu po przełączeniu VITE_BACKEND=api użytkownik może nacisnąć
  * "Wyślij dane do bazy" i przenieść dane, które dotąd żyły w przeglądarce.
  */
-const readPersistedLocalState = (): DataState | undefined => {
+export const readPersistedLocalState = (): DataState | undefined => {
   const raw = globalThis.localStorage?.getItem('savings-planner-v1')
   if (!raw) return undefined
 
@@ -448,6 +483,13 @@ async function loadBackendState(options: HydrateOptions = {}): Promise<DataState
     : (await Promise.all(accounts.map(account => snapshotsApi.history(account.id)))).flat()
   const settings = settingsFromApi ?? await settingsApi.put(defaultSettings)
 
+  /*
+   * Koszyk inflacyjny nie ma backendu — żyje w localStorage (patrz
+   * localStorageAdapter). Backend nie zna koszyka, więc tutaj zachowujemy ten
+   * z przeglądarki, żeby set({ ...backendState }) go nie wyzerował.
+   */
+  const persistedBasket = readPersistedLocalState()
+
   return {
     settings,
     goals,
@@ -465,9 +507,9 @@ async function loadBackendState(options: HydrateOptions = {}): Promise<DataState
     subscriptions,
     upcomingExpenses,
     overrides,
-    basketItems: [],
-    priceObservations: [],
-    basketConfig: defaultBasketConfig,
+    basketItems: persistedBasket?.basketItems ?? [],
+    priceObservations: persistedBasket?.priceObservations ?? [],
+    basketConfig: persistedBasket?.basketConfig ?? defaultBasketConfig,
   }
 }
 
