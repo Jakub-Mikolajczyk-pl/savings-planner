@@ -27,6 +27,17 @@ function decodeQP(text: string): string {
   return new TextDecoder('utf-8').decode(new Uint8Array(bytes))
 }
 
+function decodeBase64(text: string): string {
+  const clean = text.replace(/[^A-Za-z0-9+/=]/g, '')
+  try {
+    const binary = atob(clean)
+    const bytes = Uint8Array.from(binary, c => c.charCodeAt(0))
+    return new TextDecoder('utf-8').decode(bytes)
+  } catch {
+    return text
+  }
+}
+
 function decodeMimeWord(value: string): string {
   return value.replace(/=\?([^?]+)\?([BbQq])\?([^?]*)\?=/g, (_, charset, encoding, text) => {
     if (encoding.toUpperCase() === 'B') {
@@ -94,6 +105,38 @@ function escapeRe(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
+function decodePartBody(part: MimePart): string {
+  if (part.encoding === 'quoted-printable') return decodeQP(part.body)
+  if (part.encoding === 'base64') return decodeBase64(part.body)
+  return part.body
+}
+
+interface BodyAcc {
+  htmlBody: string
+  textBody?: string
+}
+
+// Walks a MIME part tree depth-first, recursing into nested multipart/* parts
+// (e.g. multipart/mixed wrapping a multipart/alternative + PDF attachment),
+// keeping the first text/html and first text/plain leaf it encounters.
+function collectBodies(parts: MimePart[], acc: BodyAcc): void {
+  for (const part of parts) {
+    const partCt = part.contentType.toLowerCase()
+
+    if (partCt.startsWith('multipart/')) {
+      const boundary = extractParam(part.contentType, 'boundary')
+      if (boundary) collectBodies(splitMultipart(part.body, boundary), acc)
+      continue
+    }
+
+    if (partCt.startsWith('text/html') && !acc.htmlBody) {
+      acc.htmlBody = decodePartBody(part)
+    } else if (partCt.startsWith('text/plain') && acc.textBody === undefined) {
+      acc.textBody = decodePartBody(part)
+    }
+  }
+}
+
 export function parseEml(raw: string): EmlParsed {
   const blankLine = raw.search(/\r?\n\r?\n/)
   if (blankLine === -1) {
@@ -111,24 +154,16 @@ export function parseEml(raw: string): EmlParsed {
     const boundary = extractParam(ct, 'boundary')
     if (!boundary) return { headers, htmlBody: body }
 
-    const parts = splitMultipart(body, boundary)
-    let htmlBody = ''
-    let textBody: string | undefined
-
-    for (const part of parts) {
-      const partCt = part.contentType.toLowerCase()
-      const decode = part.encoding === 'quoted-printable' ? decodeQP : (s: string) => s
-
-      if (partCt.startsWith('text/html') && !htmlBody) {
-        htmlBody = decode(part.body)
-      } else if (partCt.startsWith('text/plain') && textBody === undefined) {
-        textBody = decode(part.body)
-      }
-    }
-    return { headers, htmlBody, textBody }
+    const acc: BodyAcc = { htmlBody: '' }
+    collectBodies(splitMultipart(body, boundary), acc)
+    return { headers, htmlBody: acc.htmlBody, textBody: acc.textBody }
   }
 
   // Single-part — Frisco: 8bit text/html
-  const htmlBody = encoding === 'quoted-printable' ? decodeQP(body) : body
+  const htmlBody = encoding === 'quoted-printable'
+    ? decodeQP(body)
+    : encoding === 'base64'
+      ? decodeBase64(body)
+      : body
   return { headers, htmlBody }
 }

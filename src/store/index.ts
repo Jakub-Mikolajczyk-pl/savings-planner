@@ -1314,13 +1314,20 @@ export const useStore = create<AppState>()(
               summary.filesError.push({ name: r.name, reason: r.reason })
               return null
             }
-            const order = parseOrderEmail(r.content)
-            if (order.ok) {
-              summary.filesOk++
-            } else {
-              summary.filesError.push({ name: r.name, reason: order.reason })
+            // Guard per file: a single malformed .eml must never throw out of the
+            // map and abort the whole batch — report it and keep going.
+            try {
+              const order = parseOrderEmail(r.content)
+              if (order.ok) {
+                summary.filesOk++
+              } else {
+                summary.filesError.push({ name: r.name, reason: order.reason })
+              }
+              return order
+            } catch {
+              summary.filesError.push({ name: r.name, reason: 'parse_error' })
+              return null
             }
-            return order
           }).filter(o => o !== null)
 
           const state = get()

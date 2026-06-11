@@ -23,7 +23,7 @@ function parseDate2022(textBody: string): string {
 }
 
 function parseOrderRef(textBody: string): string {
-  const m = textBody.match(/Numer zam[oó]wienia:\s*([\w-]+)/)
+  const m = textBody.match(/(?:Numer|Nr) zam[oó]wienia:\s*([\w-]+)/i)
   return m?.[1] ?? ''
 }
 
@@ -48,6 +48,38 @@ function parseLines2025(doc: Document): ParsedLine[] {
     const qtyMatch = qtyText.match(/^(\d+)/)
     const quantity = qtyMatch ? parseInt(qtyMatch[1], 10) : 1
 
+    const lineTotal = parseCurrencyInput(tds[3].textContent ?? '')
+    if (lineTotal === null || lineTotal === 0) continue
+
+    lines.push({
+      rawName: name,
+      quantity,
+      unitPrice: round2(lineTotal / quantity),
+      lineTotal,
+      isWeightItem: false,
+    })
+  }
+  return lines
+}
+
+// ── Lisek "dostarczone": generic 4-td rows, qty cell like "1 szt." ───────────
+// Same column layout as the 2025 template (name / qty / total) but the table
+// carries no data-type="code" marker, so it is matched by the qty cell shape.
+function parseLinesSzt(doc: Document): ParsedLine[] {
+  const lines: ParsedLine[] = []
+
+  for (const tr of Array.from(doc.querySelectorAll('tr'))) {
+    const tds = Array.from(tr.children).filter((el): el is HTMLTableCellElement => el.tagName === 'TD')
+    if (tds.length < 4) continue
+
+    const qtyText = tds[2].textContent?.trim() ?? ''
+    const qtyMatch = qtyText.match(/^(\d+)\s*szt/i)
+    if (!qtyMatch) continue
+
+    const name = tds[1].textContent?.replace(/\s+/g, ' ').trim() ?? ''
+    if (!name) continue
+
+    const quantity = parseInt(qtyMatch[1], 10)
     const lineTotal = parseCurrencyInput(tds[3].textContent ?? '')
     if (lineTotal === null || lineTotal === 0) continue
 
@@ -99,16 +131,23 @@ export function parseLisek(doc: Document, textBody: string, headers: EmlHeaders)
     return { ok: false, reason: 'parse_error', detail: 'orderRef not found in text body' }
   }
 
-  // ── Detect sub-template ───────────────────────────────────────────────────────
-  const is2025 = !!(doc.querySelector('[data-type="code"]'))
-
   // ── Date ─────────────────────────────────────────────────────────────────────
-  const date = is2025
-    ? parseDate2025(textBody) || new Date(headers['date'] ?? '').toISOString().slice(0, 10)
-    : parseDate2022(textBody) || new Date(headers['date'] ?? '').toISOString().slice(0, 10)
+  // Try the explicit "Data:" line, then the 2022 prose form, then the email
+  // header. The header fallback is guarded so a missing/invalid Date can't throw.
+  const headerDate = (() => {
+    const d = new Date(headers['date'] ?? '')
+    return Number.isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10)
+  })()
+  const date = parseDate2025(textBody) || parseDate2022(textBody) || headerDate
 
   // ── Lines ─────────────────────────────────────────────────────────────────────
-  const lines = is2025 ? parseLines2025(doc) : parseLines2022(doc)
+  // Templates seen in the wild, tried most-specific first:
+  //   • data-type="code" table        → parseLines2025
+  //   • generic table, "N szt." qty    → parseLinesSzt  ("dostarczone")
+  //   • "N x" prefix in first cell      → parseLines2022
+  let lines = parseLines2025(doc)
+  if (lines.length === 0) lines = parseLinesSzt(doc)
+  if (lines.length === 0) lines = parseLines2022(doc)
 
   if (lines.length === 0) {
     return { ok: false, reason: 'no_items' }

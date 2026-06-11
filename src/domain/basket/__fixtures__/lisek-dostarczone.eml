@@ -1,0 +1,52 @@
+Return-Path: <bounces+test=example.com@em2273.lisek.app>
+Delivered-To: <test@example.com>
+Content-Type: multipart/mixed; boundary=MIXEDBOUNDARY
+Date: Sun, 28 Sep 2025 17:51:58 +0000 (UTC)
+From: Lisek <kontakt@lisek.app>
+Mime-Version: 1.0
+Subject: =?UTF-8?B?WmFtw7N3aWVuaWU=?= dostarczone
+To: <test@example.com>
+
+--MIXEDBOUNDARY
+Content-Type: multipart/alternative; boundary=ALTBOUNDARY
+
+--ALTBOUNDARY
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+
+Nr zam=C3=B3wienia: N42-DOSTARCZONE
+Data: 28.09.2025 17:51:58
+
+--ALTBOUNDARY
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset=utf-8
+
+<html><body><table>
+<tr>
+  <td style=3D"width: 10%;"></td>
+  <td style=3D"width: 60%;">Test Produkt 200g</td>
+  <td style=3D"width: 15%; text-align: right;">1 szt.</td>
+  <td style=3D"width: 15%; text-align: right;">9,99 z=C5=82</td>
+</tr>
+<tr>
+  <td style=3D"width: 10%;"></td>
+  <td style=3D"width: 60%;">Inny Produkt 500ml</td>
+  <td style=3D"width: 15%; text-align: right;">2 szt.</td>
+  <td style=3D"width: 15%; text-align: right;">20,00 z=C5=82</td>
+</tr>
+<tr>
+  <td style=3D"width: 10%;"></td>
+  <td style=3D"width: 60%;">Pocztowka Lisek.app</td>
+  <td style=3D"width: 15%; text-align: right;">1 szt.</td>
+  <td style=3D"width: 15%; text-align: right;">0,00 z=C5=82</td>
+</tr>
+</table></body></html>
+--ALTBOUNDARY--
+
+--MIXEDBOUNDARY
+Content-Transfer-Encoding: base64
+Content-Type: application/pdf; name="Paragon.pdf"
+Content-Disposition: attachment; filename="Paragon.pdf"
+
+JVBERi0xLjQKJeLjz9MKdGVzdCBwYXJhZ29uCg==
+--MIXEDBOUNDARY--

@@ -6,12 +6,14 @@ import frisco2026 from './__fixtures__/frisco-2026.eml?raw'
 import frisco2021 from './__fixtures__/frisco-2021.eml?raw'
 import lisek2025 from './__fixtures__/lisek-2025.eml?raw'
 import lisek2022 from './__fixtures__/lisek-2022.eml?raw'
+import lisekDostarczone from './__fixtures__/lisek-dostarczone.eml?raw'
 
 const fixtures: Record<string, string> = {
   'frisco-2026.eml': frisco2026,
   'frisco-2021.eml': frisco2021,
   'lisek-2025.eml': lisek2025,
   'lisek-2022.eml': lisek2022,
+  'lisek-dostarczone.eml': lisekDostarczone,
 }
 
 function fixture(name: string): string {
@@ -189,6 +191,40 @@ describe('Lisek 2022 (szablon N x)', () => {
     expect(nat!.quantity).toBe(4)
     expect(nat!.lineTotal).toBe(35.96)
     expect(nat!.unitPrice).toBe(8.99)
+  })
+})
+
+// ─── Lisek "dostarczone" (multipart/mixed + PDF, "Nr zamówienia", "N szt.") ───
+
+describe('Lisek dostarczone (multipart/mixed, szablon szt.)', () => {
+  const result = parseOrderEmail(fixture('lisek-dostarczone.eml'))
+
+  it('parsuje pomyślnie mimo zagnieżdżonego multipart/mixed z załącznikiem PDF', () => {
+    expect(result.ok).toBe(true)
+  })
+
+  it('orderRef ze skróconej etykiety "Nr zamówienia"', () => {
+    if (!result.ok) throw new Error(result.reason)
+    expect(result.orderRef).toBe('N42-DOSTARCZONE')
+  })
+
+  it('poprawna data z linii "Data:"', () => {
+    if (!result.ok) throw new Error(result.reason)
+    expect(result.date).toBe('2025-09-28')
+  })
+
+  it('parsuje pozycje szablonu "N szt." i pomija gratis 0,00 zł', () => {
+    if (!result.ok) throw new Error(result.reason)
+    expect(result.lines).toHaveLength(2)
+  })
+
+  it('Inny Produkt 2 szt.: unitPrice=10,00 (=20,00/2)', () => {
+    if (!result.ok) throw new Error(result.reason)
+    const item = result.lines.find(l => l.rawName.includes('Inny Produkt'))
+    expect(item).toBeDefined()
+    expect(item!.quantity).toBe(2)
+    expect(item!.lineTotal).toBe(20)
+    expect(item!.unitPrice).toBe(10)
   })
 })
 
