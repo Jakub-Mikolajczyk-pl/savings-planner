@@ -7,6 +7,7 @@ import {
   topMovers,
   detectShrinkflation,
   cpiYoY,
+  cpiYoYSeries,
 } from './inflationBasket'
 import type { BasketItem, PriceObservation, BasketConfig, ParsedOrder } from '../types'
 
@@ -174,8 +175,8 @@ describe('personalCpiSeries – Laspeyres', () => {
 
   const series = personalCpiSeries(items, observations, defaultConfig)
 
-  it('zwraca dwa punkty', () => {
-    expect(series).toHaveLength(2)
+  it('zwraca miesiące od bazy do ostatniej obserwacji', () => {
+    expect(series.map(p => p.month)).toEqual(['2022-01', '2022-02', '2022-03'])
   })
 
   it('base period index = 1.0', () => {
@@ -186,9 +187,9 @@ describe('personalCpiSeries – Laspeyres', () => {
 
   it('indeks 2022-03 = 1.10 (+10%)', () => {
     // Numerator = 3.30*4 + 4.40*2 = 22; denominator = 20 → 1.1
-    expect(series[1].month).toBe('2022-03')
-    expect(series[1].index).toBeCloseTo(1.1, 5)
-    expect(series[1].valuePct).toBeCloseTo(10, 1)
+    const march = series.find(p => p.month === '2022-03')!
+    expect(march.index).toBeCloseTo(1.1, 5)
+    expect(march.valuePct).toBeCloseTo(10, 1)
   })
 })
 
@@ -223,6 +224,19 @@ describe('personalCpiSeries – carry-forward', () => {
     // 3.3*4 + 4.0*2 = 13.2 + 8 = 21.2 → index = 1.06
     const p = series.find(s => s.month === '2022-03')!
     expect(p.index).toBeCloseTo(1.06, 2)
+  })
+
+  it('emituje puste miesiące między zakupami, żeby r/r miało punkt odniesienia', () => {
+    const item = makeItem('mleko')
+    const sparse = [
+      makeObs('s1', 'mleko', '2022-01-05', 4.0, 2, { orderRef: 'A' }),
+      makeObs('s2', 'mleko', '2022-03-05', 4.4, 2, { orderRef: 'B' }),
+    ]
+
+    const sparseSeries = personalCpiSeries([item], sparse, defaultConfig)
+
+    expect(sparseSeries.map(p => p.month)).toEqual(['2022-01', '2022-02', '2022-03'])
+    expect(sparseSeries.find(p => p.month === '2022-02')?.index).toBeCloseTo(1, 5)
   })
 })
 
@@ -416,5 +430,34 @@ describe('cpiYoY', () => {
 
   it('pusta seria → undefined', () => {
     expect(cpiYoY([])).toBeUndefined()
+  })
+
+  it('liczy najnowsze r/r z serii z miesiącami uzupełnionymi carry-forward', () => {
+    const item = makeItem('mleko')
+    const sparse = [
+      makeObs('y1', 'mleko', '2022-01-05', 10, 1, { orderRef: 'A' }),
+      makeObs('y2', 'mleko', '2023-03-05', 11, 1, { orderRef: 'B' }),
+    ]
+
+    const sparseSeries = personalCpiSeries([item], sparse, defaultConfig)
+
+    expect(sparseSeries.map(p => p.month)).toContain('2022-03')
+    expect(cpiYoY(sparseSeries)).toBeCloseTo(10, 1)
+  })
+})
+
+describe('cpiYoYSeries', () => {
+  it('zwraca miesięczną serię r/r porównywalną z GUS officialCpi', () => {
+    const series = [
+      { month: '2022-01', index: 1.0, valuePct: 0 },
+      { month: '2022-02', index: 1.0, valuePct: 0 },
+      { month: '2023-01', index: 1.1, valuePct: 10 },
+      { month: '2023-02', index: 1.2, valuePct: 20 },
+    ]
+
+    expect(cpiYoYSeries(series)).toEqual([
+      { month: '2023-01', valuePct: 10 },
+      { month: '2023-02', valuePct: 20 },
+    ])
   })
 })

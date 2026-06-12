@@ -31,7 +31,7 @@ import {
 } from 'lucide-react'
 import { useStore } from '../../store'
 import {
-  cpiYoY,
+  cpiYoYSeries,
   itemTrend,
   monthOf,
   personalCpiSeries,
@@ -628,7 +628,8 @@ export function BasketPage() {
     () => personalCpiSeries(basketItems, priceObservations, basketConfig),
     [basketItems, priceObservations, basketConfig],
   )
-  const yoy = useMemo(() => cpiYoY(cpiSeries), [cpiSeries])
+  const yoySeries = useMemo(() => cpiYoYSeries(cpiSeries), [cpiSeries])
+  const yoy = yoySeries.at(-1)?.valuePct
   const movers = useMemo(
     () => topMovers(basketItems, priceObservations, basketConfig, 5),
     [basketItems, priceObservations, basketConfig],
@@ -666,16 +667,16 @@ export function BasketPage() {
 
   const chartData = useMemo(() => {
     const gus = basketConfig.officialCpi ?? []
-    const months = new Set([...cpiSeries.map(p => p.month), ...gus.map(p => p.month)])
+    const months = new Set([...yoySeries.map(p => p.month), ...gus.map(p => p.month)])
     const allMonths = [...months].sort()
-    const personalByMonth = new Map(cpiSeries.map(p => [p.month, p.valuePct]))
+    const personalByMonth = new Map(yoySeries.map(p => [p.month, p.valuePct]))
     const gusByMonth = new Map(gus.map(p => [p.month, p.valuePct]))
     return allMonths.map(month => ({
       month,
       personal: personalByMonth.get(month),
       gus: gusByMonth.get(month),
     }))
-  }, [cpiSeries, basketConfig.officialCpi])
+  }, [yoySeries, basketConfig.officialCpi])
 
   const hasGus = (basketConfig.officialCpi ?? []).length > 0
   const showChart = chartData.length >= 2
@@ -749,7 +750,7 @@ export function BasketPage() {
         <StatCard
           label="CPI rok do roku"
           value={yoy !== undefined ? fmtPct(yoy) : '—'}
-          detail={cpiSeries.length > 0 ? `${cpiSeries[0].month} → ${cpiSeries.at(-1)!.month}` : 'Za mało danych'}
+          detail={yoySeries.length > 0 ? `${yoySeries[0].month} → ${yoySeries.at(-1)!.month}` : cpiSeries.length > 0 ? 'Potrzeba 12 mies. historii' : 'Za mało danych'}
           tone={yoy !== undefined && yoy > 0 ? 'negative' : yoy !== undefined && yoy < 0 ? 'positive' : 'neutral'}
         />
         <StatCard label="Produkty śledzone" value={String(trackedCount)} detail={`z ${basketItems.length} łącznie (próg: ${basketConfig.trackingThreshold} obs.)`} tone="neutral" />
@@ -759,7 +760,7 @@ export function BasketPage() {
 
       {/* CPI chart */}
       {showChart && (
-        <SectionCard title="Twój CPI" description={hasGus ? 'Porównanie z nakładką GUS (linia przerywana).' : 'Zmiana cen koszyka względem okresu bazowego.'} icon={TrendingUp} accent="assets">
+        <SectionCard title="Twój CPI" description={hasGus ? 'Porównanie r/r z nakładką GUS (linia przerywana).' : 'Zmiana cen koszyka rok do roku.'} icon={TrendingUp} accent="assets">
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={chartData} margin={{ top: 4, right: 12, bottom: 0, left: -10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="opacity-10" />
@@ -774,7 +775,7 @@ export function BasketPage() {
                       <p className="font-medium mb-1">{label as string}</p>
                       {payload.map(p => (
                         <p key={String(p.dataKey)} className={p.dataKey === 'gus' ? 'text-amber-600 dark:text-amber-400' : pctTone(p.value as number | undefined)}>
-                          {p.dataKey === 'gus' ? 'GUS r/r: ' : 'Mój CPI: '}{fmtPct(p.value as number | undefined)}
+                          {p.dataKey === 'gus' ? 'GUS r/r: ' : 'Mój CPI r/r: '}{fmtPct(p.value as number | undefined)}
                         </p>
                       ))}
                     </div>
@@ -782,7 +783,7 @@ export function BasketPage() {
                 }}
               />
               {hasGus && <Legend wrapperStyle={{ fontSize: 11 }} />}
-              <Line type="monotone" dataKey="personal" name="Mój CPI" stroke="#4f46e5" strokeWidth={2} dot={{ r: 3, fill: '#4f46e5' }} activeDot={{ r: 5 }} connectNulls />
+              <Line type="monotone" dataKey="personal" name="Mój CPI r/r" stroke="#4f46e5" strokeWidth={2} dot={{ r: 3, fill: '#4f46e5' }} activeDot={{ r: 5 }} connectNulls />
               {hasGus && <Line type="monotone" dataKey="gus" name="GUS r/r" stroke="#d97706" strokeWidth={2} strokeDasharray="6 3" dot={{ r: 3, fill: '#d97706' }} activeDot={{ r: 5 }} connectNulls />}
             </LineChart>
           </ResponsiveContainer>

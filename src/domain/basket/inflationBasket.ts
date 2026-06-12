@@ -1,4 +1,5 @@
 import { createId } from '../id'
+import { addMonths, monthDiff } from '../formatting'
 import { normalizeName } from './nameNormalize'
 import type { BasketItem, BasketConfig, PriceObservation, ParsedOrder } from '../types'
 
@@ -15,6 +16,11 @@ export interface CpiPoint {
   month: string    // "YYYY-MM"
   index: number    // 1.0 at base period
   valuePct: number // (index - 1) * 100
+}
+
+export interface CpiYoYPoint {
+  month: string
+  valuePct: number
 }
 
 export interface ItemTrend {
@@ -62,6 +68,12 @@ function computeNormalizedUnitPrice(
 function wavg(obs: PriceObservation[]): number {
   const totalQty = obs.reduce((s, o) => s + o.quantity, 0)
   return obs.reduce((s, o) => s + o.unitPrice * o.quantity, 0) / totalQty
+}
+
+function monthRange(from: string, to: string): string[] {
+  const diff = monthDiff(from, to)
+  if (diff < 0) return []
+  return Array.from({ length: diff + 1 }, (_, i) => addMonths(from, i))
 }
 
 // ─── ingest ──────────────────────────────────────────────────────────────────
@@ -192,10 +204,12 @@ export function personalCpiSeries(
   for (const obs of filteredObs) {
     if (trackedIds.has(obs.itemId)) monthsSet.add(monthOf(obs.date))
   }
-  const months = [...monthsSet].sort()
-  if (months.length === 0) return []
+  const observedMonths = [...monthsSet].sort()
+  if (observedMonths.length === 0) return []
 
-  const basePeriod = config.basePeriod ?? months[0]
+  const basePeriod = config.basePeriod ?? observedMonths[0]
+  const months = monthRange(basePeriod, observedMonths[observedMonths.length - 1])
+  if (months.length === 0) return []
 
   // Base quantities / effective weights per item.
   // Laspeyres: q0 = sum of quantities bought in basePeriod.
@@ -387,11 +401,21 @@ export function detectShrinkflation(
 // ─── year-over-year ───────────────────────────────────────────────────────────
 
 export function cpiYoY(series: CpiPoint[]): number | undefined {
-  if (series.length === 0) return undefined
-  const latest = series[series.length - 1]
-  const prevYear = String(Number(latest.month.slice(0, 4)) - 1)
-  const targetMonth = `${prevYear}-${latest.month.slice(5, 7)}`
-  const base = series.find(p => p.month === targetMonth)
-  if (!base) return undefined
-  return r2((latest.index / base.index - 1) * 100)
+  return cpiYoYSeries(series).at(-1)?.valuePct
+}
+
+export function cpiYoYSeries(series: CpiPoint[]): CpiYoYPoint[] {
+  const byMonth = new Map(series.map(p => [p.month, p]))
+  const result: CpiYoYPoint[] = []
+
+  for (const point of series) {
+    const base = byMonth.get(addMonths(point.month, -12))
+    if (!base || base.index === 0) continue
+    result.push({
+      month: point.month,
+      valuePct: r2((point.index / base.index - 1) * 100),
+    })
+  }
+
+  return result
 }

@@ -177,6 +177,20 @@ describe('basket store slice', () => {
     expect(priceObservations).toHaveLength(obsBefore.length)
     expect(basketConfig).toEqual(defaultBasketConfig)
   })
+
+  it('exportData → importData zachowuje nakładkę GUS officialCpi', () => {
+    const officialCpi = [
+      { month: '2025-12', valuePct: 4.8 },
+      { month: '2026-04', valuePct: 4.1 },
+    ]
+
+    useStore.getState().setBasketConfig({ officialCpi })
+    const json = useStore.getState().exportData()
+    resetBasket()
+    useStore.getState().importData(json)
+
+    expect(useStore.getState().basketConfig.officialCpi).toEqual(officialCpi)
+  })
 })
 
 // ─── basket persistence in API mode ───────────────────────────────────────────
