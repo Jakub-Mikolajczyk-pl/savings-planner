@@ -158,6 +158,7 @@ interface AppState extends DataState, SyncState {
   reopenAccount: (id: string) => void
   setSnapshot: (accountId: string, yearMonth: string, balance: number, notes?: string) => void
   removeSnapshot: (accountId: string, yearMonth: string) => void
+  removeSnapshotsForMonth: (yearMonth: string) => void
   addCategory: (category: Omit<Category, 'id'>) => void
   updateCategory: (id: number, patch: Partial<Omit<Category, 'id'>>) => void
   removeCategory: (id: number) => void
@@ -1026,6 +1027,30 @@ export const useStore = create<AppState>()(
           })
 
           runMutation(snapshot, () => snapshotsApi.remove(accountId, yearMonth))
+        },
+
+        removeSnapshotsForMonth: (yearMonth) => {
+          const snapshot = dataSnapshot(get())
+          const removedSnapshots = get().accountSnapshots.filter(item => item.yearMonth === yearMonth)
+          if (removedSnapshots.length === 0) return
+
+          set(s => {
+            const nextSnapshots = s.accountSnapshots.filter(item => item.yearMonth !== yearMonth)
+            const touchedAccountIds = new Set(removedSnapshots.map(item => item.accountId))
+
+            return {
+              accountSnapshots: nextSnapshots,
+              accounts: s.accounts.map(account =>
+                touchedAccountIds.has(account.id)
+                  ? { ...account, openedAt: earliestSnapshotMonth(nextSnapshots, account.id) }
+                  : account,
+              ),
+            }
+          })
+
+          runMutation(snapshot, () => Promise.all(
+            removedSnapshots.map(item => snapshotsApi.remove(item.accountId, item.yearMonth)),
+          ))
         },
 
         addCategory: (categoryData) => {

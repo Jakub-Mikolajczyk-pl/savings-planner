@@ -82,3 +82,33 @@ describe('useStore - subscriptions and upcoming expenses', () => {
     ])
   })
 })
+
+describe('useStore - account snapshot months', () => {
+  beforeEach(() => {
+    useStore.getState().resetAll()
+  })
+
+  it('removes every snapshot from a selected month and keeps other months', () => {
+    useStore.setState({
+      accounts: [
+        { id: 'main', name: 'Main', bucket: 'accounts', currency: 'PLN', openedAt: '2026-05' },
+        { id: 'savings', name: 'Savings', bucket: 'safety_cushion', currency: 'PLN', openedAt: '2026-06' },
+      ],
+      accountSnapshots: [
+        { accountId: 'main', yearMonth: '2026-05', balance: 1000 },
+        { accountId: 'main', yearMonth: '2026-06', balance: 1200 },
+        { accountId: 'savings', yearMonth: '2026-06', balance: 5000 },
+      ],
+    })
+
+    useStore.getState().removeSnapshotsForMonth('2026-06')
+
+    expect(useStore.getState().accountSnapshots).toEqual([
+      { accountId: 'main', yearMonth: '2026-05', balance: 1000 },
+    ])
+    expect(useStore.getState().accounts).toMatchObject([
+      { id: 'main', openedAt: '2026-05' },
+      { id: 'savings', openedAt: undefined },
+    ])
+  })
+})

@@ -12,6 +12,7 @@ import { AssetsKpi } from './AssetsKpi'
 import { AssetsPie } from './AssetsPie'
 import { ImportCsvDialog } from './ImportCsvDialog'
 import { NetWorthChart } from './NetWorthChart'
+import { DeleteSnapshotMonthDialog, SnapshotMonthDialog, type SnapshotMonthValue } from './SnapshotMonthDialog'
 import { SnapshotSuggestionsPanel } from './SnapshotSuggestionsPanel'
 
 export function AccountsSection() {
@@ -28,6 +29,7 @@ export function AccountsSection() {
   const reopenAccount = useStore(s => s.reopenAccount)
   const setSnapshot = useStore(s => s.setSnapshot)
   const removeSnapshot = useStore(s => s.removeSnapshot)
+  const removeSnapshotsForMonth = useStore(s => s.removeSnapshotsForMonth)
   const settings = useStore(s => s.settings)
   const goals = useStore(s => s.goals)
   const overrides = useStore(s => s.overrides)
@@ -50,32 +52,43 @@ export function AccountsSection() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showClosed, setShowClosed] = useState(false)
   const [importCsvOpen, setImportCsvOpen] = useState(false)
-  const [draftMonths, setDraftMonths] = useState<string[]>([])
+  const [snapshotDialogMonth, setSnapshotDialogMonth] = useState<string | null>(null)
+  const [deleteMonth, setDeleteMonth] = useState<string | null>(null)
   const [selectedMonth, setSelectedMonth] = useState(currentYearMonth())
 
   const months = useMemo(() => {
-    const combined = [...allSnapshotMonths(snapshots), ...draftMonths]
-    return [...new Set(combined)].sort().reverse()
-  }, [draftMonths, snapshots])
+    return allSnapshotMonths(snapshots).sort().reverse()
+  }, [snapshots])
 
   const visibleAccounts = useMemo(
     () => accounts.filter(account => showClosed || !account.closedAt),
     [accounts, showClosed],
   )
 
-  const addDraftMonth = (yearMonth: string) => {
-    setDraftMonths(current => current.includes(yearMonth) ? current : [...current, yearMonth])
+  const openSnapshotDialog = (yearMonth: string) => {
     setSelectedMonth(yearMonth)
+    setSnapshotDialogMonth(yearMonth)
   }
 
   const addNextMonth = () => {
     const latest = months[0] ?? currentYearMonth()
-    addDraftMonth(addMonths(latest, 1))
+    openSnapshotDialog(addMonths(latest, 1))
   }
 
   const handleSetSnapshot = (accountId: string, yearMonth: string, balance: number) => {
     setSnapshot(accountId, yearMonth, balance)
-    setDraftMonths(current => current.filter(month => month !== yearMonth))
+  }
+
+  const handleSaveMonthSnapshots = (values: SnapshotMonthValue[]) => {
+    values.forEach(value => setSnapshot(value.accountId, value.yearMonth, value.balance))
+    if (values[0]) setSelectedMonth(values[0].yearMonth)
+    setSnapshotDialogMonth(null)
+  }
+
+  const handleDeleteMonth = () => {
+    if (!deleteMonth) return
+    removeSnapshotsForMonth(deleteMonth)
+    setDeleteMonth(null)
   }
 
   return (
@@ -150,7 +163,7 @@ export function AccountsSection() {
             className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
           />
           <button
-            onClick={() => addDraftMonth(selectedMonth)}
+            onClick={() => openSnapshotDialog(selectedMonth)}
             className="flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
           >
             <CalendarPlus size={15} />
@@ -209,10 +222,28 @@ export function AccountsSection() {
           months={months}
           onSetSnapshot={handleSetSnapshot}
           onRemoveSnapshot={removeSnapshot}
+          onRemoveMonth={setDeleteMonth}
         />
       </div>
 
       {importCsvOpen && <ImportCsvDialog onClose={() => setImportCsvOpen(false)} />}
+      {snapshotDialogMonth && (
+        <SnapshotMonthDialog
+          accounts={visibleAccounts}
+          snapshots={snapshots}
+          yearMonth={snapshotDialogMonth}
+          onSave={handleSaveMonthSnapshots}
+          onCancel={() => setSnapshotDialogMonth(null)}
+        />
+      )}
+      {deleteMonth && (
+        <DeleteSnapshotMonthDialog
+          yearMonth={deleteMonth}
+          snapshotCount={snapshots.filter(snapshot => snapshot.yearMonth === deleteMonth).length}
+          onConfirm={handleDeleteMonth}
+          onCancel={() => setDeleteMonth(null)}
+        />
+      )}
     </div>
   )
 }

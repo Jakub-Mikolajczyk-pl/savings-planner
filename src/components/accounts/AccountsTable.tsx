@@ -13,9 +13,10 @@ interface Props {
   months: string[]
   onSetSnapshot: (accountId: string, yearMonth: string, balance: number) => void
   onRemoveSnapshot: (accountId: string, yearMonth: string) => void
+  onRemoveMonth?: (yearMonth: string) => void
 }
 
-export function AccountsTable({ accounts, snapshots, months, onSetSnapshot, onRemoveSnapshot }: Props) {
+export function AccountsTable({ accounts, snapshots, months, onSetSnapshot, onRemoveSnapshot, onRemoveMonth }: Props) {
   const fx = useStore(s => s.settings)
   const snapshotsByCell = useMemo(() => {
     const map = new Map<string, AccountSnapshot>()
@@ -85,6 +86,7 @@ export function AccountsTable({ accounts, snapshots, months, onSetSnapshot, onRe
               fx={fx}
               onSetSnapshot={onSetSnapshot}
               onRemoveSnapshot={onRemoveSnapshot}
+              onRemoveMonth={onRemoveMonth}
             />
           ))}
         </tbody>
@@ -111,12 +113,28 @@ const AccountsTableRow = memo(function AccountsTableRow({
   fx,
   onSetSnapshot,
   onRemoveSnapshot,
+  onRemoveMonth,
 }: RowProps) {
   return (
     <tr>
       <td className="sticky left-0 z-10 bg-white dark:bg-gray-900 px-3 py-3 font-medium text-gray-700 dark:text-gray-200 whitespace-nowrap">
-        <span className="block">{formatYearMonth(yearMonth)}</span>
-        <span className="text-xs font-normal text-gray-400">{yearMonth}</span>
+        <div className="flex items-start justify-between gap-2">
+          <span>
+            <span className="block">{formatYearMonth(yearMonth)}</span>
+            <span className="text-xs font-normal text-gray-400">{yearMonth}</span>
+          </span>
+          {onRemoveMonth && (
+            <button
+              type="button"
+              onClick={() => onRemoveMonth(yearMonth)}
+              className="rounded p-1.5 text-gray-300 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
+              aria-label={`Usuń miesiąc ${yearMonth}`}
+              title="Usuń miesiąc"
+            >
+              <Trash2 size={13} />
+            </button>
+          )}
+        </div>
       </td>
       {accounts.map(account => {
         const active = isActiveInMonth(account, yearMonth)
@@ -137,6 +155,7 @@ const AccountsTableRow = memo(function AccountsTableRow({
               <CurrencyInput
                 value={snapshot?.balance ?? 0}
                 onChange={value => onSetSnapshot(account.id, yearMonth, value)}
+                ariaLabel={`${account.name} ${yearMonth}`}
                 placeholder={snapshot ? '0' : '—'}
                 className="min-w-32"
               />

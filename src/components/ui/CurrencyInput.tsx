@@ -5,11 +5,12 @@ interface Props {
   value: number
   onChange: (val: number) => void
   label?: string
+  ariaLabel?: string
   className?: string
   placeholder?: string
 }
 
-export function CurrencyInput({ value, onChange, label, className = '', placeholder = '0,00' }: Props) {
+export function CurrencyInput({ value, onChange, label, ariaLabel, className = '', placeholder = '0,00' }: Props) {
   /*
    * Parent stores the domain number, while this component stores the editable
    * text. That lets the user type decimal separators naturally, then we format
@@ -67,6 +68,7 @@ export function CurrencyInput({ value, onChange, label, className = '', placehol
         <input
           type="text"
           inputMode="decimal"
+          aria-label={ariaLabel}
           value={display}
           placeholder={placeholder}
           onFocus={handleFocus}
