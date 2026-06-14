@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { formatPLN } from '../../domain/formatting'
 import { LoanForm } from './LoanForm'
@@ -64,12 +64,53 @@ function LoanRow({
   onEdit: () => void
   onRemove: () => void
 }) {
+  const [paymentFeedback, setPaymentFeedback] = useState<'idle' | 'updating' | 'saved'>('idle')
   const isPaidOff = loan.remainingBalance <= 0
   const monthsLeft = loan.monthlyPayment > 0 ? Math.ceil(loan.remainingBalance / loan.monthlyPayment) : 0
   const paymentAmount = Math.min(loan.remainingBalance, loan.monthlyPayment)
   const paymentLabel = isPaidOff
     ? 'Kredyt spłacony'
     : `Oznacz ratę ${formatPLN(paymentAmount)} jako zapłaconą`
+  const isPaymentLocked = isPaidOff || paymentFeedback !== 'idle'
+  const paidButtonText = paymentFeedback === 'updating'
+    ? 'Aktualizuję...'
+    : paymentFeedback === 'saved'
+      ? 'Zapisano'
+      : 'Zapłacona'
+  const paidButtonLabel = paymentFeedback === 'updating'
+    ? 'Aktualizuję ratę'
+    : paymentFeedback === 'saved'
+      ? 'Rata zapisana'
+      : paymentLabel
+  const paidButtonClass = `inline-flex h-8 min-w-8 items-center justify-center gap-1 rounded-md px-2 text-xs font-medium transition-colors disabled:cursor-not-allowed sm:min-w-[6.75rem] ${
+    paymentFeedback === 'saved'
+      ? 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200 dark:ring-emerald-800'
+      : paymentFeedback === 'updating'
+        ? 'bg-gray-50 text-gray-500 dark:bg-gray-700/60 dark:text-gray-300'
+        : 'text-emerald-700 hover:bg-emerald-50 disabled:text-gray-300 disabled:hover:bg-transparent dark:text-emerald-300 dark:hover:bg-emerald-900/30 dark:disabled:text-gray-600'
+  }`
+
+  useEffect(() => {
+    if (paymentFeedback !== 'updating') return
+
+    const timeoutId = window.setTimeout(() => setPaymentFeedback('saved'), 180)
+    return () => window.clearTimeout(timeoutId)
+  }, [paymentFeedback])
+
+  useEffect(() => {
+    if (paymentFeedback !== 'saved') return
+
+    const timeoutId = window.setTimeout(() => setPaymentFeedback('idle'), 900)
+    return () => window.clearTimeout(timeoutId)
+  }, [paymentFeedback])
+
+  const handlePaymentPaid = () => {
+    if (isPaymentLocked) return
+
+    onPaymentPaid()
+    setPaymentFeedback('updating')
+  }
+
   return (
     <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
       <div className="flex-1 min-w-0">
@@ -81,14 +122,15 @@ function LoanRow({
       <div className="flex gap-1 shrink-0">
         <button
           type="button"
-          onClick={onPaymentPaid}
-          disabled={isPaidOff}
-          title={paymentLabel}
-          aria-label={paymentLabel}
-          className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-medium text-emerald-700 transition-colors hover:bg-emerald-50 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent dark:text-emerald-300 dark:hover:bg-emerald-900/30 dark:disabled:text-gray-600"
+          onClick={handlePaymentPaid}
+          disabled={isPaymentLocked}
+          title={paidButtonLabel}
+          aria-label={paidButtonLabel}
+          aria-live="polite"
+          className={paidButtonClass}
         >
-          <CircleCheck size={13} />
-          <span className="hidden sm:inline">Zapłacona</span>
+          <CircleCheck size={13} className={paymentFeedback === 'idle' ? undefined : 'animate-pulse'} />
+          <span className="hidden sm:inline">{paidButtonText}</span>
         </button>
         <button onClick={onEdit} className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors">
           <Pencil size={13} />
