@@ -150,6 +150,7 @@ interface AppState extends DataState, SyncState {
   reorderGoals: (orderedIds: string[]) => void
   addLoan: (loan: Omit<Loan, 'id'>) => void
   updateLoan: (id: string, patch: Partial<Omit<Loan, 'id'>>) => void
+  markLoanPaymentPaid: (id: string) => void
   removeLoan: (id: string) => void
   addAccount: (account: Omit<Account, 'id' | 'currency'> & { currency?: string }) => void
   updateAccount: (id: string, patch: Partial<Omit<Account, 'id'>>) => void
@@ -292,6 +293,8 @@ const withoutId = <T extends { id?: string }>(entity: T): Omit<T, 'id'> => {
   void id
   return rest
 }
+
+const roundMoney = (value: number): number => Math.round(value * 100) / 100
 
 /*
  * Sprawdzanie "czy backend jest pusty" celowo ignoruje settings.
@@ -929,6 +932,14 @@ export const useStore = create<AppState>()(
           const updated = { ...loan, ...patch }
           set(s => ({ loans: s.loans.map(item => item.id === id ? updated : item) }))
           runMutation(snapshot, () => loansApi.update(id, updated))
+        },
+
+        markLoanPaymentPaid: (id) => {
+          const loan = get().loans.find(item => item.id === id)
+          if (!loan || loan.remainingBalance <= 0 || loan.monthlyPayment <= 0) return
+          get().updateLoan(id, {
+            remainingBalance: Math.max(0, roundMoney(loan.remainingBalance - loan.monthlyPayment)),
+          })
         },
 
         removeLoan: (id) => {

@@ -112,3 +112,52 @@ describe('useStore - account snapshot months', () => {
     ])
   })
 })
+
+describe('useStore - loan installment payments', () => {
+  beforeEach(() => {
+    useStore.getState().resetAll()
+  })
+
+  it('marks one installment as paid and updates schedule consumers from the new balance', () => {
+    const store = useStore.getState()
+    store.updateSettings({
+      monthlyIncome: 10000,
+      monthlyExpenses: 6000,
+      startMonth: '2026-01',
+      horizonMonths: 3,
+    })
+    store.addLoan({ name: 'Auto', remainingBalance: 2500, monthlyPayment: 1000 })
+
+    const loanId = useStore.getState().loans[0].id
+    useStore.getState().markLoanPaymentPaid(loanId)
+
+    expect(useStore.getState().loans[0]).toMatchObject({
+      name: 'Auto',
+      remainingBalance: 1500,
+      monthlyPayment: 1000,
+    })
+
+    const schedule = useStore.getState().getSchedule()
+    expect(schedule.loanProgress[0]).toMatchObject({
+      loanId,
+      initialBalance: 1500,
+      monthlyPayment: 1000,
+      payoffMonth: '2026-02',
+    })
+    expect(schedule.rows.map(row => row.loanEntries.find(entry => entry.loanId === loanId)?.payment)).toEqual([
+      1000,
+      500,
+      0,
+    ])
+  })
+
+  it('caps the final paid installment at zero balance', () => {
+    const store = useStore.getState()
+    store.addLoan({ name: 'Raty RTV', remainingBalance: 800, monthlyPayment: 1000 })
+
+    const loanId = useStore.getState().loans[0].id
+    useStore.getState().markLoanPaymentPaid(loanId)
+
+    expect(useStore.getState().loans[0].remainingBalance).toBe(0)
+  })
+})
