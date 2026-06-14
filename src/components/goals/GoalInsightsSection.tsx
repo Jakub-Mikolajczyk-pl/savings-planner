@@ -36,7 +36,7 @@ export function GoalInsightsSection() {
 
   return (
     <div className="space-y-3">
-      <div className="grid gap-3 xl:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.9fr)]">
+      <div className="grid gap-3 2xl:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.9fr)]">
         {goalInsights.currentCycle ? (
           <FreeCashPanel cycle={goalInsights.currentCycle} />
         ) : (
@@ -48,7 +48,7 @@ export function GoalInsightsSection() {
             <Gauge size={16} className="text-gray-500 dark:text-gray-400" />
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Tempo z historii</h3>
           </div>
-          <div className="grid gap-2 sm:grid-cols-3 xl:grid-cols-1">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(8rem,1fr))] gap-x-3 gap-y-2">
             <Metric label="Pełne cykle" value={String(goalInsights.cycleCount)} />
             <Metric label="Średnie netto" value={formatPLN(goalInsights.averageNetPerCycle)} tone={goalInsights.averageNetPerCycle < 0 ? 'negative' : 'positive'} />
             <Metric label="Średnia wolna gotówka" value={formatPLN(goalInsights.averageFreeCashPerCycle)} tone="positive" />
@@ -102,7 +102,7 @@ function FreeCashPanel({ cycle }: { cycle: FreeCashCycle }) {
           <div className="bg-teal-500/80" style={{ width: `${freePct}%` }} />
         </div>
       </div>
-      <div className="mt-2 grid gap-2 text-xs text-gray-500 dark:text-gray-400 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-2 grid grid-cols-[repeat(auto-fit,minmax(8rem,1fr))] gap-x-3 gap-y-2 text-xs leading-snug text-gray-500 dark:text-gray-400">
         <span>Koszty stałe: {formatPLN(cycle.committedExpense)}</span>
         <span>Wolna gotówka: {formatPLN(cycle.freeCash)}</span>
         <span>Oszczędności: {formatPLN(savingsContribution)}{savingsWithdrawal > 0 ? ` / wypłata ${formatPLN(savingsWithdrawal)}` : ''}</span>
@@ -117,14 +117,14 @@ function GoalPaceRow({ goal }: { goal: GoalPace }) {
   const status = statusCopy(goal.status)
 
   return (
-    <div className="grid gap-3 px-3 py-3 md:grid-cols-[minmax(0,1fr)_minmax(16rem,0.8fr)]">
+    <div className="grid gap-3 px-3 py-3 2xl:grid-cols-[minmax(0,1fr)_minmax(16rem,0.8fr)]">
       <div className="min-w-0">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-500 dark:bg-gray-800 dark:text-gray-400">
             {goal.priority}
           </span>
-          <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">{goal.name}</p>
-          <span className={`rounded-sm px-1.5 py-0.5 text-xs ${status.className}`}>{status.label}</span>
+          <p className="min-w-[8rem] flex-1 truncate text-sm font-medium text-gray-900 dark:text-gray-100">{goal.name}</p>
+          <span className={`shrink-0 rounded-sm px-1.5 py-0.5 text-xs ${status.className}`}>{status.label}</span>
         </div>
         <div className="mt-2 h-2 overflow-hidden rounded-sm bg-gray-100 dark:bg-gray-800">
           <div className="h-full rounded-sm bg-teal-500/80" style={{ width: `${progress}%` }} />
@@ -133,7 +133,7 @@ function GoalPaceRow({ goal }: { goal: GoalPace }) {
           {formatPLN(goal.currentSaved)} / {formatPLN(goal.targetAmount)}; zostalo {formatPLN(goal.remainingAmount)}
         </p>
       </div>
-      <div className="grid gap-2 text-xs sm:grid-cols-3 md:grid-cols-1 xl:grid-cols-3">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(7.5rem,1fr))] gap-x-3 gap-y-2 text-xs">
         <Metric label="Plan / cykl" value={goal.plannedPerCycle ? formatPLN(goal.plannedPerCycle) : 'kolejka'} />
         <Metric label="Realnie / cykl" value={formatPLN(goal.actualPerCycle)} tone={goal.actualPerCycle > 0 ? 'positive' : 'negative'} />
         <Metric label="Projekcja" value={projectionLabel(goal)} />
@@ -150,9 +150,9 @@ function Metric({ label, value, tone = 'neutral' }: { label: string; value: stri
       : 'text-gray-900 dark:text-gray-100'
 
   return (
-    <div>
-      <p className="text-gray-500 dark:text-gray-400">{label}</p>
-      <p className={`mt-0.5 font-semibold tabular-nums ${toneClass}`}>{value}</p>
+    <div className="min-w-0">
+      <p className="break-words leading-snug text-gray-500 dark:text-gray-400">{label}</p>
+      <p className={`mt-0.5 break-words font-semibold leading-snug tabular-nums ${toneClass}`}>{value}</p>
     </div>
   )
 }

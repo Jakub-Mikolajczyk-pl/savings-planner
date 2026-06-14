@@ -29,7 +29,7 @@ function SortableGoalRow({ goal, onEdit, onRemove }: { goal: Goal; onEdit: () =>
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg"
+      className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-800 sm:gap-3"
     >
       <button
         {...attributes}
@@ -44,14 +44,14 @@ function SortableGoalRow({ goal, onEdit, onRemove }: { goal: Goal; onEdit: () =>
         {goal.priority}
       </span>
 
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5">
-          <span className="font-medium text-gray-900 dark:text-gray-100 truncate">{goal.name}</span>
+      <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <span className="min-w-0 truncate font-medium text-gray-900 dark:text-gray-100">{goal.name}</span>
           {goal.fixedAllocation && (
             <Lock size={12} className="text-purple-500 shrink-0" title={`Stała alokacja ${formatPLN(goal.fixedAllocation)}/mies.`} />
           )}
         </div>
-        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs leading-snug text-gray-500 dark:text-gray-400">
           <span>{formatPLN(goal.targetAmount)}</span>
           {goal.deadline && <span>· termin: {new Date(goal.deadline).toLocaleDateString('pl-PL')}</span>}
           {goal.fixedAllocation && <span>· {formatPLN(goal.fixedAllocation)}/mies. (stałe)</span>}
