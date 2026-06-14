@@ -102,11 +102,11 @@ function FreeCashPanel({ cycle }: { cycle: FreeCashCycle }) {
           <div className="bg-teal-500/80" style={{ width: `${freePct}%` }} />
         </div>
       </div>
-      <div className="mt-2 grid gap-2 text-xs text-gray-500 dark:text-gray-400 sm:grid-cols-2 xl:grid-cols-4">
-        <span>Koszty stałe: {formatPLN(cycle.committedExpense)}</span>
-        <span>Wolna gotówka: {formatPLN(cycle.freeCash)}</span>
-        <span>Oszczędności: {formatPLN(savingsContribution)}{savingsWithdrawal > 0 ? ` / wypłata ${formatPLN(savingsWithdrawal)}` : ''}</span>
-        <span>Uznaniowe z wolnej: {formatPLN(cycle.variableExpense + cycle.uncategorizedExpense)} ({Math.round(variableUsedPct)}%)</span>
+      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-xs text-gray-500 dark:text-gray-400">
+        <span className="shrink-0">Koszty stałe: <span className="font-semibold text-gray-700 dark:text-gray-300">{formatPLN(cycle.committedExpense)}</span></span>
+        <span className="shrink-0">Wolna gotówka: <span className="font-semibold text-gray-700 dark:text-gray-300">{formatPLN(cycle.freeCash)}</span></span>
+        <span className="shrink-0">Oszczędności: <span className="font-semibold text-gray-700 dark:text-gray-300">{formatPLN(savingsContribution)}{savingsWithdrawal > 0 ? ` / wypłata ${formatPLN(savingsWithdrawal)}` : ''}</span></span>
+        <span className="shrink-0">Uznaniowe z wolnej: <span className="font-semibold text-gray-700 dark:text-gray-300">{formatPLN(cycle.variableExpense + cycle.uncategorizedExpense)} ({Math.round(variableUsedPct)}%)</span></span>
       </div>
     </div>
   )
@@ -117,14 +117,14 @@ function GoalPaceRow({ goal }: { goal: GoalPace }) {
   const status = statusCopy(goal.status)
 
   return (
-    <div className="grid gap-3 px-3 py-3 md:grid-cols-[minmax(0,1fr)_minmax(16rem,0.8fr)]">
+    <div className="grid gap-3 px-3 py-3 md:grid-cols-[minmax(0,1fr)_minmax(18rem,0.8fr)]">
       <div className="min-w-0">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-500 dark:bg-gray-800 dark:text-gray-400">
             {goal.priority}
           </span>
           <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">{goal.name}</p>
-          <span className={`rounded-sm px-1.5 py-0.5 text-xs ${status.className}`}>{status.label}</span>
+          <span className={`rounded-sm px-1.5 py-0.5 text-xs shrink-0 ${status.className}`}>{status.label}</span>
         </div>
         <div className="mt-2 h-2 overflow-hidden rounded-sm bg-gray-100 dark:bg-gray-800">
           <div className="h-full rounded-sm bg-teal-500/80" style={{ width: `${progress}%` }} />
@@ -133,7 +133,7 @@ function GoalPaceRow({ goal }: { goal: GoalPace }) {
           {formatPLN(goal.currentSaved)} / {formatPLN(goal.targetAmount)}; zostalo {formatPLN(goal.remainingAmount)}
         </p>
       </div>
-      <div className="grid gap-2 text-xs sm:grid-cols-3 md:grid-cols-1 xl:grid-cols-3">
+      <div className="grid gap-2 text-xs grid-cols-3 md:grid-cols-1 xl:grid-cols-3">
         <Metric label="Plan / cykl" value={goal.plannedPerCycle ? formatPLN(goal.plannedPerCycle) : 'kolejka'} />
         <Metric label="Realnie / cykl" value={formatPLN(goal.actualPerCycle)} tone={goal.actualPerCycle > 0 ? 'positive' : 'negative'} />
         <Metric label="Projekcja" value={projectionLabel(goal)} />
