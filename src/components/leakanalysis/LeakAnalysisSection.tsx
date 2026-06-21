@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import { AlertTriangle, Lock, Repeat, Scissors, TrendingUp, Unlock } from 'lucide-react'
+import { AlertTriangle, Lock, Repeat, Scissors, TrendingUp, Unlock, X } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { IS_API_MODE } from '../../config'
 import { formatPLN } from '../../domain/formatting'
-import type { BankTransaction, Category, CycleLeakAnalysis, PayPeriod } from '../../domain/types'
+import type { BankTransaction, Category, CycleCategoryRollup, CycleLeakAnalysis, PayPeriod } from '../../domain/types'
 import { useStore } from '../../store'
 import { SortableTransactionHeader } from '../transactions/SortableTransactionHeader'
 import {
@@ -28,6 +28,7 @@ export function LeakAnalysisSection({ selectedPeriod }: Props) {
   const loadLeakAnalysis = useStore(s => s.loadLeakAnalysis)
   const loadCycleTransactions = useStore(s => s.loadCycleTransactions)
   const overrideTransactionCategory = useStore(s => s.overrideTransactionCategory)
+  const [selectedCategory, setSelectedCategory] = useState<CycleCategoryRollup | undefined>()
 
   useEffect(() => {
     if (selectedPeriod) {
@@ -47,6 +48,9 @@ export function LeakAnalysisSection({ selectedPeriod }: Props) {
       loadCycleTransactions(selectedPeriod.accountId, selectedPeriod.periodNo),
     ])
   }
+  const activeCategory = selectedCategory
+    ? leakAnalysis?.topCategories.find(row => row.categoryId === selectedCategory.categoryId && row.categoryName === selectedCategory.categoryName) ?? selectedCategory
+    : undefined
 
   if (!IS_API_MODE) {
     return (
@@ -73,7 +77,7 @@ export function LeakAnalysisSection({ selectedPeriod }: Props) {
       <CycleSummary analysis={leakAnalysis} />
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)]">
-        <TopCategories analysis={leakAnalysis} />
+        <TopCategories analysis={leakAnalysis} onSelectCategory={setSelectedCategory} />
         <RecurringList analysis={leakAnalysis} />
       </div>
 
@@ -87,6 +91,16 @@ export function LeakAnalysisSection({ selectedPeriod }: Props) {
         categories={categories}
         onAssignCategory={assignTransactionCategory}
       />
+
+      {activeCategory && (
+        <CategoryTransactionsOverlay
+          category={activeCategory}
+          transactions={cycleTransactionsLoaded ? filterTransactionsForCategory(cycleTransactions ?? [], activeCategory) : undefined}
+          categories={categories}
+          onAssignCategory={assignTransactionCategory}
+          onClose={() => setSelectedCategory(undefined)}
+        />
+      )}
     </div>
   )
 }
@@ -102,7 +116,13 @@ function CycleSummary({ analysis }: { analysis: CycleLeakAnalysis }) {
   )
 }
 
-function TopCategories({ analysis }: { analysis: CycleLeakAnalysis }) {
+function TopCategories({
+  analysis,
+  onSelectCategory,
+}: {
+  analysis: CycleLeakAnalysis
+  onSelectCategory: (category: CycleCategoryRollup) => void
+}) {
   const rows = analysis.topCategories
     .filter(row => row.expense > 0 || row.income > 0 || savingsContribution(row) > 0 || savingsWithdrawal(row) > 0)
     .slice(0, 8)
@@ -123,7 +143,12 @@ function TopCategories({ analysis }: { analysis: CycleLeakAnalysis }) {
             const savingsWithdrawalPct = (withdrawal / maxAmount) * 100
 
             return (
-              <div key={`${row.categoryId ?? 'none'}-${row.categoryName}`} className="space-y-1.5">
+              <button
+                key={`${row.categoryId ?? 'none'}-${row.categoryName}`}
+                type="button"
+                onClick={() => onSelectCategory(row)}
+                className="block w-full space-y-1.5 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:hover:bg-gray-900"
+              >
                 <div className="flex items-center justify-between gap-3 text-sm">
                   <span className="truncate font-medium text-gray-900 dark:text-gray-100">{row.categoryName}</span>
                   <div className="flex shrink-0 flex-wrap justify-end gap-x-2 gap-y-0.5 tabular-nums">
@@ -144,7 +169,7 @@ function TopCategories({ analysis }: { analysis: CycleLeakAnalysis }) {
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {row.transactionCount} transakcji, net <span className={amountTone(row.amount)}>{formatPLN(row.amount)}</span>
                 </p>
-              </div>
+              </button>
             )
           })}
         </div>
@@ -306,64 +331,173 @@ function CycleTransactionsReview({
       ) : sortedTransactions.length === 0 ? (
         <Empty text="Brak transakcji w tym cyklu." />
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="text-left text-xs text-gray-500 dark:text-gray-400">
-              <tr className="border-b border-gray-200 dark:border-gray-800">
-                <SortableTransactionHeader label="Data" sortKey="bookedAt" sort={transactionSort} onSort={sortByTransactionColumn} />
-                <SortableTransactionHeader label="Opis" sortKey="description" sort={transactionSort} onSort={sortByTransactionColumn} />
-                <SortableTransactionHeader label="Kwota" sortKey="amount" sort={transactionSort} onSort={sortByTransactionColumn} align="right" />
-                <SortableTransactionHeader label="Kategoria" sortKey="category" sort={transactionSort} onSort={sortByTransactionColumn} />
-                <SortableTransactionHeader label="Blokada" sortKey="categoryLocked" sort={transactionSort} onSort={sortByTransactionColumn} className="py-2 pr-0" />
-              </tr>
-            </thead>
-            <tbody>
-              {sortedTransactions.map(transaction => {
-                const categoryName = transaction.categoryId
-                  ? categoryById.get(transaction.categoryId)?.name
-                  : undefined
-
-                return (
-                  <tr key={transaction.id} className="border-b border-gray-100 align-top dark:border-gray-900">
-                    <td className="whitespace-nowrap py-2 pr-3 text-gray-500 dark:text-gray-400">{transaction.bookedAt}</td>
-                    <td className="min-w-72 py-2 pr-3">
-                      <p className="font-medium text-gray-900 dark:text-gray-100">{transaction.counterparty ?? transaction.description}</p>
-                      <p className="line-clamp-2 text-xs text-gray-500 dark:text-gray-400">{transaction.description}</p>
-                    </td>
-                    <td className={`whitespace-nowrap py-2 pr-3 text-right tabular-nums ${transaction.amount < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-teal-700 dark:text-teal-300'}`}>
-                      {formatPLN(transaction.amount)}
-                    </td>
-                    <td className="py-2 pr-3">
-                      <select
-                        value={transaction.categoryId ?? ''}
-                        onChange={event => void onAssignCategory(transaction.id, event.target.value ? Number(event.target.value) : undefined, true)}
-                        className="w-full min-w-44 rounded-md border border-gray-200 bg-white px-2 py-1.5 text-sm dark:border-gray-800 dark:bg-gray-950"
-                        aria-label={`Kategoria transakcji ${transaction.description}`}
-                      >
-                        <option value="">Bez kategorii</option>
-                        {categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
-                      </select>
-                      {categoryName && <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{categoryName}</p>}
-                    </td>
-                    <td className="whitespace-nowrap py-2 pr-0">
-                      <button
-                        type="button"
-                        onClick={() => void onAssignCategory(transaction.id, transaction.categoryId, !transaction.categoryLocked)}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 px-2 py-1.5 text-xs text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-800"
-                      >
-                        {transaction.categoryLocked ? <Lock size={14} /> : <Unlock size={14} />}
-                        {transaction.categoryLocked ? 'Ręczna' : 'Reguły'}
-                      </button>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+        <TransactionsTable
+          transactions={sortedTransactions}
+          categories={categories}
+          categoryById={categoryById}
+          onAssignCategory={onAssignCategory}
+          sort={transactionSort}
+          onSort={sortByTransactionColumn}
+        />
       )}
     </Collapsible>
   )
+}
+
+function CategoryTransactionsOverlay({
+  category,
+  transactions,
+  categories,
+  onAssignCategory,
+  onClose,
+}: {
+  category: CycleCategoryRollup
+  transactions?: BankTransaction[]
+  categories: Category[]
+  onAssignCategory: (transactionId: number, categoryId: number | undefined, locked?: boolean) => Promise<void>
+  onClose: () => void
+}) {
+  const [transactionSort, setTransactionSort] = useState<TransactionSort>(DEFAULT_TRANSACTION_SORT)
+  const categoryById = useMemo(
+    () => new Map(categories.map(item => [item.id, item])),
+    [categories],
+  )
+  const sortedTransactions = useMemo(
+    () => transactions ? sortTransactions(transactions, categories, transactionSort) : undefined,
+    [categories, transactionSort, transactions],
+  )
+  const sortByTransactionColumn = (key: TransactionSortKey) => {
+    setTransactionSort(current => nextTransactionSort(current, key))
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-gray-950/60 px-3 py-0 sm:items-center sm:px-4 sm:py-8"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Szczegóły kategorii ${category.categoryName}`}
+      onClick={onClose}
+    >
+      <div
+        className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-t-2xl border border-gray-200 bg-white shadow-xl dark:border-gray-800 dark:bg-gray-950 sm:max-h-[85vh] sm:rounded-2xl"
+        onClick={event => event.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+          <div className="min-w-0">
+            <h3 className="truncate text-base font-semibold text-gray-900 dark:text-gray-100">{category.categoryName}</h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {category.transactionCount} transakcji, net <span className={amountTone(category.amount)}>{formatPLN(category.amount)}</span>
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+            aria-label="Zamknij"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <div className="min-h-0 overflow-auto p-4">
+          {sortedTransactions === undefined ? (
+            <p className="text-sm text-gray-500 dark:text-gray-400">Ładuję transakcje kategorii...</p>
+          ) : sortedTransactions.length === 0 ? (
+            <Empty text="Brak transakcji dla tej kategorii w cyklu." />
+          ) : (
+            <TransactionsTable
+              transactions={sortedTransactions}
+              categories={categories}
+              categoryById={categoryById}
+              onAssignCategory={onAssignCategory}
+              sort={transactionSort}
+              onSort={sortByTransactionColumn}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TransactionsTable({
+  transactions,
+  categories,
+  categoryById,
+  onAssignCategory,
+  sort,
+  onSort,
+}: {
+  transactions: BankTransaction[]
+  categories: Category[]
+  categoryById: Map<number, Category>
+  onAssignCategory: (transactionId: number, categoryId: number | undefined, locked?: boolean) => Promise<void>
+  sort: TransactionSort
+  onSort: (key: TransactionSortKey) => void
+}) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="min-w-full text-sm">
+        <thead className="text-left text-xs text-gray-500 dark:text-gray-400">
+          <tr className="border-b border-gray-200 dark:border-gray-800">
+            <SortableTransactionHeader label="Data" sortKey="bookedAt" sort={sort} onSort={onSort} />
+            <SortableTransactionHeader label="Opis" sortKey="description" sort={sort} onSort={onSort} />
+            <SortableTransactionHeader label="Kwota" sortKey="amount" sort={sort} onSort={onSort} align="right" />
+            <SortableTransactionHeader label="Kategoria" sortKey="category" sort={sort} onSort={onSort} />
+            <SortableTransactionHeader label="Blokada" sortKey="categoryLocked" sort={sort} onSort={onSort} className="py-2 pr-0" />
+          </tr>
+        </thead>
+        <tbody>
+          {transactions.map(transaction => {
+            const categoryName = transaction.categoryId
+              ? categoryById.get(transaction.categoryId)?.name
+              : undefined
+
+            return (
+              <tr key={transaction.id} className="border-b border-gray-100 align-top dark:border-gray-900">
+                <td className="whitespace-nowrap py-2 pr-3 text-gray-500 dark:text-gray-400">{transaction.bookedAt}</td>
+                <td className="min-w-72 py-2 pr-3">
+                  <p className="font-medium text-gray-900 dark:text-gray-100">{transaction.counterparty ?? transaction.description}</p>
+                  <p className="line-clamp-2 text-xs text-gray-500 dark:text-gray-400">{transaction.description}</p>
+                </td>
+                <td className={`whitespace-nowrap py-2 pr-3 text-right tabular-nums ${transaction.amount < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-teal-700 dark:text-teal-300'}`}>
+                  {formatPLN(transaction.amount)}
+                </td>
+                <td className="py-2 pr-3">
+                  <select
+                    value={transaction.categoryId ?? ''}
+                    onChange={event => void onAssignCategory(transaction.id, event.target.value ? Number(event.target.value) : undefined, true)}
+                    className="w-full min-w-44 rounded-md border border-gray-200 bg-white px-2 py-1.5 text-sm dark:border-gray-800 dark:bg-gray-950"
+                    aria-label={`Kategoria transakcji ${transaction.description}`}
+                  >
+                    <option value="">Bez kategorii</option>
+                    {categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
+                  </select>
+                  {categoryName && <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{categoryName}</p>}
+                </td>
+                <td className="whitespace-nowrap py-2 pr-0">
+                  <button
+                    type="button"
+                    onClick={() => void onAssignCategory(transaction.id, transaction.categoryId, !transaction.categoryLocked)}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 px-2 py-1.5 text-xs text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-800"
+                  >
+                    {transaction.categoryLocked ? <Lock size={14} /> : <Unlock size={14} />}
+                    {transaction.categoryLocked ? 'Ręczna' : 'Reguły'}
+                  </button>
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function filterTransactionsForCategory(transactions: BankTransaction[], category: CycleCategoryRollup) {
+  return transactions.filter(transaction => {
+    if (category.categoryId == null) return transaction.categoryId == null
+    return transaction.categoryId === category.categoryId
+  })
 }
 
 type AmountKind = 'income' | 'expense' | 'savings' | 'neutral'
